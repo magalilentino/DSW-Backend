@@ -1,0 +1,37 @@
+### obtener todos los servicios
+GET http://localhost:3000/api/servicio
+
+### obtener un servicio
+GET http://localhost:3000/api/servicio/f47ac10b-58cc-4372-a567-0e02b2c3d479
+
+### crear un nuevo servicio
+POST http://localhost:3000/api/servicio
+Content-Type: application/json
+
+{
+  "name": "Servicio de ejemplo",
+  "tiempoDemora": 40
+}
+
+### modificar un servicio (PUT - recurso completo e idempotente)
+PUT http://localhost:3000/api/servicio/5700ed7b-6f37-4c15-8828-49cd8c346968
+Content-Type: application/json
+
+{
+  "name": "Servicio de ejemplo modificado",
+  "tiempoDemora": 60
+}
+//dos formas de modificar un servicio(uno es el recurso completo y el otro es el recurso parcial creo)
+### modificar un servicio (PATCH - recurso parcial)
+PATCH http://localhost:3000/api/servicio/5700ed7b-6f37-4c15-8828-49cd8c346968
+Content-Type: application/json
+
+{
+  "name": "Servicio de ejemplo modificado",
+  "tiempoDemora": 80
+}
+
+### borrar un servicio
+DELETE http://localhost:3000/api/servicio/5700ed7b-6f37-4c15-8828-49cd8c346968
+
+//el codigo de cada http es el de un servicio
