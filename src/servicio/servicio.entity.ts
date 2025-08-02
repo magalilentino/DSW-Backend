@@ -1,9 +1,19 @@
-import crypto from 'node:crypto'
+import {
+  Entity,
+  Property,
+  ManyToMany,
+  Cascade,
+  ManyToOne,
+  Rel,
+} from '@mikro-orm/core'
+import { BaseEntity } from '../shared/baseEntity.entity.js'
 
-export class Servicio {
-  constructor(
-    public name: string,
-    public tiempoDemora: number,
-    public codigo: number,
-  ) {}  
+@Entity()
+export class Servicio extends BaseEntity {
+  @Property({ nullable: false })
+  name!: string
+
+  @Property({ nullable: false })
+  tiempoDemora!: number
+
 }

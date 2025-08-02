@@ -1,15 +1,19 @@
 import { Request, Response, NextFunction } from 'express'
-import { ServicioRepository } from './servicio.repository.js'
 import { Servicio } from './servicio.entity.js'
+import { orm } from '../shared/orm.js'
 
-const repository = new ServicioRepository()
+const em = orm.em
 
-function sanitizeServicioInput(req: Request, res: Response, next: NextFunction) {
+function sanitizeServicioInput(
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
   req.body.sanitizedInput = {
     name: req.body.name,
     tiempoDemora: req.body.tiempoDemora
+    
   }
-
   Object.keys(req.body.sanitizedInput).forEach((key) => {
     if (req.body.sanitizedInput[key] === undefined) {
       delete req.body.sanitizedInput[key]
@@ -19,51 +23,63 @@ function sanitizeServicioInput(req: Request, res: Response, next: NextFunction) 
 }
 
 async function findAll(req: Request, res: Response) {
-  res.json({ data: await repository.findAll() })
+  try {
+    const servicios = await em.find(
+      Servicio,
+      {},
+      //{ populate: ['tonos', 'productos', 'precios', 'clientes'] }
+    )
+    res.status(200).json({ message: 'found all servicios', data: servicios })
+  } catch (error: any) {
+    res.status(500).json({ message: error.message })
+  }
 }
 
 async function findOne(req: Request, res: Response) {
-  const codigo = req.params.codigo
-  const servicio = await repository.findOne({ codigo })
-  if (!servicio) {
-    /*return*/ res.status(404).send({ message: 'Servicio not found' })
+  try {
+    const id = Number.parseInt(req.params.id)
+    const servicio = await em.findOneOrFail(
+      Servicio,
+      { id },
+      //{ populate: ['tonos', 'productos', 'precios', 'clientes'] }
+    )
+    res.status(200).json({ message: 'found servicio', data: servicio })
+  } catch (error: any) {
+    res.status(500).json({ message: error.message })
   }
-  res.json({ data: servicio })
 }
 
 async function add(req: Request, res: Response) {
-  const input = req.body.sanitizedInput
-
-  const servicioInput = new Servicio (
-    input.name,
-    input.tiempoDemora,
-    input.codigo
-    
-    )
-
-  const servicio = await  repository.add(servicioInput)
-  res.status(201).send({ message: 'Servicio created', data: servicio })
+  try {
+    const servicio = em.create(Servicio, req.body.sanitizedInput)
+    await em.flush()
+    res.status(201).json({ message: 'servicio created', data: servicio })
+  } catch (error: any) {
+    res.status(500).json({ message: error.message })
+  }
 }
 
-
 async function update(req: Request, res: Response) {
-  const servicio = await repository.update(req.params.codigo, req.body.sanitizedInput)
-
-  if (!servicio) {
-    res.status(404).send({ message: 'Servicio not found' })
-  } else {
-    res.status(200).send({ message: 'Servicio updated successfully', data: servicio })
+  try {
+    const id = Number.parseInt(req.params.id)
+    const servicioToUpdate = await em.findOneOrFail(Servicio, { id })
+    em.assign(servicioToUpdate, req.body.sanitizedInput)
+    await em.flush()
+    res
+      .status(200)
+      .json({ message: 'servicio updated', data: servicioToUpdate })
+  } catch (error: any) {
+    res.status(500).json({ message: error.message })
   }
 }
 
 async function remove(req: Request, res: Response) {
-  const codigo = req.params.codigo
-  const servicio = await repository.delete({ codigo })
-
-  if (!servicio) {
-    res.status(404).send({ message: 'Servicio not found' })
-  } else {
-    res.status(200).send({ message: 'Servicio deleted successfully' })
+  try {
+    const id = Number.parseInt(req.params.id)
+    const servicio = em.getReference(Servicio, id)
+    await em.removeAndFlush(servicio)
+  } catch (error: any) {
+    res.status(500).json({ message: error.message })
   }
 }
 
