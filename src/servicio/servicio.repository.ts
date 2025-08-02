@@ -1,52 +1,36 @@
 import { Repository } from '../shared/repository.js'
 import { Servicio } from './servicio.entity.js'
-
-/*const servicios = [
-  new Servicio(
-    'Lavado',                         esto vendria aser un ejemplo
-    40, //ejemplo                 
-    "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-  ),
-]*/
-
-const servicios: Servicio[] = []
+import { pool } from '../shared/MySQL/connection.mysql.js'
+import { RowDataPacket } from 'mysql2'
 
 export class ServicioRepository implements Repository<Servicio> {
-  public findAll(): Servicio[] | undefined {
-    return servicios // devuelve todos los servicios
+  public async findAll(): Promise<Servicio[] | undefined> {
+    const [servicios] = await pool.query('SELECT * FROM servicios')
+    return servicios as Servicio[]
   }
 
-  public findOne(item: { codigo: string }): Servicio | undefined {
-    return servicios.find((servicio) => servicio.codigo === item.codigo)
-  } // devuelve un servicio en particular
-
-  public add(item: Servicio): Servicio | undefined {
-    servicios.push(item)
-    return item
-  } // agrega un servicio al array de servicios y devuelve el servicio agregado
-
-  public update(item: Servicio): Servicio | undefined {
-    const servicioIdx = servicios.findIndex((servicio) => servicio.codigo === item.codigo)
-
-    if (servicioIdx !== -1) {
-      servicios[servicioIdx] = { ...servicios[servicioIdx], ...item }
+  public async findOne(item: { codigo: string }): Promise<Servicio | undefined> {
+    const codigo = Number.parseInt(item.codigo)
+    const [servicios] = await pool.query<RowDataPacket[]>('SELECT * FROM servicios WHERE codigo = ?', [codigo])
+    if (servicios.length=== 0) {
+      return undefined
     }
-    return servicios[servicioIdx]
-  } //hace una busqueda a traves del array buscando la coincidencia del codigo, si lo encuentra 
-  // servicioIdx retorna el valor dentro del array y despues retorna el servicio, si no lo encuentra retorna -1
+     
+  /*const servicio = servicios[0] as Servicio
+    const [items] = await pool.query('select itemName from servicioItems where servicioId = ?', [servicio.codigo])
+    servicio.items = (items as { itemName: string }[]).map((item) => item.itemName)
+    return servicio*/
+  }
 
-  public delete(item: { codigo: string }): Servicio | undefined {
-    const servicioIdx = servicios.findIndex((servicio) => servicio.codigo === item.codigo)
+  public async add(item: Servicio): Promise<Servicio | undefined> {
+    throw new Error ('not implemented')
+  }
 
-    if (servicioIdx !== -1) {
-      const deletedServicio = servicios[servicioIdx]
-      servicios.splice(servicioIdx, 1) //El método splice() en JavaScript se usa para agregar, quitar o reemplazar elementos de un array. 
-                                      // El 1 indica que se eliminará un solo elemento a partir del índice encontrado.
-                                      //si fuera 3 se eliminarían 3 elementos a partir del índice encontrado.    
-      return deletedServicio
-    }
-  }//hace una busqueda a traves del array buscando la coincidencia del codigo, si lo encuentra. servicioIdx retorna el valor dentro del array.
+  public async update(id: string, item: Servicio): Promise<Servicio | undefined> {
+    throw new Error ('not implemented')
+  }
+
+  public async delete(item: { codigo: string }): Promise<Servicio | undefined> {
+    throw new Error ('not implemented')
+  }
 }
-
-
-//tendriamos que llamarlo item o con otro nombre?

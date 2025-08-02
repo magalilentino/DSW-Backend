@@ -4,6 +4,6 @@ export class Servicio {
   constructor(
     public name: string,
     public tiempoDemora: number,
-    public codigo = crypto.randomUUID(),
+    public codigo: number,
   ) {}  
 }
