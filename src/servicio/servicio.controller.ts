@@ -18,9 +18,8 @@ function sanitizeServicioInput(req: Request, res: Response, next: NextFunction) 
   next()
 }
 
-//Devuelve todos los servicios que hay en el repositorio. Responde con un JSON que tiene los servicios.
 async function findAll(req: Request, res: Response) {
-  res.json({ data: repository.findAll() })
+  res.json({ data: await repository.findAll() })
 }
 
 async function findOne(req: Request, res: Response) {
@@ -46,9 +45,7 @@ async function add(req: Request, res: Response) {
 }
 
 
-// La función update busca un servicio en el repositorio usando el código que se pasa por la URL. Si lo encuentra, actualiza los datos del servicio, da un mensaje de exito y muestra los cambios. Si no lo encuentra, responde con un mensaje de error.
 async function update(req: Request, res: Response) {
-  req.body.sanitizedInput.codigo = req.params.codigo
   const servicio = await repository.update(req.params.codigo, req.body.sanitizedInput)
 
   if (!servicio) {
@@ -58,9 +55,9 @@ async function update(req: Request, res: Response) {
   }
 }
 
-function remove(req: Request, res: Response) {
+async function remove(req: Request, res: Response) {
   const codigo = req.params.codigo
-  const servicio = repository.delete({ codigo })
+  const servicio = await repository.delete({ codigo })
 
   if (!servicio) {
     res.status(404).send({ message: 'Servicio not found' })
