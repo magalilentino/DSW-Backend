@@ -8,7 +8,7 @@ export class ServicioRepository implements Repository<Servicio> {
     return servicios as Servicio[]
   }
 
-  public async findOne(item: { codigo: string }): Promise<Servicio[] | undefined> {
+  public async findOne(item: { codigo: string }): Promise<Servicio | undefined> {
     const codigo = Number.parseInt(item.codigo)
     const [servicios] = await pool.query('SELECT * FROM servicios WHERE codigo = ?', [codigo])
     if ((servicios as Servicio[]).length=== 0) {
