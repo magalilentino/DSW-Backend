@@ -1,0 +1,48 @@
+### GET ALL
+GET http://localhost:3000/api/marca
+
+### POST
+# @name createMarca
+POST http://localhost:3000/api/marca
+Content-Type: application/json
+
+{
+    "name": "Loreal"
+}
+
+###ID
+@id = {{createMarca.response.body.data.id}}
+
+### GET ONE
+GET http://localhost:3000/api/marca/{{id}}
+
+### PUT
+PUT http://localhost:3000/api/marca/{{id}}
+Content-Type: application/json
+
+{
+    "name": "Loreal"
+}
+
+# ### POST 2
+# POST http://localhost:3000/api/marcas
+# Content-Type: application/json
+
+# {
+#     "name": "Death Star",
+#     "description": "Planet killer"
+# }
+
+### POST
+# @name createItemToDelete
+POST http://localhost:3000/api/marca
+Content-Type: application/json
+
+{
+    "name": "Revlon",
+}
+
+### DELETE
+@idToDelete = {{createItemToDelete.response.body.data.id}}
+
+DELETE http://localhost:3000/api/marca/{{idToDelete}}
