@@ -38,6 +38,7 @@ async function add(req: Request, res: Response) {
     input.name,
     input.tiempoDemora,
     input.codigo
+    
     )
 
   const servicio = await  repository.add(servicioInput)
