@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ### GET All 
 GET http://localhost:3000/api/precio/servicio
 
@@ -27,3 +28,65 @@ Content-Type: application/json
 DELETE http://localhost:3000/api/servicio{{idToDelete}}
 
 
+=======
+### GET ALL
+GET http://localhost:3000/api/servicio
+
+### POST
+# @name createServicio
+POST http://localhost:3000/api/servicio
+Content-Type: application/json
+
+{
+    "name": "Lord Sith",
+    "tiempoDemora": 20
+}
+
+### ID
+@id = {{createServicio.response.body.data.id}}
+
+### GET ONE
+GET http://localhost:3000/api/servicio/{{id}}
+
+
+### PUT
+PUT  http://localhost:3000/api/servicio/{{id}}
+Content-Type: application/json
+
+{
+    "name": "Lord Sith",
+    "tiempoDemora": 10
+}
+
+### POST2
+POST http://localhost:3000/api/servicio
+Content-Type: application/json
+
+{
+    "name": "Jedi Knight",
+    "tiempoDemora": 30
+}
+
+### POST3
+POST http://localhost:3000/api/servicio
+Content-Type: application/json
+
+{
+    "name": "Fallen Jedi",
+    "tiempoDemora": 10
+}
+
+### POST SERVICIO TO DELETE
+# @name createServicioToDelete
+POST http://localhost:3000/api/servicio
+Content-Type: application/json
+
+{
+    "name": "Fallen Jedi",
+    "tiempoDemora": 20
+}
+
+### DELETE
+@idToDelete = {{createServicioToDelete.response.body.data.id}}
+DELETE http://localhost:3000/api/servicio/{{idToDelete}}
+>>>>>>> a85a259 (CRUD Turno con persistencia)
