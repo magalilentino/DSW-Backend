@@ -1,11 +1,11 @@
 import { Router } from 'express'
 import { sanitizeProductoInput, findAll, findOne, add, update, remove } from './producto.controller.js'
 
-export const CategoriaRouter = Router()
+export const ProductoRouter = Router()
 
-CategoriaRouter.get('/', findAll)
-CategoriaRouter.get('/:idProducto', findOne)
-CategoriaRouter.post('/', sanitizeProductoInput, add)
-CategoriaRouter.put('/:idProducto', sanitizeProductoInput, update)
-CategoriaRouter.patch('/:idProducto', sanitizeProductoInput, update)
-CategoriaRouter.delete('/:idProducto', remove)
+ProductoRouter.get('/', findAll)
+ProductoRouter.get('/:idProducto', findOne)
+ProductoRouter.post('/', sanitizeProductoInput, add)
+ProductoRouter.put('/:idProducto', sanitizeProductoInput, update)
+ProductoRouter.patch('/:idProducto', sanitizeProductoInput, update)
+ProductoRouter.delete('/:idProducto', remove)

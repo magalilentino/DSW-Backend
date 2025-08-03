@@ -1,0 +1,20 @@
+### obtener todos los pagos
+GET http://localhost:3000/api/pago
+
+### obtener un pago
+GET http://localhost:3000/api/pago/f47ac10b-58cc-4372-a567-0e02b2c3d479
+
+### crear un nuevo pago
+POST http://localhost:3000/api/pago
+Content-Type: application/json
+
+### modificar un pago (PUT - recurso completo e idempotente)
+PUT http://localhost:3000/api/pago/5700ed7b-6f37-4c15-8828-49cd8c346968
+Content-Type: application/json
+
+### modificar un pago (PATCH - recurso parcial)
+PATCH http://localhost:3000/api/pago/5700ed7b-6f37-4c15-8828-49cd8c346968
+Content-Type: application/json
+
+### borrar un pago
+DELETE http://localhost:3000/api/pago/5700ed7b-6f37-4c15-8828-49cd8c346968

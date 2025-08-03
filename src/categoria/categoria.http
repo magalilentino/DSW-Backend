@@ -9,7 +9,7 @@ POST http://localhost:3000/api/categoria
 Content-Type: application/json
 
 ### modificar un categoria (PUT - recurso completo e idempotente)
-PUT http://localhost:3000/api/categoriao/5700ed7b-6f37-4c15-8828-49cd8c346968
+PUT http://localhost:3000/api/categoria/5700ed7b-6f37-4c15-8828-49cd8c346968
 Content-Type: application/json
 
 ### modificar un categoria (PATCH - recurso parcial)

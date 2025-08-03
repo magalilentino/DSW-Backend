@@ -1,17 +1,16 @@
 import { Request, Response, NextFunction } from 'express'
-import { Servicio } from './servicio.entity.js'
+import { Descuento } from './descuento.entity.js'
 import { orm } from '../shared/orm.js'
 
 const em = orm.em
 
-function sanitizeServicioInput(
+function sanitizeDescuentoInput(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
   req.body.sanitizedInput = {
-    name: req.body.name,
-    tiempoDemora: req.body.tiempoDemora
+    porcentaje: req.body.nombreporcentaje,
   }
   Object.keys(req.body.sanitizedInput).forEach((key) => {
     if (req.body.sanitizedInput[key] === undefined) {
@@ -23,12 +22,12 @@ function sanitizeServicioInput(
 
 async function findAll(req: Request, res: Response) {
   try {
-    const servicios = await em.find(
-      Servicio,
+    const descuentos = await em.find(
+      Descuento,
       {},
       //{ populate: ['tonos', 'productos', 'precios', 'clientes'] }
     )
-    res.status(200).json({ message: 'found all servicios', data: servicios })
+    res.status(200).json({ message: 'found all escuento', data: descuentos })
   } catch (error: any) {
     res.status(500).json({ message: error.message })
   }
@@ -36,13 +35,13 @@ async function findAll(req: Request, res: Response) {
 
 async function findOne(req: Request, res: Response) {
   try {
-    const id = Number.parseInt(req.params.id)
-    const servicio = await em.findOneOrFail(
-      Servicio,
-      { id },
+    const idDescuento = Number.parseInt(req.params.idDescuento)
+    const descuento = await em.findOneOrFail(
+      Descuento,
+      { idDescuento },
       //{ populate: ['tonos', 'productos', 'precios', 'clientes'] }
     )
-    res.status(200).json({ message: 'found servicio', data: servicio })
+    res.status(200).json({ message: 'found descuento', data: descuento })
   } catch (error: any) {
     res.status(500).json({ message: error.message })
   }
@@ -50,9 +49,9 @@ async function findOne(req: Request, res: Response) {
 
 async function add(req: Request, res: Response) {
   try {
-    const servicio = em.create(Servicio, req.body.sanitizedInput)
+    const descuento = em.create(Descuento, req.body.sanitizedInput)
     await em.flush()
-    res.status(201).json({ message: 'servicio created', data: servicio })
+    res.status(201).json({ message: 'descuento created', data: descuento })
   } catch (error: any) {
     res.status(500).json({ message: error.message })
   }
@@ -60,13 +59,13 @@ async function add(req: Request, res: Response) {
 
 async function update(req: Request, res: Response) {
   try {
-    const id = Number.parseInt(req.params.id)
-    const servicioToUpdate = await em.findOneOrFail(Servicio, { id })
-    em.assign(servicioToUpdate, req.body.sanitizedInput)
+    const idDescuento = Number.parseInt(req.params.idDescuent)
+    const descuentoToUpdate = await em.findOneOrFail(Descuento, { idDescuento })
+    em.assign(descuentoToUpdate, req.body.sanitizedInput)
     await em.flush()
     res
       .status(200)
-      .json({ message: 'servicio updated', data: servicioToUpdate })
+      .json({ message: 'descuento updated', data: descuentoToUpdate })
   } catch (error: any) {
     res.status(500).json({ message: error.message })
   }
@@ -74,12 +73,12 @@ async function update(req: Request, res: Response) {
 
 async function remove(req: Request, res: Response) {
   try {
-    const id = Number.parseInt(req.params.id)
-    const servicio = em.getReference(Servicio, id)
-    await em.removeAndFlush(servicio)
+    const idDescuento = Number.parseInt(req.params.idDescuento)
+    const descuento = em.findOneOrFail(Descuento, { idDescuento })
+    await em.removeAndFlush(descuento)
   } catch (error: any) {
     res.status(500).json({ message: error.message })
   }
 }
 
-export { sanitizeServicioInput, findAll, findOne, add, update, remove }
+export { sanitizeDescuentoInput, findAll, findOne, add, update, remove }

@@ -1,17 +1,18 @@
 import { Request, Response, NextFunction } from 'express'
-import { Servicio } from './servicio.entity.js'
+import { Pago } from './pago.entity.js'
 import { orm } from '../shared/orm.js'
 
 const em = orm.em
 
-function sanitizeServicioInput(
+function sanitizePagoInput(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
-  req.body.sanitizedInput = {
-    name: req.body.name,
-    tiempoDemora: req.body.tiempoDemora
+  req.body.sanitizedInput = {//creo que esto no hace falta sanitizarlo si no pasa por el cliente
+    metodo: req.body.metodo, 
+    total: req.body.total,
+    estado: req.body.estado
   }
   Object.keys(req.body.sanitizedInput).forEach((key) => {
     if (req.body.sanitizedInput[key] === undefined) {
@@ -23,12 +24,12 @@ function sanitizeServicioInput(
 
 async function findAll(req: Request, res: Response) {
   try {
-    const servicios = await em.find(
-      Servicio,
+    const pagos = await em.find(
+      Pago,
       {},
       //{ populate: ['tonos', 'productos', 'precios', 'clientes'] }
     )
-    res.status(200).json({ message: 'found all servicios', data: servicios })
+    res.status(200).json({ message: 'found all pago', data: pagos })
   } catch (error: any) {
     res.status(500).json({ message: error.message })
   }
@@ -36,13 +37,13 @@ async function findAll(req: Request, res: Response) {
 
 async function findOne(req: Request, res: Response) {
   try {
-    const id = Number.parseInt(req.params.id)
-    const servicio = await em.findOneOrFail(
-      Servicio,
-      { id },
+    const nroPago = Number.parseInt(req.params.nroPago)
+    const pago = await em.findOneOrFail(
+      Pago,
+      { nroPago },
       //{ populate: ['tonos', 'productos', 'precios', 'clientes'] }
     )
-    res.status(200).json({ message: 'found servicio', data: servicio })
+    res.status(200).json({ message: 'found pago', data: pago })
   } catch (error: any) {
     res.status(500).json({ message: error.message })
   }
@@ -50,9 +51,9 @@ async function findOne(req: Request, res: Response) {
 
 async function add(req: Request, res: Response) {
   try {
-    const servicio = em.create(Servicio, req.body.sanitizedInput)
+    const pago = em.create(Pago, req.body.sanitizedInput)
     await em.flush()
-    res.status(201).json({ message: 'servicio created', data: servicio })
+    res.status(201).json({ message: 'pago created', data: pago })
   } catch (error: any) {
     res.status(500).json({ message: error.message })
   }
@@ -60,13 +61,13 @@ async function add(req: Request, res: Response) {
 
 async function update(req: Request, res: Response) {
   try {
-    const id = Number.parseInt(req.params.id)
-    const servicioToUpdate = await em.findOneOrFail(Servicio, { id })
-    em.assign(servicioToUpdate, req.body.sanitizedInput)
+    const nroPago = Number.parseInt(req.params.nroPago)
+    const pagoToUpdate = await em.findOneOrFail(Pago, { nroPago })
+    em.assign(pagoToUpdate, req.body.sanitizedInput)
     await em.flush()
     res
       .status(200)
-      .json({ message: 'servicio updated', data: servicioToUpdate })
+      .json({ message: 'pago updated', data: pagoToUpdate })
   } catch (error: any) {
     res.status(500).json({ message: error.message })
   }
@@ -74,12 +75,12 @@ async function update(req: Request, res: Response) {
 
 async function remove(req: Request, res: Response) {
   try {
-    const id = Number.parseInt(req.params.id)
-    const servicio = em.getReference(Servicio, id)
-    await em.removeAndFlush(servicio)
+    const nroPago = Number.parseInt(req.params.nroPago)
+    const pago = em.findOneOrFail(Pago, { nroPago })
+    await em.removeAndFlush(pago)
   } catch (error: any) {
     res.status(500).json({ message: error.message })
   }
 }
 
-export { sanitizeServicioInput, findAll, findOne, add, update, remove }
+export { sanitizePagoInput, findAll, findOne, add, update, remove }

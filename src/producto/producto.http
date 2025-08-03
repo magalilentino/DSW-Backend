@@ -1,20 +1,20 @@
-### obtener todos los categoria
-GET http://localhost:3000/api/categoria
+### obtener todos los productos
+GET http://localhost:3000/api/producto
 
-### obtener un categoria
-GET http://localhost:3000/api/categoria/f47ac10b-58cc-4372-a567-0e02b2c3d479
+### obtener un producto
+GET http://localhost:3000/api/producto/f47ac10b-58cc-4372-a567-0e02b2c3d479
 
-### crear un nuevo categoria
-POST http://localhost:3000/api/categoria
+### crear un nuevo producto
+POST http://localhost:3000/api/producto
 Content-Type: application/json
 
-### modificar un categoria (PUT - recurso completo e idempotente)
-PUT http://localhost:3000/api/categoriao/5700ed7b-6f37-4c15-8828-49cd8c346968
+### modificar un producto (PUT - recurso completo e idempotente)
+PUT http://localhost:3000/api/producto/5700ed7b-6f37-4c15-8828-49cd8c346968
 Content-Type: application/json
 
-### modificar un categoria (PATCH - recurso parcial)
-PATCH http://localhost:3000/api/categoria/5700ed7b-6f37-4c15-8828-49cd8c346968
+### modificar un producto (PATCH - recurso parcial)
+PATCH http://localhost:3000/api/producto/5700ed7b-6f37-4c15-8828-49cd8c346968
 Content-Type: application/json
 
-### borrar un categoria
-DELETE http://localhost:3000/api/categoria/5700ed7b-6f37-4c15-8828-49cd8c346968
+### borrar un producto
+DELETE http://localhost:3000/api/producto/5700ed7b-6f37-4c15-8828-49cd8c346968
