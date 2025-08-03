@@ -10,7 +10,7 @@ function sanitizeServicioInput(
   next: NextFunction
 ) {
   req.body.sanitizedInput = {
-    name: req.body.name,
+    nombreServicio: req.body.nombreServicio,
     tiempoDemora: req.body.tiempoDemora
   }
   Object.keys(req.body.sanitizedInput).forEach((key) => {
@@ -36,10 +36,10 @@ async function findAll(req: Request, res: Response) {
 
 async function findOne(req: Request, res: Response) {
   try {
-    const id = Number.parseInt(req.params.id)
+    const codServicio = Number.parseInt(req.params.codServicio)
     const servicio = await em.findOneOrFail(
       Servicio,
-      { id },
+      { codServicio },
       //{ populate: ['tonos', 'productos', 'precios', 'clientes'] }
     )
     res.status(200).json({ message: 'found servicio', data: servicio })
@@ -60,8 +60,8 @@ async function add(req: Request, res: Response) {
 
 async function update(req: Request, res: Response) {
   try {
-    const id = Number.parseInt(req.params.id)
-    const servicioToUpdate = await em.findOneOrFail(Servicio, { id })
+    const codServicio = Number.parseInt(req.params.codServicio)
+    const servicioToUpdate = await em.findOneOrFail(Servicio, { codServicio })
     em.assign(servicioToUpdate, req.body.sanitizedInput)
     await em.flush()
     res
@@ -74,8 +74,8 @@ async function update(req: Request, res: Response) {
 
 async function remove(req: Request, res: Response) {
   try {
-    const id = Number.parseInt(req.params.id)
-    const servicio = em.getReference(Servicio, id)
+    const codServicio = Number.parseInt(req.params.codServicio)
+    const servicio = em.findOneOrFail(Servicio, { codServicio })
     await em.removeAndFlush(servicio)
   } catch (error: any) {
     res.status(500).json({ message: error.message })

@@ -1,20 +1,29 @@
-### obtener todos los servicios
-GET http://localhost:3000/api/servicio
+### GET All 
+GET http://localhost:3000/api/precio/servicio
 
-### obtener un servicio
-GET http://localhost:3000/api/servicio/f47ac10b-58cc-4372-a567-0e02b2c3d479
-
-### crear un nuevo servicio
-POST http://localhost:3000/api/servicio
+### POST
+# @name createservicio
+POST http://localhost:3000/api/precio/servicio
 Content-Type: application/json
 
-### modificar un servicio (PUT - recurso completo e idempotente)
-PUT http://localhost:3000/api/servicio/5700ed7b-6f37-4c15-8828-49cd8c346968
+{
+    "nombreServicio": "balayage ",
+    "tiempoDemora": 60,
+}
+
+### ID
+@idServicio = {{createservicio.response.body.data.codServicio}}
+
+### GET ONE
+GET http://localhost:3000/api/servicio/{{idServicio}}
+
+### PUT
+PUT  http://localhost:3000/api/servicio{{idServicio}}
 Content-Type: application/json
 
-### modificar un servicio (PATCH - recurso parcial)
-PATCH http://localhost:3000/api/servicio/5700ed7b-6f37-4c15-8828-49cd8c346968
-Content-Type: application/json
+### DELETE
+# @name createservicioToDelete
+@idToDelete = {{createservicioToDelete.response.body.data.codServicio}}
+DELETE http://localhost:3000/api/servicio{{idToDelete}}
 
-### borrar un servicio
-DELETE http://localhost:3000/api/servicio/5700ed7b-6f37-4c15-8828-49cd8c346968
+

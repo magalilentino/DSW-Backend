@@ -4,13 +4,15 @@ import {
   Property,
   Cascade,
   Collection,
+  PrimaryKey
 } from '@mikro-orm/core'
-import { BaseEntity } from '../shared/baseEntity.entity.js'
-
 
 @Entity()
-export class Marca extends BaseEntity {
+export class Marca {
+  @PrimaryKey()
+  idMarca!: number
+
   @Property({ nullable: false, unique: true })
-  name!: string 
+  nombreMarca!: string 
 
 }

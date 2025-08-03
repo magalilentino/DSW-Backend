@@ -4,8 +4,8 @@ import { sanitizeServicioInput, findAll, findOne, add, update, remove } from './
 export const ServicioRouter = Router()
 
 ServicioRouter.get('/', findAll)
-ServicioRouter.get('/:id', findOne)
+ServicioRouter.get('/:codServicio', findOne)
 ServicioRouter.post('/', sanitizeServicioInput, add)
-ServicioRouter.put('/:id', sanitizeServicioInput, update)
-ServicioRouter.patch('/:id', sanitizeServicioInput, update)
-ServicioRouter.delete('/:id', remove)
+ServicioRouter.put('/:codServicio', sanitizeServicioInput, update)
+ServicioRouter.patch('/:codServicio', sanitizeServicioInput, update)
+ServicioRouter.delete('/:codServicio', remove)

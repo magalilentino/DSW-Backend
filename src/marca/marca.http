@@ -7,7 +7,7 @@ POST http://localhost:3000/api/marca
 Content-Type: application/json
 
 {
-    "name": "Loreal"
+    "nombreMarca": "Loreal"
 }
 
 ###ID
@@ -21,7 +21,7 @@ PUT http://localhost:3000/api/marca/{{id}}
 Content-Type: application/json
 
 {
-    "name": "Loreal"
+    "nombreMarca": "Loreal"
 }
 
 # ### POST 2
@@ -34,15 +34,15 @@ Content-Type: application/json
 # }
 
 ### POST
-# @name createItemToDelete
+# @nombreMarca createItemToDelete
 POST http://localhost:3000/api/marca
 Content-Type: application/json
 
 {
-    "name": "Revlon",
+    "nombreMarca": "Revlon",
 }
 
 ### DELETE
-@idToDelete = {{createItemToDelete.response.body.data.id}}
+//@idToDelete = {{createItemToDelete.response.body.data.idMarca}}
 
-DELETE http://localhost:3000/api/marca/{{idToDelete}}
+//DELETE http://localhost:3000/api/marca/{{idToDelete}}
