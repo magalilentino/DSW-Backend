@@ -1,9 +1,6 @@
 import {
   Entity,
-  OneToMany,
-  Property,
-  Cascade,
-  Collection,
+  Property
 } from '@mikro-orm/core'
 import { BaseEntity } from '../shared/baseEntity.entity.js'
 
@@ -11,6 +8,6 @@ import { BaseEntity } from '../shared/baseEntity.entity.js'
 @Entity()
 export class Marca extends BaseEntity {
   @Property({ nullable: false, unique: true })
-  name!: string 
+  nombre!: string 
 
 }
