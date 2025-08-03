@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { sanitizePrecioInput, findAll, findOne, add, update, remove } from './precio.controller.js'
+import { sanitizePrecioInput, findAll, findOne, add, update, remove } from '../precio/precio.controller.js'
 
 export const PrecioRouter = Router()
 

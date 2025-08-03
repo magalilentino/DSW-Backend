@@ -7,6 +7,7 @@ import {
   Rel,
   PrimaryKey,
 } from '@mikro-orm/core'
+import { Categoria } from '../categoria/categoria.entity.js';
 
 @Entity()
 export class Producto {
@@ -15,4 +16,7 @@ export class Producto {
 
   @Property({ nullable: false })
   descripcion!: string
+
+  @ManyToOne(() => Categoria, {fieldName : 'categoria'})
+    categoria!: Rel<Categoria>
 }

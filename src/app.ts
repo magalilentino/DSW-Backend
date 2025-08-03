@@ -1,7 +1,7 @@
 import express from 'express'
 
 import { ServicioRouter } from './servicio/servicio.routes.js'
-import { PrecioRouter } from './servicio/precio.routes.js'
+import { PrecioRouter } from './precio/precio.routes.js'
 
 import { MarcaRouter } from './marca/marca.routes.js'
 
