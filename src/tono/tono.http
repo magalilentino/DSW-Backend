@@ -1,0 +1,47 @@
+### GET ALL
+GET http://localhost:3000/api/tono
+
+### POST
+# @name createMarca
+POST http://localhost:3000/api/tono
+Content-Type: application/json
+
+{
+    "nombre": "marron"
+}
+
+###ID
+@id = {{createMarca.response.body.data.id}}
+
+### GET ONE
+GET http://localhost:3000/api/tono/{{id}}
+
+### PUT
+PUT http://localhost:3000/api/tono/{{id}}
+Content-Type: application/json
+
+{
+    "nombre": "marron"
+}
+
+# ### POST 2
+# POST http://localhost:3000/api/marcas
+# Content-Type: application/json
+
+# {
+#     "nombre": "marron claro"
+# }
+
+### POST
+# @nombre createItemToDelete
+POST http://localhost:3000/api/tono
+Content-Type: application/json
+
+{
+    "nombre": "negro",
+}
+
+### DELETE
+//@idToDelete = {{createItemToDelete.response.body.data.idMarca}}
+
+//DELETE http://localhost:3000/api/tono/{{idToDelete}}
