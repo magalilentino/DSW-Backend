@@ -4,8 +4,10 @@ import {
   Property,
   Cascade,
   Collection,
-  PrimaryKey
+  PrimaryKey,
+  ManyToMany
 } from '@mikro-orm/core'
+import { Producto } from '../producto/producto.entity.js';
 
 @Entity()
 export class Marca {
@@ -15,4 +17,6 @@ export class Marca {
   @Property({ nullable: false, unique: true })
   nombreMarca!: string 
 
+  @ManyToMany(() => Producto, producto => producto.marcas, { cascade: [Cascade.ALL] })
+  productos = new Collection<Producto>(this);
 }
