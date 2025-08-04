@@ -1,0 +1,59 @@
+### GET all peluquero
+http://localhost:3000/api/peluquero
+
+
+### POST a peluquero
+# @name createPeluquero
+POST http://localhost:3000/api/peluquero
+Content-Type: application/json
+
+{
+    "dni": "46038720",
+    "nombre": "Magali",
+    "apellido": "Lentino",
+    "telefono": "3416190954",
+    "mail": "magalilentino@gmail.com"
+}
+
+### ID
+@idPersona = {{createPeluquero.response.body.data.idPersona}}
+
+### GET one peluquero
+http://localhost:3000/api/peluquero/{{idPersona}}
+
+### PUT a peluquero
+PUT http://localhost:3000/api/peluquero/{{idPersona}}
+Content-Type: application/json
+
+{
+    "dni": "46038720",
+    "nombre": "Magali Rocio",
+    "apellido": "Lentino",
+    "telefono": "3416190954",
+    "mail": "magalilentino@gmail.com"
+}
+
+### POST a peluquero
+# @name createPeluqueroToDelete
+POST http://localhost:3000/api/peluquero
+Content-Type: application/json
+
+{
+    "dni": "12345678",
+    "nombre": "Nombre1",
+    "apellido": "Apellido1",
+    "telefono": "3416190954",
+    "mail": "nombreapellido1@gmail.com"
+}
+### DELETE a peluquero
+@idToDelete = {{createPeluqueroToDelete.response.body.data.idPersona}}
+DELETE http://localhost:3000/api/peluquero/{{idToDelete}}
+
+### PATCH a peluquero
+PATCH http://localhost:3000/api/peluquero/{{idToDelete}}
+Content-Type: application/json
+
+{
+  "telefono": "123456789"
+}
+
