@@ -7,7 +7,7 @@ POST http://localhost:3000/api/marca
 Content-Type: application/json
 
 {
-    "nombre": "Loreal"
+    "nombreMarca": "Loreal"
 }
 
 ###ID
@@ -21,17 +21,9 @@ PUT http://localhost:3000/api/marca/{{id}}
 Content-Type: application/json
 
 {
-    "nombre": "Loreal"
+    "nombreMarca": "Loreal"
 }
 
-# ### POST 2
-# POST http://localhost:3000/api/marcas
-# Content-Type: application/json
-
-# {
-#     "name": "Death Star",
-#     "description": "Planet killer"
-# }
 
 ### POST
 # @name createItemToDelete
@@ -39,7 +31,7 @@ POST http://localhost:3000/api/marca
 Content-Type: application/json
 
 {
-    "nombre": "Revlon"
+    "nombreMarca": "Revlon"
 }
 
 ### DELETE

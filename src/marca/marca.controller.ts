@@ -43,7 +43,8 @@ async function add(req: Request, res: Response) {
 async function update(req: Request, res: Response) {
   try {
     const id = Number.parseInt(req.params.id)
-    const marca = em.getReference(Marca, id)  
+    const marcaToUpdate = await em.findOneOrFail(Marca, {id})  
+    em.assign(marcaToUpdate, req.body)
     await em.flush()
     res.status(200).json({ message: 'marca actualizada' })
   } catch (error: any) {
@@ -54,7 +55,7 @@ async function update(req: Request, res: Response) {
 async function remove(req: Request, res: Response) {
   try {
     const id = Number.parseInt(req.params.id)
-    const marca = em.getReference(Marca, id)
+    const marca = await em.findOneOrFail(Marca, {id})
     await em.removeAndFlush(marca)
     res.status(200).send({ message: 'marca eliminada' })
   } catch (error: any) {
