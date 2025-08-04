@@ -3,46 +3,29 @@ GET http://localhost:3000/api/turno
 
 ### POST
 # @name createTurno
-POST http://localhost:3000/api/truno
+POST http://localhost:3000/api/turno
 Content-Type: application/json
 
 {
-    "name": "Lord Sith",
-    "description": "A wielder of the force who has embraced the dark side"
+    "fechaHora": "2025-08-04T12:00:00Z",
+    "estado": "pendiente",
+    "atencion": 1
 }
 
 ### ID
-@id = {{createTurno.response.body.data.id}}
+@id = {{createTurno.response.body.data.idTurno}}
 
 ### GET ONE
 GET http://localhost:3000/api/turno/{{id}}
-
 
 ### PUT
 PUT  http://localhost:3000/api/turno/{{id}}
 Content-Type: application/json
 
 {
-    "name": "Lord Sith",
-    "description": "Wielder of the force who has embraced the dark side"
-}
-
-### POST2
-POST http://localhost:3000/api/turno
-Content-Type: application/json
-
-{
-    "name": "Jedi Knight",
-    "description": "Warrior who has dedicated their life to the force and the Jedi order."
-}
-
-### POST3
-POST http://localhost:3000/api/turno
-Content-Type: application/json
-
-{
-    "name": "Fallen Jedi",
-    "description": "A righteous warrior who has fallen to the dark side of the force by embracing their emotions and passions in order to gain power."
+  "fechaHora": "2025-08-04T12:00:00Z",
+  "estado": "finalizado",
+  "atencion": 1
 }
 
 ### POST TURNO TO DELETE
@@ -51,10 +34,11 @@ POST http://localhost:3000/api/turno
 Content-Type: application/json
 
 {
-    "name": "Fallen Jedi",
-    "description": "A righteous warrior who has fallen to the dark side of the force by embracing their emotions and passions in order to gain power."
+  "fechaHora": "2004-07-03T12:00:00Z",
+  "estado": "pendiente",
+   "atencion": 1
 }
 
 ### DELETE
-@idToDelete = {{createTurnoToDelete.response.body.data.id}}
+@idToDelete = {{createTurnoToDelete.response.body.data.idTurno}}
 DELETE http://localhost:3000/api/turno/{{idToDelete}}

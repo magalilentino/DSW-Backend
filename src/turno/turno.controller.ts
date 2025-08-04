@@ -10,8 +10,7 @@ function sanitizeTurnoInput(
   next: NextFunction
 ) {
   req.body.sanitizedInput = {
-    hora: req.body.hora,
-    fecha: req.body.fecha,
+    fechaHora: req.body.fechaHora,
     estado: req.body.estado
     
   }

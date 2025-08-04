@@ -12,7 +12,8 @@ function sanitizePagoInput(
   req.body.sanitizedInput = {//creo que esto no hace falta sanitizarlo si no pasa por el cliente
     metodo: req.body.metodo, 
     total: req.body.total,
-    estado: req.body.estado
+    estado: req.body.estado,
+    atencion: req.body.atencion
   }
   Object.keys(req.body.sanitizedInput).forEach((key) => {
     if (req.body.sanitizedInput[key] === undefined) {
@@ -27,7 +28,7 @@ async function findAll(req: Request, res: Response) {
     const pagos = await em.find(
       Pago,
       {},
-      //{ populate: ['tonos', 'productos', 'precios', 'clientes'] }
+      { populate: ['atencion'] }
     )
     res.status(200).json({ message: 'found all pago', data: pagos })
   } catch (error: any) {
@@ -41,7 +42,7 @@ async function findOne(req: Request, res: Response) {
     const pago = await em.findOneOrFail(
       Pago,
       { nroPago },
-      //{ populate: ['tonos', 'productos', 'precios', 'clientes'] }
+      { populate: ['atencion'] }
     )
     res.status(200).json({ message: 'found pago', data: pago })
   } catch (error: any) {

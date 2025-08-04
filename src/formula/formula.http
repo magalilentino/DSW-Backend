@@ -1,0 +1,45 @@
+### GET ALL
+GET http://localhost:3000/api/formula
+
+### POST
+# @name createFormula
+POST http://localhost:3000/api/formula
+Content-Type: application/json
+
+{
+    "cantidad": 20,
+    "productos": [1],
+    "tono": 1
+}
+
+### ID
+@id = {{createFormula.response.body.data.idForumla}}
+
+### GET ONE
+GET http://localhost:3000/api/formula/{{id}}
+
+### PUT
+PUT  http://localhost:3000/api/formula/{{id}}
+Content-Type: application/json
+
+{
+    "cantidad": 20,
+    "productos": [1],
+    "tono": 1
+}
+
+### POST TURNO TO DELETE
+# @name createTurnoToDelete
+POST http://localhost:3000/api/formula
+Content-Type: application/json
+
+{
+    "cantidad": 20,
+    "productos": [1],
+    "tono": 1
+}
+
+### DELETE
+# @name createFormulaToDelete
+@idToDelete = {{createFormulaToDelete.response.body.data.idFormula}}
+DELETE http://localhost:3000/api/formula/{{idToDelete}}

@@ -11,6 +11,7 @@ function sanitizeDescuentoInput(
 ) {
   req.body.sanitizedInput = {
     porcentaje: req.body.nombreporcentaje,
+    cantAtencionNecesaria: req.body.cantAtencionNecesaria
   }
   Object.keys(req.body.sanitizedInput).forEach((key) => {
     if (req.body.sanitizedInput[key] === undefined) {
@@ -25,7 +26,6 @@ async function findAll(req: Request, res: Response) {
     const descuentos = await em.find(
       Descuento,
       {},
-      //{ populate: ['tonos', 'productos', 'precios', 'clientes'] }
     )
     res.status(200).json({ message: 'found all escuento', data: descuentos })
   } catch (error: any) {
@@ -41,7 +41,7 @@ async function findOne(req: Request, res: Response) {
       { idDescuento },
       //{ populate: ['tonos', 'productos', 'precios', 'clientes'] }
     )
-    res.status(200).json({ message: 'found descuento', data: descuento })
+    res.status(200).json({ message:'found descuento', data: descuento })
   } catch (error: any) {
     res.status(500).json({ message: error.message })
   }
@@ -51,7 +51,7 @@ async function add(req: Request, res: Response) {
   try {
     const descuento = em.create(Descuento, req.body.sanitizedInput)
     await em.flush()
-    res.status(201).json({ message: 'descuento created', data: descuento })
+    res.status(201).json({ message:'descuento created', data: descuento })
   } catch (error: any) {
     res.status(500).json({ message: error.message })
   }
@@ -65,7 +65,7 @@ async function update(req: Request, res: Response) {
     await em.flush()
     res
       .status(200)
-      .json({ message: 'descuento updated', data: descuentoToUpdate })
+      .json({ message:'descuento updated',data: descuentoToUpdate })
   } catch (error: any) {
     res.status(500).json({ message: error.message })
   }

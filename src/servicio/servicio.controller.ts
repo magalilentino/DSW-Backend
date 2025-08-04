@@ -11,7 +11,9 @@ function sanitizeServicioInput(
 ) {
   req.body.sanitizedInput = {
     nombreServicio: req.body.nombreServicio,
-    tiempoDemora: req.body.tiempoDemora
+    tiempoDemora: req.body.tiempoDemora,
+    tonos: req.body.tonos,
+    productos: req.body.productos
   }
   Object.keys(req.body.sanitizedInput).forEach((key) => {
     if (req.body.sanitizedInput[key] === undefined) {
@@ -26,9 +28,9 @@ async function findAll(req: Request, res: Response) {
     const servicios = await em.find(
       Servicio,
       {},
-      //{ populate: ['tonos', 'productos', 'precios', 'clientes'] }
+      { populate: ['tonos', 'productos'] }
     )
-    res.status(200).json({ message: 'found all servicios', data: servicios })
+    res.status(200).json({ message:'found all servicios', data: servicios })
   } catch (error: any) {
     res.status(500).json({ message: error.message })
   }
@@ -40,9 +42,9 @@ async function findOne(req: Request, res: Response) {
     const servicio = await em.findOneOrFail(
       Servicio,
       { codServicio },
-      //{ populate: ['tonos', 'productos', 'precios', 'clientes'] }
+      { populate: ['tonos', 'productos'] }
     )
-    res.status(200).json({ message: 'found servicio', data: servicio })
+    res.status(200).json({ message:'found servicio', data: servicio })
   } catch (error: any) {
     res.status(500).json({ message: error.message })
   }
@@ -52,7 +54,7 @@ async function add(req: Request, res: Response) {
   try {
     const servicio = em.create(Servicio, req.body.sanitizedInput)
     await em.flush()
-    res.status(201).json({ message: 'servicio created', data: servicio })
+    res.status(201).json({ message:'servicio created', data: servicio })
   } catch (error: any) {
     res.status(500).json({ message: error.message })
   }
@@ -66,7 +68,7 @@ async function update(req: Request, res: Response) {
     await em.flush()
     res
       .status(200)
-      .json({ message: 'servicio updated', data: servicioToUpdate })
+      .json({ message:'servicio updated', data: servicioToUpdate })
   } catch (error: any) {
     res.status(500).json({ message: error.message })
   }

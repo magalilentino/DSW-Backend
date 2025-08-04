@@ -25,7 +25,7 @@ async function findAll(req: Request, res: Response) {
   try {
     const tono = await em.find(
       Tono,
-      {},
+      {}
       //{ populate: ['servicios', 'productos'] }
     )
     res.status(200).json({ message: 'found all tono', data: tono })
@@ -36,10 +36,10 @@ async function findAll(req: Request, res: Response) {
 
 async function findOne(req: Request, res: Response) {
   try {
-    const id = Number.parseInt(req.params.id)
+    const idTono = Number.parseInt(req.params.idTono)
     const tono = await em.findOneOrFail(
       Tono,
-      { id },
+      { idTono }
       //{ populate: ['productos', 'servicios'] }
     )
     res.status(200).json({ message: 'found tono', data: tono })
@@ -60,8 +60,8 @@ async function add(req: Request, res: Response) {
 
 async function update(req: Request, res: Response) {
   try {
-    const id = Number.parseInt(req.params.id)
-    const turnoToUpdate = await em.findOneOrFail(Tono, { id })
+    const idTono = Number.parseInt(req.params.idTono)
+    const turnoToUpdate = await em.findOneOrFail(Tono, { idTono })
     em.assign(turnoToUpdate, req.body.sanitizedInput)
     await em.flush()
     res
@@ -74,8 +74,8 @@ async function update(req: Request, res: Response) {
 
 async function remove(req: Request, res: Response) {
   try {
-    const id = Number.parseInt(req.params.id)
-    const tono = em.getReference(Tono, id)
+    const idTono = Number.parseInt(req.params.idTono)
+    const tono = await em.findOneOrFail(Tono, { idTono })
     await em.removeAndFlush(tono)
   } catch (error: any) {
     res.status(500).json({ message: error.message })

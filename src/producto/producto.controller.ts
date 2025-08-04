@@ -10,7 +10,12 @@ function sanitizeProductoInput(
   next: NextFunction
 ) {
   req.body.sanitizedInput = {
-    descripcion: req.body.descripcion,
+  descripcion: req.body.descripcion,
+  // formulas: req.body.formulas, 
+  // servicios: req.body.servicios,
+  marcas: req.body.marcas,
+  categoria: req.body.categoria, 
+
   }
   Object.keys(req.body.sanitizedInput).forEach((key) => {
     if (req.body.sanitizedInput[key] === undefined) {
@@ -25,7 +30,7 @@ async function findAll(req: Request, res: Response) {
     const productos = await em.find(
       Producto,
       {},
-      //{ populate: ['tonos', 'productos', 'precios', 'clientes'] }
+      { populate: ['categoria', 'marcas'] }
     )
     res.status(200).json({ message: 'found all producto', data: productos })
   } catch (error: any) {
@@ -39,7 +44,7 @@ async function findOne(req: Request, res: Response) {
     const producto = await em.findOneOrFail(
       Producto,
       { idProducto },
-      //{ populate: ['tonos', 'productos', 'precios', 'clientes'] }
+      { populate: ['categoria', 'marcas'] }
     )
     res.status(200).json({ message: 'found producto', data: producto })
   } catch (error: any) {
@@ -74,7 +79,7 @@ async function update(req: Request, res: Response) {
 async function remove(req: Request, res: Response) {
   try {
     const idProducto = Number.parseInt(req.params.idProducto)
-    const producto = em.findOneOrFail(Producto, { idProducto })
+    const producto = await em.findOneOrFail(Producto, { idProducto })
     await em.removeAndFlush(producto)
   } catch (error: any) {
     res.status(500).json({ message: error.message })

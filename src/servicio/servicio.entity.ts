@@ -11,6 +11,8 @@ import {
 } from '@mikro-orm/core'
 import { Precio } from '../precio/precio.entity.js'
 import { Producto } from '../producto/producto.entity.js'
+import { Tono } from '../tono/tono.entity.js'
+import { Atencion } from '../atencion/atencion.entity.js'
 
 @Entity()
 export class Servicio {
@@ -29,5 +31,10 @@ export class Servicio {
   @ManyToMany(() => Producto, producto => producto.servicios, { cascade: [Cascade.ALL], owner: true })
   productos = new Collection<Producto>(this);
 
-  //falta relacion con tono y con atencion
+  @ManyToMany(() => Tono, (tono) => tono.servicios, {cascade: [Cascade.ALL], owner: true })
+  tonos = new Collection<Tono>(this)
+
+  @ManyToMany(() => Atencion, atencion => atencion.servicios) 
+    atenciones = new Collection<Atencion>(this);
+
 }

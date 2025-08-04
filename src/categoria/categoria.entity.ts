@@ -21,7 +21,7 @@ export class Categoria {
   nombreCategoria!: string
 
   @OneToMany(() => Producto, (producto) => producto.categoria , {cascade: [Cascade.ALL]})
-  categorias= new Collection<Producto>(this) //cambie el nombre de precios a categorias
+  productos= new Collection<Producto>(this) 
 }
 
 

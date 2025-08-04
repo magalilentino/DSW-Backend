@@ -8,13 +8,14 @@ import {
   ManyToMany
 } from '@mikro-orm/core'
 import { Producto } from '../producto/producto.entity.js';
-import { BaseEntity } from '../shared/baseEntity.entity.js';
 
 @Entity()
-export class Marca extends BaseEntity{
+export class Marca {
+  @PrimaryKey()
+  idMarca!: number
 
   @Property({ nullable: false, unique: true })
-  nombreMarca!: string 
+  nombre!: string 
 
   @ManyToMany(() => Producto, (producto) => producto.marcas)
   productos = new Collection<Producto>(this);

@@ -7,6 +7,7 @@ import {
   ManyToOne,
   Rel,
 } from '@mikro-orm/core'
+import { Atencion } from '../atencion/atencion.entity.js'
 
 @Entity()
 export class Turno  {
@@ -14,12 +15,12 @@ export class Turno  {
   idTurno?: number
 
   @Property({ nullable: false })
-  hora!: Date
-
-  @Property({ nullable: false })
-  fecha!: Date
+  fechaHora!: Date
 
   @Property({ nullable: false })
   estado!: String
+
+  @ManyToOne(() => Atencion, {fieldName : 'atencion'})
+  atencion!: Rel<Atencion> //cantidadTurno se saca con una funcion 
 
 }

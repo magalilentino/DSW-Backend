@@ -1,20 +1,40 @@
-### obtener todos los categoria
+### GET ALL
 GET http://localhost:3000/api/categoria
 
-### obtener un categoria
-GET http://localhost:3000/api/categoria/f47ac10b-58cc-4372-a567-0e02b2c3d479
-
-### crear un nuevo categoria
+### POST
+# @name createCategoria
 POST http://localhost:3000/api/categoria
 Content-Type: application/json
 
-### modificar un categoria (PUT - recurso completo e idempotente)
-PUT http://localhost:3000/api/categoria/5700ed7b-6f37-4c15-8828-49cd8c346968
+{
+    "nombreCategoria": "shampoo"
+}
+
+###ID
+@id = {{createCategoria.response.body.data.idCategoria}}
+
+### GET ONE
+GET http://localhost:3000/api/categoria/{{id}}
+
+### PUT
+PUT http://localhost:3000/api/categoria/{{id}}
 Content-Type: application/json
 
-### modificar un categoria (PATCH - recurso parcial)
-PATCH http://localhost:3000/api/categoria/5700ed7b-6f37-4c15-8828-49cd8c346968
+{
+    "nombreCategoria": "shampoo"
+}
+
+
+### POST
+# @name createCategoriaToDelete
+POST http://localhost:3000/api/categoria
 Content-Type: application/json
 
-### borrar un categoria
-DELETE http://localhost:3000/api/categoria/5700ed7b-6f37-4c15-8828-49cd8c346968
+{
+    "nombreCategoria": "shampoo"
+}
+
+### DELETE
+@idToDelete = {{createCategoriaToDelete.response.body.data.idCategoria}}
+
+DELETE http://localhost:3000/api/atencion/{{idToDelete}}

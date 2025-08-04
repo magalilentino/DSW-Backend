@@ -4,8 +4,8 @@ import { sanitizeTonoInput, findAll, findOne, add, update, remove } from './tono
 export const TonoRouter = Router()
 
 TonoRouter.get('/', findAll)
-TonoRouter.get('/:codServicio', findOne)
+TonoRouter.get('/:idTono', findOne)
 TonoRouter.post('/', sanitizeTonoInput, add)
-TonoRouter.put('/:codServicio', sanitizeTonoInput, update)
-TonoRouter.patch('/:codServicio', sanitizeTonoInput, update)
-TonoRouter.delete('/:codServicio', remove)
+TonoRouter.put('/:idTono', sanitizeTonoInput, update)
+TonoRouter.patch('/:idTono', sanitizeTonoInput, update)
+TonoRouter.delete('/:idTono', remove)

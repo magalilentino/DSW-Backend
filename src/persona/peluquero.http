@@ -16,13 +16,13 @@ Content-Type: application/json
 }
 
 ### ID
-@idPersona = {{createPeluquero.response.body.data.idPersona}}
+@id = {{createPeluquero.response.body.data.idPersona}}
 
 ### GET one peluquero
-http://localhost:3000/api/peluquero/{{idPersona}}
+http://localhost:3000/api/peluquero/{{id}}
 
 ### PUT a peluquero
-PUT http://localhost:3000/api/peluquero/{{idPersona}}
+PUT http://localhost:3000/api/peluquero/{{id}}
 Content-Type: application/json
 
 {
@@ -50,7 +50,7 @@ Content-Type: application/json
 DELETE http://localhost:3000/api/peluquero/{{idToDelete}}
 
 ### PATCH a peluquero
-PATCH http://localhost:3000/api/peluquero/{{idToDelete}}
+PATCH http://localhost:3000/api/peluquero/{{id}}
 Content-Type: application/json
 
 {

@@ -11,6 +11,7 @@ import {
 import { Categoria } from '../categoria/categoria.entity.js';
 import { Marca } from '../marca/marca.entity.js';
 import { Servicio } from '../servicio/servicio.entity.js';
+import { Formula } from '../formula/formula.entity.js';
 
 @Entity()
 export class Producto {
@@ -23,12 +24,14 @@ export class Producto {
   @ManyToOne(() => Categoria, {fieldName : 'categoria'})
     categoria!: Rel<Categoria>
 
-  @ManyToMany(() => Marca, marca => marca.productos, {cascade: [Cascade.ALL], owner: true }) //agregue owner
-  marcas = new Collection<Marca>(this);
+  @ManyToMany(() => Marca, marca => marca.productos, {cascade: [Cascade.ALL], owner: true }) 
+    marcas = new Collection<Marca>(this);
 
   @ManyToMany(() => Servicio, servicio => servicio.productos)
-  servicios = new Collection<Servicio>(this);
+    servicios = new Collection<Servicio>(this);
 
-  //falta la relacion con tono pero me parece que faltaria una tabla "formula"
-  //tambien falta atencion?
+  @ManyToMany(() => Formula, formula => formula.productos,{cascade: [Cascade.ALL] }) 
+  formulas = new Collection<Formula>(this);
+
+
 }

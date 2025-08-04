@@ -4,8 +4,8 @@ import { sanitizePeluqueroInput, findAll, findOne, add, update, remove } from '.
 export const PeluqueroRouter = Router()
 
 PeluqueroRouter.get('/', findAll)
-PeluqueroRouter.get('/:id', findOne)
+PeluqueroRouter.get('/:idPersona', findOne)
 PeluqueroRouter.post('/', sanitizePeluqueroInput, add)
-PeluqueroRouter.put('/:id', sanitizePeluqueroInput, update)
-PeluqueroRouter.patch('/:id', sanitizePeluqueroInput, update)
-PeluqueroRouter.delete('/:id', remove)
+PeluqueroRouter.put('/:idPersona', sanitizePeluqueroInput, update)
+PeluqueroRouter.patch('/:idPersona', sanitizePeluqueroInput, update)
+PeluqueroRouter.delete('/:idPersona', remove)

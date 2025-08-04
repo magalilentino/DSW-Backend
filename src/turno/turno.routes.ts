@@ -4,8 +4,8 @@ import { sanitizeTurnoInput, findAll, findOne, add, update, remove } from './tur
 export const TurnoRouter = Router()
 
 TurnoRouter.get('/', findAll)
-TurnoRouter.get('/:id', findOne)
+TurnoRouter.get('/:idTurno', findOne)
 TurnoRouter.post('/', sanitizeTurnoInput, add)
-TurnoRouter.put('/:id', sanitizeTurnoInput, update)
-TurnoRouter.patch('/:id', sanitizeTurnoInput, update)
-TurnoRouter.delete('/:id', remove)
+TurnoRouter.put('/:idTurno', sanitizeTurnoInput, update)
+TurnoRouter.patch('/:idTurno', sanitizeTurnoInput, update)
+TurnoRouter.delete('/:idTurno', remove)

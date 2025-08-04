@@ -1,20 +1,46 @@
-### obtener todos los productos
+### GET ALL
 GET http://localhost:3000/api/producto
 
-### obtener un producto
-GET http://localhost:3000/api/producto/f47ac10b-58cc-4372-a567-0e02b2c3d479
-
-### crear un nuevo producto
+### POST
+# @name createMarca
 POST http://localhost:3000/api/producto
 Content-Type: application/json
 
-### modificar un producto (PUT - recurso completo e idempotente)
-PUT http://localhost:3000/api/producto/5700ed7b-6f37-4c15-8828-49cd8c346968
+{
+    "descripcion": "shampoo",
+    "categoria": 1,
+    "marcas": [1,2]
+}
+
+###ID
+@id = {{createMarca.response.body.data.idProducto}}
+
+### GET ONE
+GET http://localhost:3000/api/producto/{{id}}
+
+### PUT
+PUT http://localhost:3000/api/producto/{{id}}
 Content-Type: application/json
 
-### modificar un producto (PATCH - recurso parcial)
-PATCH http://localhost:3000/api/producto/5700ed7b-6f37-4c15-8828-49cd8c346968
+{
+    "descripcion": "shampoo",
+    "categoria": 1,
+    "marcas": [2]
+  
+}
+
+### POST to delete
+# @name createItemToDelete
+POST http://localhost:3000/api/producto
 Content-Type: application/json
 
-### borrar un producto
-DELETE http://localhost:3000/api/producto/5700ed7b-6f37-4c15-8828-49cd8c346968
+{
+   "descripcion": "acoondicionador",
+    "categoria": 1,
+    "marcas": [1]
+  
+}
+
+@idToDelete = {{createItemToDelete.response.body.data.idProducto}}
+
+DELETE http://localhost:3000/api/producto/{{idToDelete}}

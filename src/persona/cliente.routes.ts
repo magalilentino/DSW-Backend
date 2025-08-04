@@ -4,8 +4,8 @@ import { sanitizeClienteInput, findAll, findOne, add, update, remove } from './c
 export const ClienteRouter = Router()
 
 ClienteRouter.get('/', findAll)
-ClienteRouter.get('/:id', findOne)
+ClienteRouter.get('/:idPersona', findOne)
 ClienteRouter.post('/', sanitizeClienteInput, add)
-ClienteRouter.put('/:id', sanitizeClienteInput, update)
-ClienteRouter.patch('/:id', sanitizeClienteInput, update)
-ClienteRouter.delete('/:id', remove)
+ClienteRouter.put('/:idPersona', sanitizeClienteInput, update)
+ClienteRouter.patch('/:idPersona', sanitizeClienteInput, update)
+ClienteRouter.delete('/:idPersona', remove)

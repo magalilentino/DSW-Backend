@@ -1,20 +1,44 @@
-### obtener todos los pagos
+### GET ALL
 GET http://localhost:3000/api/pago
 
-### obtener un pago
-GET http://localhost:3000/api/pago/f47ac10b-58cc-4372-a567-0e02b2c3d479
-
-### crear un nuevo pago
+### POST
+# @name createPago
 POST http://localhost:3000/api/pago
 Content-Type: application/json
 
-### modificar un pago (PUT - recurso completo e idempotente)
-PUT http://localhost:3000/api/pago/5700ed7b-6f37-4c15-8828-49cd8c346968
+{
+    "fechaHora": "2025-08-04T12:00:00Z",
+    "estado": "pendiente",
+    "atencion": 1
+}
+
+### ID
+@id = {{createPago.response.body.data.nroPago}}
+
+### GET ONE
+GET http://localhost:3000/api/pago/{{id}}
+
+### PUT
+PUT  http://localhost:3000/api/pago/{{id}}
 Content-Type: application/json
 
-### modificar un pago (PATCH - recurso parcial)
-PATCH http://localhost:3000/api/pago/5700ed7b-6f37-4c15-8828-49cd8c346968
+{
+  "hora": "12:00",
+  "fecha": "2004-07-03",
+  "estado": "pendiente"
+}
+
+### POST PAGO TO DELETE
+# @name createPagoToDelete
+POST http://localhost:3000/api/pago
 Content-Type: application/json
 
-### borrar un pago
-DELETE http://localhost:3000/api/pago/5700ed7b-6f37-4c15-8828-49cd8c346968
+{
+  "fechaHora": "2004-07-03T12:00:00Z",
+  "estado": "pendiente",
+   "atencion": 1
+}
+
+### DELETE
+@idToDelete = {{createPagoToDelete.response.body.data.nroPago}}
+DELETE http://localhost:3000/api/turno/{{idToDelete}}
