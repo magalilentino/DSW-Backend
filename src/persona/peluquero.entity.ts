@@ -12,6 +12,11 @@ import { Atencion } from '../atencion/atencion.entity.js';
 export class Peluquero extends Persona {
 
   @OneToMany(() => Atencion, (atencion) => atencion.peluquero , {cascade: [Cascade.PERSIST]})
-  peluqueros = new Collection<Atencion>(this) 
+  peluqueros = new Collection<Atencion>(this)
+
+  constructor(){
+    super()
+    this.type = 'peluquero'
+  }
 
 }

@@ -13,4 +13,9 @@ export class Cliente extends Persona {
 
   @OneToMany(() => Atencion, (atencion) => atencion.cliente , {cascade: [Cascade.ALL]})
   clientes = new Collection<Atencion>(this) 
+
+  constructor(){
+    super()
+    this.type = 'cliente'
+  }
 }
