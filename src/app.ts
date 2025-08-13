@@ -4,7 +4,6 @@ import { orm, syncSchema } from './shared/orm.js'
 import { RequestContext } from '@mikro-orm/core'
 
 import { ServicioRouter } from './servicio/servicio.routes.js'
-import { PrecioRouter } from './precio/precio.routes.js'
 import { MarcaRouter } from './marca/marca.routes.js'
 import { CategoriaRouter } from './categoria/categoria.routes.js'
 import { DescuentoRouter } from './descuento/descuento.routes.js'
@@ -27,7 +26,6 @@ app.use((req, res, next) => {
 })
 
 app.use('/api/precio/servicio', ServicioRouter)
-app.use('/api/precio', PrecioRouter)
 app.use('/api/marca', MarcaRouter)
 app.use('/api/cliente', ClienteRouter)
 app.use('/api/peluquero', PeluqueroRouter)

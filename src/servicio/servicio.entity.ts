@@ -9,7 +9,6 @@ import {
   PrimaryKey,
   Collection
 } from '@mikro-orm/core'
-import { Precio } from '../precio/precio.entity.js'
 import { Producto } from '../producto/producto.entity.js'
 import { Tono } from '../tono/tono.entity.js'
 import { Atencion } from '../atencion/atencion.entity.js'
@@ -23,10 +22,11 @@ export class Servicio {
     nombreServicio!: string
 
   @Property({ nullable: false })
-    tiempoDemora!: number
-
-  @OneToMany(() => Precio, (precio) => precio.servicio, {cascade: [Cascade.ALL]})
-    precios= new Collection<Precio>(this)
+    cantTurnos!: number
+  
+  
+  @Property({ nullable: false })
+    precio!: number
 
   @ManyToMany(() => Producto, producto => producto.servicios, { cascade: [Cascade.ALL], owner: true })
   productos = new Collection<Producto>(this);

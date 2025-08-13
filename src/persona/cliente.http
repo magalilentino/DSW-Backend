@@ -8,10 +8,12 @@ Content-Type: application/json
 
 {
     "dni": "46038720",
+    "clave": "hola123",
     "nombre": "Magali",
     "apellido": "Lentino",
     "telefono": "3416190954",
-    "mail": "magalilentino@gmail.com"
+    "mail": "magalilentino@gmail.com",
+    "type": "cliente"
 }
 
 ###ID
@@ -26,10 +28,12 @@ Content-Type: application/json
 
 {
     "dni": "46038720",
+    "clave": "hola123",
     "nombre": "Magali Rocio",
     "apellido": "Lentino",
     "telefono": "3416190954",
-    "mail": "magalilentino@gmail.com"
+    "mail": "magalilentino@gmail.com",
+    "type": "cliente"
 }
 
 
@@ -40,10 +44,12 @@ Content-Type: application/json
 
 {
     "dni": "12345678",
+    "clave": "hola123",
     "nombre": "Nombre1",
     "apellido": "Apellido1",
     "telefono": "3416190954",
-    "mail": "nombreapellido1@gmail.com"
+    "mail": "nombreapellido1@gmail.com",
+    "type": "cliente"
 }
 
 ### DELETE

@@ -1,87 +1,112 @@
 import { NextFunction, Request, Response } from 'express';
-import { PersonaService } from './persona.service';
 import { orm } from '../shared/orm.js';
-import { Peluquero } from './peluquero.entity.js';
-import { Cliente } from './cliente.entity.js';
 import { Persona } from './persona.entity.js';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 const em = orm.em
 
-function sanitizePeluqueroInput(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  req.body.sanitizedInput = {
-    dni: req.body.dni,
-    clave: req.body.clave,
-    nombre: req.body.nombre,
-    apellido: req.body.apellido,
-    telefono: req.body.telefono,
-    mail: req.body.mail,
-    type: req.body.type
-  }
+// function sanitizePersonaInput(
+//   req: Request,
+//   res: Response,
+//   next: NextFunction
+// ) {
+//   req.body.sanitizedInput = {
+//     dni: req.body.dni,
+//     clave: req.body.clave,
+//     nombre: req.body.nombre,
+//     apellido: req.body.apellido,
+//     telefono: req.body.telefono,
+//     mail: req.body.mail,
+//     type: req.body.type
+//   }
   
 
-  Object.keys(req.body.sanitizedInput).forEach((key) => {
-    if (req.body.sanitizedInput[key] === undefined) {
-      delete req.body.sanitizedInput[key]
+//   Object.keys(req.body.sanitizedInput).forEach((key) => {
+//     if (req.body.sanitizedInput[key] === undefined) {
+//       delete req.body.sanitizedInput[key]
+//     }
+//   })
+//   next()
+// }
+
+
+async function login(req: Request, res: Response) {
+  try {
+    const { dni, clave } = req.body;
+
+    // Validar datos
+    if (!dni || !clave) {
+      return res.status(400).json({ message: 'Faltan datos' });
     }
-  })
-  next()
-}
 
+    // Buscar persona
+    const persona = await em.findOne(Persona, { dni });
+    if (!persona) {
+      return res.status(400).json({ message: 'Credenciales inválidas' });
+    }
 
+    // Comparar contraseña
+    const esValida = await bcrypt.compare(clave, persona.clave);
+    if (!esValida) {
+      return res.status(400).json({ message: 'Credenciales inválidas' });
+    }
 
-export class PersonaController {
-  private service: PersonaService;
+    // Generar token JWT
+    const token = jwt.sign(
+      { id: persona.idPersona, type: persona.type },
+      'secreto-super-seguro', 
+      { expiresIn: '2h' }
+    );
 
-  constructor(service: PersonaService) {
-    this.service = service;
+    res.status(200).json({
+      message: 'Login exitoso',
+      token,
+      type: persona.type
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
   }
-
-
-
-    async function add(req: Request, res: Response) {
-    try {
-        const persona = new Persona();
-        if (req.body.type == 'peluquero') {
-            const persona = em.create(Peluquero, req.body.sanitizedInput)
-        }else{
-            const persona = em.create(Cliente, req.body.sanitizedInput)
-        }
-
-        await em.persistAndFlush(persona)
-        res.status(201).json({ message: 'persona created', data: persona })
-    } catch (error: any) {
-        res.status(500).json({ message: error.message })
-    }
-    }
-
-
-  register = async (req: Request, res: Response) => {
-    try {
-      const { username, password } = req.body;
-      if (!username || !password) return res.status(400).json({ message: 'Faltan datos' });
-
-      const user = await this.service.register(username, password);
-      return res.status(201).json({ message: 'Usuario creado', user });
-    } catch (err: any) {
-      return res.status(400).json({ message: err.message || 'Error' });
-    }
-  };
-
-  login = async (req: Request, res: Response) => {
-    try {
-      const { username, password } = req.body;
-      if (!username || !password) return res.status(400).json({ message: 'Faltan datos' });
-
-      const auth = await this.service.authenticate(username, password);
-      if (!auth) return res.status(401).json({ message: 'Usuario o contraseña incorrectos' });
-
-      return res.json(auth);
-    } catch (err: any) {
-      return res.status(500).json({ message: err.message || 'Error' });
-    }
-  };
 }
+
+
+
+export {  login }
+
+
+
+/*async function register(req: Request, res: Response) {
+  try {
+    const { dni, email, clave, type } = req.body;
+
+    // Validar datos
+    if (!dni || !email || !clave || !type) {
+      return res.status(400).json({ message: 'Faltan datos' });
+    }
+    if (!['peluquero', 'cliente'].includes(type)) {
+      return res.status(400).json({ message: 'Rol inválido' });
+    }
+
+    // Verificar que no exista ya
+    const existente = await em.findOne(Persona, { dni });
+    if (existente) {
+      return res.status(400).json({ message: 'El email ya está registrado' });
+    }
+
+    // Hashear contraseña
+    const hashedPassword = await bcrypt.hash(clave, 10);
+
+    // Crear persona
+    const persona = em.create(Persona, {
+      dni,
+      email,
+      clave: hashedPassword,
+      type
+    });
+    await em.flush();
+
+    res.status(201).json({ message: 'Usuario registrado', data: { id: persona.idPersona, type: persona.type } });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+}*/

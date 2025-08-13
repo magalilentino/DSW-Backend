@@ -9,10 +9,12 @@ Content-Type: application/json
 
 {
     "dni": "46038720",
+    "clave": "1234",
     "nombre": "Magali",
     "apellido": "Lentino",
     "telefono": "3416190954",
-    "mail": "magalilentino@gmail.com"
+    "mail": "magalilentino@gmail.com",
+    "type": "peluquero"
 }
 
 ### ID
@@ -27,10 +29,12 @@ Content-Type: application/json
 
 {
     "dni": "46038720",
+    "clave": "1234",
     "nombre": "Magali Rocio",
     "apellido": "Lentino",
     "telefono": "3416190954",
-    "mail": "magalilentino@gmail.com"
+    "mail": "magalilentino@gmail.com",
+    "type": "peluquero"
 }
 
 ### POST a peluquero
@@ -40,10 +44,12 @@ Content-Type: application/json
 
 {
     "dni": "12345678",
+    "clave": "1234",
     "nombre": "Nombre1",
     "apellido": "Apellido1",
     "telefono": "3416190954",
-    "mail": "nombreapellido1@gmail.com"
+    "mail": "nombreapellido1@gmail.com",
+    "type": "peluquero"
 }
 ### DELETE a peluquero
 @idToDelete = {{createPeluqueroToDelete.response.body.data.idPersona}}

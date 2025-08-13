@@ -4,15 +4,15 @@ import {
   PrimaryKey,
   Enum,
   BeforeCreate,
-  BeforeUpdate
+  BeforeUpdate,
+  OneToMany,
+  Cascade,
+  Collection
 } from '@mikro-orm/core'
-import bcrypt from 'bcrypt';
+import { Atencion } from '../atencion/atencion.entity';
 
 
-@Entity({ 
-  discriminatorColumn: 'type',
-  abstract: true 
-})
+@Entity({ discriminatorColumn: 'type'})
 export class Persona {
     @PrimaryKey()
     idPersona!: number  
@@ -38,27 +38,11 @@ export class Persona {
     @Enum(() => ['peluquero', 'cliente'])
     type!: 'peluquero' | 'cliente'
 
-  }
+    @OneToMany(() => Atencion, (atencion) => atencion.cliente , {cascade: [Cascade.ALL]})
+    clientes = new Collection<Atencion>(this) 
 
-   /* // Hook para encriptar la contraseña antes de guardar
-  @BeforeCreate()
-  @BeforeUpdate()
-  async encriptarClave() {
-    if (this.clave && !this.clave.startsWith('$2a$')) {
-      // Solo encripta si no está ya encriptada
-      this.clave = await bcrypt.hash(this.clave, 10)
-    }
-  }
+    @OneToMany(() => Atencion, (atencion) => atencion.peluquero , {cascade: [Cascade.PERSIST]})
+    peluqueros = new Collection<Atencion>(this)
 
-  // Método para verificar contraseña
-  async verificarClave(claveUsuario: string): Promise<boolean> {
-    return bcrypt.compare(claveUsuario, this.clave)
-  }
-
-  // Método para obtener datos públicos (sin password)
-  toJSON() {
-    const { clave, ...publicData } = this
-    return publicData
-  }
-
-}*/
+  
+}

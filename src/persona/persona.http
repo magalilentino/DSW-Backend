@@ -1,0 +1,9 @@
+### POST
+# @name createCliente
+POST http://localhost:3000/api/persona/login
+Content-Type: application/json
+
+{
+    "dni": "46038720",
+    "clave": "hola123"
+}

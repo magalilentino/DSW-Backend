@@ -43,7 +43,7 @@ async function findAll(req: Request, res: Response) {
 async function findOne(req: Request, res: Response) {
   try {
     const idAtencion = Number.parseInt(req.params.idAtencion)
-    const atencion = await em.findOneOrFail(Atencion,{ idAtencion },  //tendriamos que poner un solo id de atencion? o el id de atencion es idServicio y idPersona?
+    const atencion = await em.findOneOrFail(Atencion,{ idAtencion },  
     { populate: ['descuentos', 'servicios', 'peluquero', 'cliente'] })      //va en las relaciones que van de muchos a muchos en el owner 
     res.status(200).json({ message: 'found atencion', data: atencion })
   } catch (error: any) {
@@ -86,4 +86,50 @@ async function remove(req: Request, res: Response) {
   }
 }
 
-export { sanitizeAtencionInput, findAll, findOne, add, update, remove }
+async function contarTurnos(req: Request, res: Response) {
+  try {
+    const idAtencion = Number.parseInt(req.params.idAtencion);
+
+    const atencion = await em.findOneOrFail(Atencion, { idAtencion }, {
+      populate: ['servicios'] 
+    });
+
+    const totalTurnos = atencion.servicios
+      .getItems()
+      .reduce((total, servicio) => total + servicio.cantTurnos, 0);
+
+    res.status(200).json({
+      message: `Total de turnos para la atención ${idAtencion}`,
+      totalTurnos
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+async function calcularPrecioTotal(req: Request, res: Response) {
+  try {
+    const idAtencion = Number.parseInt(req.params.idAtencion);
+
+    const atencion = await em.findOneOrFail(Atencion, { idAtencion }, {
+      populate: ['servicios']
+    });
+
+    const precioTotal = atencion.servicios
+      .getItems()
+      .reduce((total, servicio) => total + servicio.precio, 0);
+
+    res.status(200).json({
+      message: `Precio total para la atención ${idAtencion}`,
+      precioTotal
+    });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+
+
+
+
+export { sanitizeAtencionInput, findAll, findOne, add, update, remove, contarTurnos, calcularPrecioTotal }

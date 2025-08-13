@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
-import { Peluquero } from './peluquero.entity.js'
 import { orm } from '../shared/orm.js'
+import { Persona } from './persona.entity.js'
 
 const em = orm.em
 
@@ -11,10 +11,12 @@ function sanitizePeluqueroInput(
 ) {
   req.body.sanitizedInput = {
     dni: req.body.dni,
+    clave: req.body.clave,
     nombre: req.body.nombre,
     apellido: req.body.apellido,
     telefono: req.body.telefono,
     mail: req.body.mail,
+    type: req.body.type
   }
   
 
@@ -28,7 +30,7 @@ function sanitizePeluqueroInput(
 
 async function findAll(req: Request, res: Response) {
   try {
-    const peluqueros = await em.find(Peluquero,{})
+    const peluqueros = await em.find(Persona,{type: 'peluquero'})
     res.status(200).json({ message: 'found all peluqueros', data: peluqueros })
   } catch (error: any) {
     res.status(500).json({ message: error.message })
@@ -38,7 +40,7 @@ async function findAll(req: Request, res: Response) {
 async function findOne(req: Request, res: Response) {
   try {
     const idPersona = Number.parseInt(req.params.idPersona)
-    const peluquero = await em.findOneOrFail(Peluquero,{ idPersona })
+    const peluquero = await em.findOneOrFail(Persona,{ idPersona, type: 'peluquero'})
     res.status(200).json({ message: 'found peluquero', data: peluquero })
   } catch (error: any) {
     res.status(500).json({ message: error.message })
@@ -47,7 +49,7 @@ async function findOne(req: Request, res: Response) {
 
 async function add(req: Request, res: Response) {
   try {
-    const peluquero = em.create(Peluquero, req.body.sanitizedInput)
+    const peluquero = em.create(Persona, req.body.sanitizedInput)
     //await em.flush()
     await em.persistAndFlush(peluquero)
     res.status(201).json({ message: 'peluquero created', data: peluquero })
@@ -59,7 +61,7 @@ async function add(req: Request, res: Response) {
 async function update(req: Request, res: Response) {
   try {
     const idPersona = Number.parseInt(req.params.idPersona)
-    const peluqueroToUpdate = await em.findOneOrFail(Peluquero, { idPersona })
+    const peluqueroToUpdate = await em.findOneOrFail(Persona, { idPersona, type: 'peluquero' })
     em.assign(peluqueroToUpdate, req.body.sanitizedInput)
     await em.flush()
     res
@@ -73,7 +75,7 @@ async function update(req: Request, res: Response) {
 async function remove(req: Request, res: Response) {
   try {
     const idPersona = Number.parseInt(req.params.idPersona)
-    const peluquero = await em.findOneOrFail(Peluquero,{ idPersona})  
+    const peluquero = await em.findOneOrFail(Persona,{ idPersona, type: 'peluquero' })  
     await em.removeAndFlush(peluquero)
     res.status(200).send({ message: 'peluquero deleted' })
   } catch (error: any) {

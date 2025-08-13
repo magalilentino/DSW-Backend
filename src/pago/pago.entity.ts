@@ -17,9 +17,6 @@ export class Pago {
   @Property({ nullable: false })
   metodo!: string
 
-  @Property({ nullable: false }) //el total lo derivamos en consultas o lo guardamos en la base de datos
-  total!: number
-
   @Property({ nullable: false })
   estado!: string
 

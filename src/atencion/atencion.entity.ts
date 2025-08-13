@@ -10,11 +10,10 @@ import {
   PrimaryKey
 } from '@mikro-orm/core'
 import { Servicio } from '../servicio/servicio.entity.js';
-import { Cliente } from '../persona/cliente.entity.js';
-import { Peluquero } from '../persona/peluquero.entity.js';
 import { Turno } from '../turno/turno.entity.js';
 import { Descuento } from '../descuento/descuento.entity.js';
 import { Pago } from '../pago/pago.entity.js';
+import { Persona } from '../persona/persona.entity.js';
 
 @Entity()
 export class Atencion {
@@ -27,11 +26,11 @@ export class Atencion {
   @ManyToMany(() => Servicio, servicio => servicio.atenciones, {cascade: [Cascade.ALL], owner: true }) 
     servicios = new Collection<Servicio>(this);
 
-  @ManyToOne(() => Cliente, {fieldName : 'cliente'})
-    cliente!: Rel<Cliente>
+  @ManyToOne(() => Persona, {fieldName : 'cliente'})
+    cliente!: Rel<Persona>
 
-  @ManyToOne(() => Peluquero, {fieldName : 'peluquero'})
-    peluquero!: Rel<Peluquero> 
+  @ManyToOne(() => Persona, {fieldName : 'peluquero'})
+    peluquero!: Rel<Persona>
 
   @OneToMany(() => Turno, (turno) => turno.atencion , {cascade: [Cascade.ALL]})
     turnos = new Collection<Turno>(this) 
