@@ -3,13 +3,11 @@ import {
   Property,
   PrimaryKey,
   Enum,
-  BeforeCreate,
-  BeforeUpdate,
   OneToMany,
   Cascade,
   Collection
 } from '@mikro-orm/core'
-import { Atencion } from '../atencion/atencion.entity';
+import { Atencion } from '../atencion/atencion.entity.js';
 
 
 @Entity({ discriminatorColumn: 'type'})

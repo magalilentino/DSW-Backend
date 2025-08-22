@@ -15,6 +15,7 @@ import { TonoRouter } from './tono/tono.routes.js'
 import { TurnoRouter } from './turno/turno.routes.js'
 import { FormulaRouter } from './formula/formula.routes.js'
 import { AtencionRouter } from './atencion/atencion.routes.js'
+import { PersonaRouter } from './persona/persona.routes.js'
 
 
 const app = express()
@@ -29,6 +30,7 @@ app.use('/api/precio/servicio', ServicioRouter)
 app.use('/api/marca', MarcaRouter)
 app.use('/api/cliente', ClienteRouter)
 app.use('/api/peluquero', PeluqueroRouter)
+app.use('/api/persona', PersonaRouter)
 app.use('/api/categoria', CategoriaRouter)
 app.use('/api/descuento', DescuentoRouter)
 app.use('/api/pago', PagoRouter)

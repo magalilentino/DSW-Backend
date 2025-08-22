@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { orm } from '../shared/orm.js'
 import { Persona } from './persona.entity.js'
+import bcrypt from 'bcrypt';
 
 const em = orm.em
 
@@ -49,6 +50,10 @@ async function findOne(req: Request, res: Response) {
 
 async function add(req: Request, res: Response) {
   try {
+     // Hashear la contraseña 
+    const hashedPassword = await bcrypt.hash(req.body.sanitizedInput.clave, 10);
+    req.body.sanitizedInput.clave = hashedPassword;
+
     const cliente = em.create(Persona, req.body.sanitizedInput)
     await em.flush()
     res.status(201).json({ message: 'cliente created', data: cliente })

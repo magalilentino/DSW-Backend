@@ -8,12 +8,12 @@ POST http://localhost:3000/api/peluquero
 Content-Type: application/json
 
 {
-    "dni": "46038720",
+    "dni": "12121212",
     "clave": "1234",
-    "nombre": "Magali",
-    "apellido": "Lentino",
+    "nombre": "Peluquero1",
+    "apellido": "Apellido1",
     "telefono": "3416190954",
-    "mail": "magalilentino@gmail.com",
+    "mail": "peluquero1@gmail.com",
     "type": "peluquero"
 }
 
@@ -30,10 +30,10 @@ Content-Type: application/json
 {
     "dni": "46038720",
     "clave": "1234",
-    "nombre": "Magali Rocio",
-    "apellido": "Lentino",
+    "nombre": "Peluquero 1a",
+    "apellido": "Apellido1",
     "telefono": "3416190954",
-    "mail": "magalilentino@gmail.com",
+    "mail": "peluquero1@gmail.com",
     "type": "peluquero"
 }
 
@@ -43,12 +43,12 @@ POST http://localhost:3000/api/peluquero
 Content-Type: application/json
 
 {
-    "dni": "12345678",
+    "dni": "12345677",
     "clave": "1234",
-    "nombre": "Nombre1",
-    "apellido": "Apellido1",
+    "nombre": "peluquero2",
+    "apellido": "Apellido2",
     "telefono": "3416190954",
-    "mail": "nombreapellido1@gmail.com",
+    "mail": "peluquero2@gmail.com",
     "type": "peluquero"
 }
 ### DELETE a peluquero

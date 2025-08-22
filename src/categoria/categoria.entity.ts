@@ -9,7 +9,6 @@ import {
   OneToMany,
   Collection
 } from '@mikro-orm/core'
-import { Precio } from '../precio/precio.entity.js'
 import { Producto } from '../producto/producto.entity.js'
 
 @Entity()

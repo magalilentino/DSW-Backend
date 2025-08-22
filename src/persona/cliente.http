@@ -7,12 +7,12 @@ POST http://localhost:3000/api/cliente
 Content-Type: application/json
 
 {
-    "dni": "46038720",
+    "dni": "46038721",
     "clave": "hola123",
-    "nombre": "Magali",
-    "apellido": "Lentino",
+    "nombre": "Cliente1",
+    "apellido": "Apellido1",
     "telefono": "3416190954",
-    "mail": "magalilentino@gmail.com",
+    "mail": "clienteapellido1@gmail.com",
     "type": "cliente"
 }
 
@@ -27,7 +27,7 @@ PUT http://localhost:3000/api/cliente/{{id}}
 Content-Type: application/json
 
 {
-    "dni": "46038720",
+    "dni": "46464646",
     "clave": "hola123",
     "nombre": "Magali Rocio",
     "apellido": "Lentino",
@@ -43,16 +43,16 @@ POST http://localhost:3000/api/cliente
 Content-Type: application/json
 
 {
-    "dni": "12345678",
+    "dni": "12345666",
     "clave": "hola123",
-    "nombre": "Nombre1",
-    "apellido": "Apellido1",
+    "nombre": "Nombre2",
+    "apellido": "Apellido2",
     "telefono": "3416190954",
-    "mail": "nombreapellido1@gmail.com",
+    "mail": "nombreapellido2@gmail.com",
     "type": "cliente"
 }
 
 ### DELETE
 @idToDelete = {{createItemToDelete.response.body.data.idPersona}}
 
-DELETE http://localhost:3000/api/cliente/{{idToDelete}}
+DELETE http://localhost:3000/api/cliente/{{id}}

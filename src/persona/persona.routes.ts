@@ -4,4 +4,5 @@ import { login} from './persona.controller.js'
 export const PersonaRouter = Router()
 
 
-PersonaRouter.post('/', login)
+PersonaRouter.post('/login', login)
+
