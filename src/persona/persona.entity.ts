@@ -9,11 +9,10 @@ import {
 } from '@mikro-orm/core'
 import { Atencion } from '../atencion/atencion.entity.js';
 
-
 @Entity({ discriminatorColumn: 'type'})
 export class Persona {
     @PrimaryKey()
-    idPersona!: number  
+    idPersona?: number  
 
     @Property({ nullable: false, unique: true})
     dni!: string
@@ -30,11 +29,11 @@ export class Persona {
     @Property({ nullable: false})
     telefono!: string
     
-    @Property({ nullable: false })
-    mail!: string 
+    @Property({ nullable: false, unique: true })
+    email!: string 
 
-    @Enum(() => ['peluquero', 'cliente'])
-    type!: 'peluquero' | 'cliente'
+    @Enum(() => ["peluquero", "cliente"])
+    type!: "peluquero" | "cliente"
 
     @OneToMany(() => Atencion, (atencion) => atencion.cliente , {cascade: [Cascade.ALL]})
     clientes = new Collection<Atencion>(this) 

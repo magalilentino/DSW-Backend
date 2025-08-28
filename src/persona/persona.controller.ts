@@ -33,21 +33,22 @@ const em = orm.em
 
 async function login(req: Request, res: Response) {
   try {
-    const { dni, clave } = req.body;
+    const { email, clave } = req.body;
 
     // Validar datos
-    if (!dni || !clave) {
+    if (!email || !clave) {
       return res.status(400).json({ message: 'Faltan datos' });
     }
 
     // Buscar persona
-    const persona = await em.findOne(Persona, { dni });
+    const persona = await em.findOne(Persona, { email });
     if (!persona) {
       return res.status(400).json({ message: 'Credenciales inválidas' });
     }
 
     // Comparar contraseña
-    const esValida = await bcrypt.compare(clave, persona.clave);
+    /*const esValida = await bcrypt.compare(clave, persona.clave);*/
+    const esValida = persona.clave === clave;
     if (!esValida) {
       return res.status(400).json({ message: 'Credenciales inválidas' });
     }
@@ -69,26 +70,19 @@ async function login(req: Request, res: Response) {
   }
 }
 
-
-
 export {  login }
 
-
-
-/*async function register(req: Request, res: Response) {
+async function register(req: Request, res: Response) {
   try {
-    const { dni, email, clave, type } = req.body;
+    const { nombre, apellido, dni, email, telefono, clave } = req.body;
 
     // Validar datos
-    if (!dni || !email || !clave || !type) {
+    if (!nombre || !apellido || !dni || !email || !telefono ||!clave) {
       return res.status(400).json({ message: 'Faltan datos' });
-    }
-    if (!['peluquero', 'cliente'].includes(type)) {
-      return res.status(400).json({ message: 'Rol inválido' });
     }
 
     // Verificar que no exista ya
-    const existente = await em.findOne(Persona, { dni });
+    const existente = await em.findOne(Persona, { email });
     if (existente) {
       return res.status(400).json({ message: 'El email ya está registrado' });
     }
@@ -98,10 +92,13 @@ export {  login }
 
     // Crear persona
     const persona = em.create(Persona, {
+      nombre,
+      apellido,
       dni,
       email,
+      telefono,
       clave: hashedPassword,
-      type
+      type: "cliente"
     });
     await em.flush();
 
@@ -109,4 +106,6 @@ export {  login }
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
-}*/
+}
+
+export {  register }

@@ -18,15 +18,11 @@ import { FormulaRouter } from './formula/formula.routes.js'
 import { AtencionRouter } from './atencion/atencion.routes.js'
 import { PersonaRouter } from './persona/persona.routes.js'
 
+const app = express();
 
-const app = express()
+app.use(cors({ origin: 'http://localhost:5173' })); // React corre en 5173
+app.use(express.json());
 
-// habilita CORS para todas las rutas y orígenes
-app.use(cors());
-
-app.use(express.json())
-
-//luego de los middlewares base
 app.use((req, res, next) => {
   RequestContext.create(orm.em, next)
 })
@@ -51,11 +47,12 @@ app.use((_, res) => {
   res.status(404).send({ message: 'Resource not found' })
 })
 
+app.listen(3000, () => {
+  console.log('Server corriendo en http://localhost:3000');
+});
+
 await syncSchema()
 
-app.listen(3000, () => {
-  console.log('Server runnning on http://localhost:3000/')
-})
 
 
 
