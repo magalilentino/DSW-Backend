@@ -9,7 +9,7 @@ import {
 } from '@mikro-orm/core'
 import { Atencion } from '../atencion/atencion.entity.js';
 
-@Entity({ discriminatorColumn: 'type'})
+@Entity()
 export class Persona {
     @PrimaryKey()
     idPersona?: number  
@@ -40,6 +40,4 @@ export class Persona {
 
     @OneToMany(() => Atencion, (atencion) => atencion.peluquero , {cascade: [Cascade.PERSIST]})
     peluqueros = new Collection<Atencion>(this)
-
-  
 }

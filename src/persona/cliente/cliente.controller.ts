@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
-import { orm } from '../shared/orm.js'
-import { Persona } from './persona.entity.js'
+import { orm } from '../../shared/orm.js'
+import { Persona } from '../persona.entity.js'
 import bcrypt from 'bcrypt';
 
 const em = orm.em

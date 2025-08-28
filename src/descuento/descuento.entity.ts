@@ -3,8 +3,6 @@ import {
   Property,
   ManyToMany,
   Cascade,
-  ManyToOne,
-  Rel,
   PrimaryKey,
   Collection
 } from '@mikro-orm/core'

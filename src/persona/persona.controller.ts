@@ -6,57 +6,22 @@ import jwt from 'jsonwebtoken';
 
 const em = orm.em
 
-// function sanitizePersonaInput(
-//   req: Request,
-//   res: Response,
-//   next: NextFunction
-// ) {
-//   req.body.sanitizedInput = {
-//     dni: req.body.dni,
-//     clave: req.body.clave,
-//     nombre: req.body.nombre,
-//     apellido: req.body.apellido,
-//     telefono: req.body.telefono,
-//     mail: req.body.mail,
-//     type: req.body.type
-//   }
-  
-
-//   Object.keys(req.body.sanitizedInput).forEach((key) => {
-//     if (req.body.sanitizedInput[key] === undefined) {
-//       delete req.body.sanitizedInput[key]
-//     }
-//   })
-//   next()
-// }
-
-
-async function login(req: Request, res: Response) {
+export async function login(req: Request, res: Response) {
   try {
     const { email, clave } = req.body;
 
-    // Validar datos
     if (!email || !clave) {
       return res.status(400).json({ message: 'Faltan datos' });
     }
-
-    // Buscar persona
+    
     const persona = await em.findOne(Persona, { email });
-    if (!persona) {
-      return res.status(400).json({ message: 'Credenciales inválidas' });
+    if (!persona || !(await bcrypt.compare(clave, persona.clave))) {
+      return res.status(401).json({ message: 'Credenciales inválidas' });
     }
 
-    // Comparar contraseña
-    /*const esValida = await bcrypt.compare(clave, persona.clave);*/
-    const esValida = persona.clave === clave;
-    if (!esValida) {
-      return res.status(400).json({ message: 'Credenciales inválidas' });
-    }
-
-    // Generar token JWT
     const token = jwt.sign(
       { id: persona.idPersona, type: persona.type },
-      'secreto-super-seguro', 
+      '1234',
       { expiresIn: '2h' }
     );
 
@@ -66,31 +31,28 @@ async function login(req: Request, res: Response) {
       type: persona.type
     });
   } catch (error: any) {
-    res.status(500).json({ message: error.message });
+    console.error(error);
+    res.status(500).json({ message: 'Error interno del servidor' });
   }
 }
 
-export {  login }
-
-async function register(req: Request, res: Response) {
+export async function register(req: Request, res: Response) {
   try {
-    const { nombre, apellido, dni, email, telefono, clave } = req.body;
+    const { nombre, apellido, dni, email, telefono, clave, type } = req.body;
 
-    // Validar datos
-    if (!nombre || !apellido || !dni || !email || !telefono ||!clave) {
+    if (!nombre || !apellido || !dni || !email || !telefono || !clave || !type) {
       return res.status(400).json({ message: 'Faltan datos' });
     }
 
-    // Verificar que no exista ya
-    const existente = await em.findOne(Persona, { email });
-    if (existente) {
-      return res.status(400).json({ message: 'El email ya está registrado' });
+    if (!['cliente', 'peluquero'].includes(type)) {
+      return res.status(400).json({ message: 'Error en el tipo de persona' });  //lo dejo por si en algun momento el register es de los dos tipos de personas
     }
 
-    // Hashear contraseña
+    const existente = await em.findOne(Persona, { email });
+    if (existente) return res.status(400).json({ message: 'El email ya está registrado' });
+
     const hashedPassword = await bcrypt.hash(clave, 10);
 
-    // Crear persona
     const persona = em.create(Persona, {
       nombre,
       apellido,
@@ -98,14 +60,13 @@ async function register(req: Request, res: Response) {
       email,
       telefono,
       clave: hashedPassword,
-      type: "cliente"
+      type
     });
     await em.flush();
 
     res.status(201).json({ message: 'Usuario registrado', data: { id: persona.idPersona, type: persona.type } });
   } catch (error: any) {
-    res.status(500).json({ message: error.message });
+    console.error(error);
+    res.status(500).json({ message: 'Error interno del servidor' });
   }
 }
-
-export {  register }
