@@ -1,4 +1,5 @@
 import express from 'express'
+import cors from 'cors'
 import 'reflect-metadata'
 import { orm, syncSchema } from './shared/orm.js'
 import { RequestContext } from '@mikro-orm/core'
@@ -19,6 +20,10 @@ import { PersonaRouter } from './persona/persona.routes.js'
 
 
 const app = express()
+
+// habilita CORS para todas las rutas y orígenes
+app.use(cors());
+
 app.use(express.json())
 
 //luego de los middlewares base
