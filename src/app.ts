@@ -10,8 +10,8 @@ import { CategoriaRouter } from './categoria/categoria.routes.js'
 import { DescuentoRouter } from './descuento/descuento.routes.js'
 import { PagoRouter } from './pago/pago.routes.js'
 import { ProductoRouter } from './producto/producto.routes.js'
-// import { ClienteRouter } from './persona/cliente.routes.js'
-// import { PeluqueroRouter } from './persona/peluquero.routes.js'
+import { ClienteRouter } from './persona/cliente/cliente.routes.js'
+import { PeluqueroRouter } from './persona/peluquero/peluquero.routes.js'
 import { TonoRouter } from './tono/tono.routes.js'
 import { TurnoRouter } from './turno/turno.routes.js'
 import { FormulaRouter } from './formula/formula.routes.js'
@@ -27,10 +27,11 @@ app.use((req, res, next) => {
   RequestContext.create(orm.em, next)
 })
 
-app.use('/api/precio/servicio', ServicioRouter)
+//app.use('/api/precio/servicio', ServicioRouter)
+app.use('/api/servicio', ServicioRouter)
 app.use('/api/marca', MarcaRouter)
-// app.use('/api/cliente', ClienteRouter)
-// app.use('/api/peluquero', PeluqueroRouter)
+app.use('/api/cliente', ClienteRouter)
+app.use('/api/peluquero', PeluqueroRouter)
 app.use('/api/persona', PersonaRouter)
 app.use('/api/categoria', CategoriaRouter)
 app.use('/api/descuento', DescuentoRouter)

@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt';
 
 const em = orm.em
 
-function sanitizePeluqueroInput(
+export function sanitizePeluqueroInput(
   req: Request,
   res: Response,
   next: NextFunction
@@ -29,16 +29,16 @@ function sanitizePeluqueroInput(
   next()
 }
 
-async function findAll(req: Request, res: Response) {
+export async function findAllPeluquero(req: Request, res: Response) {
   try {
-    const peluqueros = await em.find(Persona,{type: 'peluquero'})
-    res.status(200).json({ message: 'found all peluqueros', data: peluqueros })
+    const peluqueros = await em.find(Persona, { type: 'peluquero' });
+    res.status(200).json(peluqueros); // <-- solo el array
   } catch (error: any) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: error.message });
   }
 }
 
-async function findOne(req: Request, res: Response) {
+export async function findOne(req: Request, res: Response) {
   try {
     const idPersona = Number.parseInt(req.params.idPersona)
     const peluquero = await em.findOneOrFail(Persona,{ idPersona, type: 'peluquero'})
@@ -48,7 +48,7 @@ async function findOne(req: Request, res: Response) {
   }
 }
 
-async function add(req: Request, res: Response) {
+export async function add(req: Request, res: Response) {
   try {
     // Hashear la contraseña 
     const hashedPassword = await bcrypt.hash(req.body.sanitizedInput.clave, 10);
@@ -62,7 +62,7 @@ async function add(req: Request, res: Response) {
   }
 }
 
-async function update(req: Request, res: Response) {
+export async function update(req: Request, res: Response) {
   try {
     const idPersona = Number.parseInt(req.params.idPersona)
     const peluqueroToUpdate = await em.findOneOrFail(Persona, { idPersona, type: 'peluquero' })
@@ -76,7 +76,7 @@ async function update(req: Request, res: Response) {
   }
 }
 
-async function remove(req: Request, res: Response) {
+export async function remove(req: Request, res: Response) {
   try {
     const idPersona = Number.parseInt(req.params.idPersona)
     const peluquero = await em.findOneOrFail(Persona,{ idPersona, type: 'peluquero' })  
@@ -87,4 +87,3 @@ async function remove(req: Request, res: Response) {
   }
 }
 
-export { sanitizePeluqueroInput, findAll, findOne, add, update, remove }

@@ -4,7 +4,7 @@ import { orm } from '../shared/orm.js'
 
 const em = orm.em
 
-function sanitizeServicioInput(
+export function sanitizeServicioInput(
   req: Request,
   res: Response,
   next: NextFunction
@@ -23,7 +23,7 @@ function sanitizeServicioInput(
   next()
 }
 
-async function findAll(req: Request, res: Response) {
+export async function findAll(req: Request, res: Response) {
   try {
     const servicios = await em.find(
       Servicio,
@@ -36,7 +36,7 @@ async function findAll(req: Request, res: Response) {
   }
 }
 
-async function findOne(req: Request, res: Response) {
+export async function findOne(req: Request, res: Response) {
   try {
     const codServicio = Number.parseInt(req.params.codServicio)
     const servicio = await em.findOneOrFail(
@@ -50,7 +50,7 @@ async function findOne(req: Request, res: Response) {
   }
 }
 
-async function add(req: Request, res: Response) {
+export async function add(req: Request, res: Response) {
   try {
     const servicio = em.create(Servicio, req.body.sanitizedInput)
     await em.flush()
@@ -60,7 +60,7 @@ async function add(req: Request, res: Response) {
   }
 }
 
-async function update(req: Request, res: Response) {
+export async function update(req: Request, res: Response) {
   try {
     const codServicio = Number.parseInt(req.params.codServicio)
     const servicioToUpdate = await em.findOneOrFail(Servicio, { codServicio })
@@ -74,7 +74,7 @@ async function update(req: Request, res: Response) {
   }
 }
 
-async function remove(req: Request, res: Response) {
+export async function remove(req: Request, res: Response) {
   try {
     const codServicio = Number.parseInt(req.params.codServicio)
     const servicio = em.findOneOrFail(Servicio, { codServicio })
@@ -83,5 +83,3 @@ async function remove(req: Request, res: Response) {
     res.status(500).json({ message: error.message })
   }
 }
-
-export { sanitizeServicioInput, findAll, findOne, add, update, remove }
