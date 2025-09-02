@@ -74,7 +74,7 @@ async function update(req: Request, res: Response) {
 async function remove(req: Request, res: Response) {
   try {
     const idCategoria = Number.parseInt(req.params.idCategoria)
-    const categoria = em.findOneOrFail(Categoria, { idCategoria })
+    const categoria = await em.findOneOrFail(Categoria, { idCategoria })
     await em.removeAndFlush(categoria)
   } catch (error: any) {
     res.status(500).json({ message: error.message })

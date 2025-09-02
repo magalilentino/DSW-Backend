@@ -20,7 +20,7 @@ export async function login(req: Request, res: Response) {
     }
 
     const token = jwt.sign(
-      { id: persona.idPersona, type: persona.type },
+      { id: persona.idPersona, type: persona.type, nombre: persona.nombre },
       '1234',
       { expiresIn: '2h' }
     );
@@ -28,7 +28,8 @@ export async function login(req: Request, res: Response) {
     res.status(200).json({
       message: 'Login exitoso',
       token,
-      type: persona.type
+      type: persona.type,
+      nombre: persona.nombre
     });
   } catch (error: any) {
     console.error(error);

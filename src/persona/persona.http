@@ -1,0 +1,29 @@
+### POST
+# @name createPersonaPeluquero
+POST http://localhost:3000/api/persona/register
+Content-Type: application/json
+
+{
+    "dni": "11111111",
+    "clave": "hola123" ,
+    "nombre": "admin" ,
+    "apellido": "peluquero",
+    "telefono": "3416555111",
+    "email": "admin@gmail.com",
+    "type": "peluquero"
+}
+
+### POST
+# @name createPersonaCliente
+POST http://localhost:3000/api/persona/register
+Content-Type: application/json
+
+{
+    "dni": "22222222",
+    "clave": "hola123" ,
+    "nombre": "cliente" ,
+    "apellido": "apellido",
+    "telefono": "3416333111",
+    "email": "cliente@gmail.com",
+    "type": "cliente"
+}
