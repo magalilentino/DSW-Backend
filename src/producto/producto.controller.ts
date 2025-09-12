@@ -86,4 +86,41 @@ async function remove(req: Request, res: Response) {
   }
 }
 
+export const listarProductos = async (req:Request, res: Response) => {
+  try {
+    const { idMarca, idCategoria } = req.query;
+
+    const productos = await em.find(
+      "Producto",
+      {
+        ...(idMarca ? { marca: idMarca } : {}),
+        ...(idCategoria ? { categoria: idCategoria } : {}),
+      },
+      {
+        fields: ["id", "descripcion"], // solo estas propiedades
+      }
+    );
+
+    res.json(productos);
+  } catch (error:any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+export const detalleProducto = async (req: Request, res: Response) => {
+  try {
+    const  idProducto  = Number.parseInt(req.params.idProducto);
+
+    const producto = await em.findOne(Producto, { idProducto },  { populate: ["marcas", "categoria"] } );
+
+    if (!producto) {
+      return res.status(404).json({ message: "Producto no encontrado" });
+    }
+
+    res.json(producto);
+  } catch (error:any) {
+    res.status(500).json({ message: error.message });
+  }
+};
 export { sanitizeProductoInput, findAll, findOne, add, update, remove }

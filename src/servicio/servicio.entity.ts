@@ -17,6 +17,9 @@ export class Servicio {
   
   @Property({ nullable: false })
     nombreServicio!: string
+    
+  @Property({ nullable: false })
+    descripcion!: string
 
   @Property({ nullable: false })
     cantTurnos!: number

@@ -83,3 +83,50 @@ export async function remove(req: Request, res: Response) {
     res.status(500).json({ message: error.message })
   }
 }
+export const listarServiciosPorPrecio = async (req: Request, res: Response) => {
+  try {
+    // tomamos rango de precio desde query params
+    const min = req.query.min ? Number(req.query.min) : 0;
+    const max = req.query.max ? Number(req.query.max) : Number.MAX_SAFE_INTEGER;
+
+    const servicios = await em.find(
+      Servicio,
+      {
+        precio: { $gte: min, $lte: max } // rango de precio
+      },
+      {
+        fields: ['codServicio', 'nombreServicio', 'descripcion', 'precio'], // solo info básica
+      }
+    );
+
+    res.json(servicios);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Detalle completo de servicios dentro del rango de precio
+export const detalleServiciosPorPrecio = async (req: Request, res: Response) => {
+  try {
+    const min = req.query.min ? Number(req.query.min) : 0;
+    const max = req.query.max ? Number(req.query.max) : Number.MAX_SAFE_INTEGER;
+
+    const servicios = await em.find(
+      Servicio,
+      {
+        precio: { $gte: min, $lte: max }
+      },
+      {
+        populate: ['tonos', 'productos'], // trae todas las relaciones
+      }
+    );
+
+    if (!servicios || servicios.length === 0) {
+      return res.status(404).json({ message: "No se encontraron servicios en ese rango" });
+    }
+
+    res.json(servicios);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+};
