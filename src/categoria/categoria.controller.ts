@@ -73,11 +73,17 @@ async function update(req: Request, res: Response) {
 
 async function remove(req: Request, res: Response) {
   try {
-    const idCategoria = Number.parseInt(req.params.idCategoria)
-    const categoria = await em.findOneOrFail(Categoria, { idCategoria })
-    await em.removeAndFlush(categoria)
+    const idCategoria = Number.parseInt(req.params.idCategoria);
+    const categoria = await em.findOne(Categoria, { idCategoria });
+
+    if (!categoria) {
+      return res.status(404).json({ message: "Categoría no encontrada" });
+    }
+
+    await em.removeAndFlush(categoria);
+    res.status(200).json({ message: "Categoría eliminada correctamente" });
   } catch (error: any) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: error.message });
   }
 }
 
