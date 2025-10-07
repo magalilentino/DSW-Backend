@@ -17,23 +17,57 @@ import { Persona } from '../persona/persona.entity.js';
 
 @Entity()
 export class Atencion {
-@PrimaryKey()
-    idAtencion!: number
-
-  @Property({ nullable: false })
-    estado!: string 
-
-  @ManyToMany(() => Servicio, servicio => servicio.atenciones, {cascade: [Cascade.ALL], owner: true }) 
-    servicios = new Collection<Servicio>(this);
+  @PrimaryKey()
+    idAtencion!: number 
 
   @ManyToOne(() => Persona, {fieldName : 'cliente'})
-    cliente!: Rel<Persona>
+    cliente!: Rel<Persona> 
 
   @ManyToOne(() => Persona, {fieldName : 'peluquero'})
     peluquero!: Rel<Persona>
+      
+  @ManyToMany(() => Servicio, servicio => servicio.atenciones, {cascade: [Cascade.ALL], owner: true }) 
+    servicios = new Collection<Servicio>(this);
+
+  @Property({ nullable: false })
+  fechaInicio!: string;
+
+  @Property({ nullable: false })
+    estado!: "pendiente" | "finalizado" | "cancelado" 
 
   @OneToMany(() => Turno, (turno) => turno.atencion , {cascade: [Cascade.ALL]})
     turnos = new Collection<Turno>(this) 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
    @OneToMany(() => Pago, (pago) => pago.atencion , {cascade: [Cascade.ALL]})
     pagos = new Collection<Pago>(this) 

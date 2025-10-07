@@ -63,6 +63,13 @@ async function add(req: Request, res: Response) {
   }
 }
 
+
+
+
+
+
+
+
 async function update(req: Request, res: Response) {
   try {
     const idAtencion = Number.parseInt(req.params.idAtencion)
