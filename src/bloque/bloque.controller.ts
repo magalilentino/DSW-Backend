@@ -1,42 +1,34 @@
-import { Request, Response, NextFunction } from 'express'
-import { Bloque } from './bloque.entity.js' 
-import { orm } from '../shared/orm.js'  
+import { Request, Response } from 'express';
+import { orm } from '../shared/orm.js';
+import { Bloque } from './bloque.entity.js';
 
-const em = orm.em
+const em = orm.em;
 
+export const getBloquesLibres = async (req: Request, res: Response) => {
+  const idPeluquero = Number(req.query.idPeluquero);
+  const fecha = req.query.fecha as string;
 
-async function findAllBloques(req: Request, res: Response) {
   try {
-    const bloques = await em.find(
-      Bloque,
-      {}
-    )
-    res.status(200).json({ message: 'found all bloque', data: bloques })
-  } catch (error: any) {
-    res.status(500).json({ message: error.message })
-  }
-}
-/*
-exports.getBloquesLibres = async (req: Request, res: Response) => {
-  const { idPersona, type, fecha } = req.query;
+    const bloques = await em.find(Bloque, {}, { populate: ['turnos.atencion.peluquero'] });
 
-  /*try {
-    // Traer todos los bloques
-    const bloques = await Bloque.findAllBloques({ order: [['hora_inicio','ASC']] });
+    const bloquesLibres = bloques.filter(bloque => 
+      !bloque.turnos.getItems().some(turno => {
+        const atencion = turno.atencion;
 
-    // Traer turnos ocupados
-    const turnos = await require('./Turno').Turno.findAll({
-      where: { idPersona, fecha },
-      attributes: ['id_bloque']
-    });
-    const ocupadosIds = turnos.map(t => t.id_bloque);
+        if (!atencion || !atencion.peluquero) return false;
 
-    // Filtrar bloques libres
-    const libres = bloques.filter(b => !ocupadosIds.includes(b.id_bloque));
+        const turnoFechaStr = atencion.fechaInicio instanceof Date
+          ? atencion.fechaInicio.toISOString().slice(0, 10)
+          : atencion.fechaInicio;
 
-    return res.json(libres);
+        return atencion.peluquero.idPersona === idPeluquero && turnoFechaStr === fecha;
+      })
+    );
+
+    return res.json(bloquesLibres);
+
   } catch (err) {
     console.error(err);
-    res.status(500).json({ msg: 'Error al calcular bloques libres' });
+    res.status(500).json({ message: 'Error al obtener bloques libres' });
   }
-}*/
+};
