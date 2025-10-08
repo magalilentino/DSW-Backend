@@ -54,11 +54,12 @@ async function findAll(req: Request, res: Response) {
 async function atencionesPendientes(req: Request, res: Response) {
   try {
     const idPersona = req.user?.id; 
-    const peluquero = await em.findOneOrFail(Persona,{ idPersona, type: 'peluquero' });
 
     if (!idPersona) {
       return res.status(401).json({ message: "No se encontró el peluquero logueado" });
     }
+
+    const peluquero = await em.findOneOrFail(Persona,{ idPersona, type: 'peluquero' });
 
     const atenciones = await em.find(
       Atencion,

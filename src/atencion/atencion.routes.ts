@@ -7,8 +7,8 @@ export const AtencionRouter = Router()
 //La URL completa para acceder será: GET /atenciones/pendientes
 AtencionRouter.get( 
     '/pendientes', 
-    verificarToken,     // 👈 Primero el middleware de protección (JWT)
-    atencionesPendientes // 👈 Luego el controlador que hace la consulta
+    verificarToken,     
+    atencionesPendientes 
 );
 AtencionRouter.get('/', findAll)
 AtencionRouter.get('/: idAtencion', findOne)
