@@ -38,7 +38,7 @@ export async function findAllPeluquero(req: Request, res: Response) {
   }
 }
 
-export async function findOne(req: Request, res: Response) {
+export async function findOnePeluquero(req: Request, res: Response) {
   try {
     const idPersona = Number.parseInt(req.params.idPersona)
     const peluquero = await em.findOneOrFail(Persona,{ idPersona, type: 'peluquero'})

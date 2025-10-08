@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { sanitizeTonoInput, findAll, findOne, add, update, remove } from './tono.controller.js'
+import { sanitizeTonoInput, findAll, findOne, add, update, remove, tonosDeServicio } from './tono.controller.js'
 
 export const TonoRouter = Router()
 
@@ -9,3 +9,4 @@ TonoRouter.post('/', sanitizeTonoInput, add)
 TonoRouter.put('/:idTono', sanitizeTonoInput, update)
 TonoRouter.patch('/:idTono', sanitizeTonoInput, update)
 TonoRouter.delete('/:idTono', remove)
+TonoRouter.get('/tonosPorservicio/:codServicio', tonosDeServicio);

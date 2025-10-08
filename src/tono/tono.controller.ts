@@ -34,6 +34,28 @@ async function findAll(req: Request, res: Response) {
   }
 }
 
+async function tonosDeServicio(req: Request, res: Response) {
+  try {
+    const servicio = req.servicio;
+
+    const tonos = await em.find(
+      Tono,
+      {
+        servicios: servicio,
+      },
+      {
+        populate: ['formulas']
+      }
+    );
+
+    res.status(200).json({ message: "tonos del servicio seleccionado", data: tonos });
+  } catch (error: any) {
+    res.status(500).json({ message: "no se encontraron tonos para el servicio seleccionado" });
+  }
+
+
+}
+
 async function findOne(req: Request, res: Response) {
   try {
     const idTono = Number.parseInt(req.params.idTono)
@@ -82,4 +104,4 @@ async function remove(req: Request, res: Response) {
   }
 }
 
-export { sanitizeTonoInput, findAll, findOne, add, update, remove }
+export { sanitizeTonoInput, findAll, findOne, add, update, remove, tonosDeServicio }

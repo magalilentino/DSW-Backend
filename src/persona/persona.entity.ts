@@ -36,8 +36,9 @@ export class Persona {
     type!: "peluquero" | "cliente"
 
     @OneToMany(() => Atencion, (atencion) => atencion.cliente , {cascade: [Cascade.ALL]})
-    clientes = new Collection<Atencion>(this) 
+    atencionesCli = new Collection<Atencion>(this) 
 
     @OneToMany(() => Atencion, (atencion) => atencion.peluquero , {cascade: [Cascade.PERSIST]})
-    peluqueros = new Collection<Atencion>(this)
+    atencionesPel = new Collection<Atencion>(this)
+
 }

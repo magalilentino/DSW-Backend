@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { Producto } from './producto.entity.js'
 import { orm } from '../shared/orm.js'
+import { Servicio } from '../servicio/servicio.entity.js'
 
 const em = orm.em
 
@@ -36,6 +37,28 @@ async function findAll(req: Request, res: Response) {
   } catch (error: any) {
     res.status(500).json({ message: error.message })
   }
+}
+
+async function productosDeServicio(req: Request, res: Response) {
+  try {
+    const servicio = req.servicio;
+
+    const productos = await em.find(
+      Producto,
+      {
+        servicios: servicio,
+      },
+      {
+        populate: ['categoria', 'marcas', 'formulas']
+      }
+    );
+
+    res.status(200).json({ message: "productos del servicio seleccionado", data: productos });
+  } catch (error: any) {
+    res.status(500).json({ message: "no se encontraron productos para el servicio seleccionado" });
+  }
+
+
 }
 
 async function findOne(req: Request, res: Response) {
@@ -123,4 +146,4 @@ export const detalleProducto = async (req: Request, res: Response) => {
     res.status(500).json({ message: error.message });
   }
 };
-export { sanitizeProductoInput, findAll, findOne, add, update, remove }
+export { sanitizeProductoInput, findAll, findOne, add, update, remove, productosDeServicio }

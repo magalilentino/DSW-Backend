@@ -36,7 +36,7 @@ export async function findAll(req: Request, res: Response) {
   }
 }
 
-export async function findOne(req: Request, res: Response) {
+export async function findOneServicio(req: Request, res: Response) {
   try {
     const codServicio = Number.parseInt(req.params.codServicio)
     const servicio = await em.findOneOrFail(

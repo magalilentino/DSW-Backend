@@ -2,9 +2,62 @@ import { NextFunction, Request, Response } from 'express';
 import { orm } from '../shared/orm.js';
 import { Persona } from './persona.entity.js';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 const em = orm.em
+
+export function verificarToken(req: Request, res: Response, next: NextFunction) {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(401).json({ message: "Token no proporcionado" });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+
+    // Validamos que tenga las propiedades esperadas
+    if (
+      typeof decoded === "object" &&
+      "id" in decoded &&
+      "type" in decoded &&
+      "nombre" in decoded
+    ) {
+      req.user = {
+        id: decoded.id as number,
+        type: decoded.type as string,
+        nombre: decoded.nombre as string,
+      };
+      next();
+    } else {
+      return res.status(403).json({ message: "Token inválido o incompleto" });
+    }
+  } catch (error) {
+    return res.status(403).json({ message: "Token inválido o expirado" });
+  }
+}
+
+//middleware
+// export function verificarToken(req: Request, res: Response, next: NextFunction) {
+//   const authHeader = req.headers.authorization;
+
+//   if (!authHeader) {
+//     return res.status(401).json({ message: "Token no proporcionado" });
+//   }
+
+//   const token = authHeader.split(" ")[1];
+
+//   try {
+//     const decoded = jwt.verify(token, "1234"); // misma clave que usás en login
+//     req.user = decoded; // ahora tenés acceso a req.user.id, req.user.type, etc.
+//     next();
+//   } catch (error) {
+//     return res.status(403).json({ message: "Token inválido o expirado" });
+//   }
+// }
+
 
 export async function login(req: Request, res: Response) {
   try {
@@ -71,3 +124,4 @@ export async function register(req: Request, res: Response) {
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 }
+

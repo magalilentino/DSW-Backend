@@ -38,37 +38,6 @@ export class Atencion {
   @OneToMany(() => Turno, (turno) => turno.atencion , {cascade: [Cascade.ALL]})
     turnos = new Collection<Turno>(this) 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
    @OneToMany(() => Pago, (pago) => pago.atencion , {cascade: [Cascade.ALL]})
     pagos = new Collection<Pago>(this) 
 

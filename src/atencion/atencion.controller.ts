@@ -1,19 +1,30 @@
 import { Request, Response, NextFunction } from 'express'
 import { Atencion } from './atencion.entity.js'
+//import { findOnePeluquero } from "../persona/peluquero/peluquero.controller.js";
 import { orm } from '../shared/orm.js'
+import { Persona } from '../persona/persona.entity.js';
+import { Servicio } from '../servicio/servicio.entity.js';
+
 
 
 const em = orm.em
 
-function sanitizeAtencionInput(
+async function sanitizeAtencionInput(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
+  const idPersona = req.user?.id; 
+    const cliente = await em.findOneOrFail(Persona,{ idPersona, type: 'cliente' });
+
+    if (!idPersona) {
+      return res.status(401).json({ message: "No se encontró la persona logueado" });
+    }
+  
   req.body.sanitizedInput = {
-    estado: req.body.estado,
+    estado: "pendiente",
     servicios: req.body.servicios,
-    cliente: req.body.cliente,
+    cliente: cliente,
     descuentos: req.body.descuentos,
     peluquero: req.body.peluquero
     
@@ -40,6 +51,44 @@ async function findAll(req: Request, res: Response) {
   }
 }
 
+async function atencionesPendientes(req: Request, res: Response) {
+  try {
+    const idPersona = req.user?.id; 
+    const peluquero = await em.findOneOrFail(Persona,{ idPersona, type: 'peluquero' });
+
+    if (!idPersona) {
+      return res.status(401).json({ message: "No se encontró el peluquero logueado" });
+    }
+
+    const atenciones = await em.find(
+      Atencion,
+      {
+        peluquero: peluquero,
+        estado: "pendiente"
+      },
+      {
+        populate: ['descuentos', 'servicios', 'peluquero', 'cliente']
+      }
+    );
+
+    res.status(200).json({ message: "se encontraron todas las atenciones pendientes", data: atenciones });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+
+
+}
+
+async function confirmarAtencion (req: Request, res:Response) {
+  const codServicio = Number.parseInt(req.params.codServicio)
+  const servicio = await em.findOneOrFail(Servicio, {codServicio})
+
+  req.servicio = servicio;
+
+}
+
+
+
 async function findOne(req: Request, res: Response) {
   try {
     const idAtencion = Number.parseInt(req.params.idAtencion)
@@ -54,6 +103,8 @@ async function findOne(req: Request, res: Response) {
 async function add(req: Request, res: Response) {
   try {
     const atencion = em.create(Atencion, req.body.sanitizedInput)
+    //const atencion = em.create(Atencion, {...req.body.sanitizedInput,cliente});
+
     await em.flush() 
     res
       .status(201)
@@ -62,12 +113,6 @@ async function add(req: Request, res: Response) {
     res.status(500).json({ message: error.message })
   }
 }
-
-
-
-
-
-
 
 
 async function update(req: Request, res: Response) {
@@ -139,4 +184,4 @@ async function calcularPrecioTotal(req: Request, res: Response) {
 
 
 
-export { sanitizeAtencionInput, findAll, findOne, add, update, remove, contarTurnos, calcularPrecioTotal }
+export { sanitizeAtencionInput, findAll, findOne, add, update, remove, contarTurnos, calcularPrecioTotal, atencionesPendientes }
