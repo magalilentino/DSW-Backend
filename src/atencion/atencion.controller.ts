@@ -84,6 +84,96 @@ async function crearAtencion(req: Request, res: Response) {
       bloques: secuencia.map(b => ({ idBloque: b.idBloque, inicio: b.horaInicio, fin: b.horaFin })),
     });
 
+  
+  req.body.sanitizedInput = {
+    estado: "pendiente",
+    servicios: req.body.servicios,
+    cliente: cliente,
+    descuentos: req.body.descuentos,
+    peluquero: req.body.peluquero
+    
+  }
+  //more checks here
+
+  Object.keys(req.body.sanitizedInput).forEach((key) => {
+    if (req.body.sanitizedInput[key] === undefined) {
+      delete req.body.sanitizedInput[key]
+    }
+  })
+  next()
+}
+
+async function findAll(req: Request, res: Response) {
+  try {
+    const atenciones = await em.find(Atencion, {},
+    { populate: ['descuentos', 'servicios', 'peluquero', 'cliente'] })
+    res
+      .status(200)
+      .json({ message: 'se encontraron todas las atenciones', data: atenciones })
+  } catch (error: any) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
+async function atencionesPendientes(req: Request, res: Response) {
+  try {
+    const idPersona = req.user?.id; 
+
+    if (!idPersona) {
+      return res.status(401).json({ message: "No se encontró el peluquero logueado" });
+    }
+
+    const peluquero = await em.findOneOrFail(Persona,{ idPersona, type: 'peluquero' });
+
+    const atenciones = await em.find(
+      Atencion,
+      {
+        peluquero: peluquero,
+        estado: "pendiente"
+      },
+      {
+        populate: ['descuentos', 'servicios', 'peluquero', 'cliente']
+      }
+    );
+
+    res.status(200).json({ message: "se encontraron todas las atenciones pendientes", data: atenciones });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+
+
+}
+
+async function confirmarAtencion (req: Request, res:Response) {
+  const codServicio = Number.parseInt(req.params.codServicio)
+  const servicio = await em.findOneOrFail(Servicio, {codServicio})
+
+  req.servicio = servicio;
+
+}
+
+
+
+async function findOne(req: Request, res: Response) {
+  try {
+    const idAtencion = Number.parseInt(req.params.idAtencion)
+    const atencion = await em.findOneOrFail(Atencion,{ idAtencion },  
+    { populate: ['descuentos', 'servicios', 'peluquero', 'cliente'] })      //va en las relaciones que van de muchos a muchos en el owner 
+    res.status(200).json({ message: 'found atencion', data: atencion })
+  } catch (error: any) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
+async function add(req: Request, res: Response) {
+  try {
+    const atencion = em.create(Atencion, req.body.sanitizedInput)
+    //const atencion = em.create(Atencion, {...req.body.sanitizedInput,cliente});
+
+    await em.flush() 
+    res
+      .status(201)
+      .json({ message: 'atencion creada', data: atencion })
   } catch (error: any) {
     console.error(error);
     return res.status(500).json({ message: "Error al crear la atención", error: error.message });

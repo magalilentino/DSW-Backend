@@ -4,12 +4,12 @@ POST http://localhost:3000/api/persona/register
 Content-Type: application/json
 
 {
-    "dni": "11111111",
+    "dni": "22222222",
     "clave": "hola123" ,
-    "nombre": "admin" ,
+    "nombre": "admin1" ,
     "apellido": "peluquero",
     "telefono": "3416555111",
-    "email": "admin@gmail.com",
+    "email": "admin1@gmail.com",
     "type": "peluquero"
 }
 
