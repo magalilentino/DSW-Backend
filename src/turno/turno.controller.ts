@@ -1,6 +1,9 @@
 import { Request, Response, NextFunction } from 'express'
 import { Turno } from './turno.entity.js'
 import { orm } from '../shared/orm.js'
+import { MikroORM, EntityManager } from "@mikro-orm/core";
+import { Bloque } from "../bloque/bloque.entity.js";
+import { Persona } from "../persona/persona.entity.js";
 
 const em = orm.em
 
@@ -21,6 +24,51 @@ function sanitizeTurnoInput(
   })
   next()
 }
+
+//------------------------------------------------------------------------------------------------------
+async function obtenerDisponibles(req: Request, res: Response) {
+  try {
+    const peluqueroId = parseInt(req.query.peluqueroId as string);
+    const fecha = req.query.fecha as string;
+
+    if (!peluqueroId || !fecha) {
+      return res.status(400).json({ error: "Falta peluqueroId o fecha" });
+    }
+
+    const bloques = await em.find(Bloque, {}, { orderBy: { horaInicio: "ASC" } });
+
+    const bloquesIds = bloques
+      .map(b => b.idBloque)
+      .filter((id): id is number => id !== undefined);
+
+    const turnosOcupados = await em.createQueryBuilder(Turno, 't')
+      .leftJoin('t.bloque', 'b')
+      .leftJoin('t.atencion', 'a')
+      .where({
+        't.estado': { $in: ['pendiente', 'finalizado'] },
+        'b.idBloque': { $in: bloquesIds },
+        'a.peluquero': peluqueroId,
+        'a.fechaInicio': fecha
+      })
+      .select(['b.idBloque'])
+      .getResultList();
+
+    const bloquesOcupadosIds = new Set(turnosOcupados.map(t => t.bloque.idBloque!));
+
+    const bloquesLibres = bloques.filter(b => b.idBloque && !bloquesOcupadosIds.has(b.idBloque));
+
+    return res.json(bloquesLibres.map(b => ({
+      idBloque: b.idBloque,
+      inicio: b.horaInicio,
+      fin: b.horaFin
+    })));
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Error obteniendo bloques disponibles" });
+  }
+}
+//------------------------------------------------------------------------------------------------------
 
 async function findAll(req: Request, res: Response) {
   try {
@@ -83,4 +131,4 @@ async function remove(req: Request, res: Response) {
   }
 }
 
-export { sanitizeTurnoInput, findAll, findOne, add, update, remove }
+export { sanitizeTurnoInput, obtenerDisponibles, findAll, findOne, add, update, remove }
