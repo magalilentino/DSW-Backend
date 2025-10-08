@@ -80,11 +80,19 @@ async function atencionesPendientes(req: Request, res: Response) {
 
 }
 
-async function confirmarAtencion (req: Request, res:Response) {
+export async function confirmarAtencion (req: Request, res:Response) {
   const codServicio = Number.parseInt(req.params.codServicio)
   const servicio = await em.findOneOrFail(Servicio, {codServicio})
 
   req.servicio = servicio;
+
+}
+
+export async function cancelarAtencion(req: Request, res:Response) {
+  const idAtencion = Number.parseInt(req.params.idAtencion)
+  const atencion = await em.findOneOrFail(Atencion, {idAtencion})
+
+  atencion.estado = "cancelado";
 
 }
 
@@ -179,6 +187,38 @@ async function calcularPrecioTotal(req: Request, res: Response) {
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
+}
+
+
+export async function listarServiciosDeAtencion(req: Request, res: Response) {
+    try {
+        // 1. Obtener el ID de la Atención desde los parámetros de la URL
+        const idAtencion = Number(req.params.idAtencion); 
+        if (!idAtencion) {
+            return res.status(400).json({ message: "Se requiere el ID de la atención." });
+        }
+        // 2. Buscar la atención por ID y hacer 'populate' a la relación de servicios
+        const atencion = await em.findOne(
+            Atencion,
+            { idAtencion : idAtencion }, 
+            { 
+                populate: ['servicios'] //trae los servicios relacionados
+            }
+        );
+        // 3. Verificar si se encontró la atención
+        if (!atencion) {
+            return res.status(404).json({ message: "Atención no encontrada." });
+        }
+        // 4. Devolver la lista de servicios (que viene dentro del objeto 'atencion')
+        return res.status(200).json({ 
+            message: `Servicios de la atención ${idAtencion} listados.`,
+            data: atencion.servicios //Devolvemos solo el array de servicios
+        });
+
+    } catch (error: any) {
+        console.error(error);
+        return res.status(500).json({ message: error.message });
+    }
 }
 
 
