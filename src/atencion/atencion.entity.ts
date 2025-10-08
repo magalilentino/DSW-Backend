@@ -30,7 +30,7 @@ export class Atencion {
     servicios = new Collection<Servicio>(this);
 
   @Property({ nullable: false })
-  fechaInicio!: string;
+    fechaInicio!: Date;
 
   @Property({ nullable: false })
     estado!: "pendiente" | "finalizado" | "cancelado" 

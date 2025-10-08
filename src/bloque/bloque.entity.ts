@@ -1,3 +1,4 @@
+import { Turno } from '../turno/turno.entity.js'
 import {
   Entity,
   Property,
@@ -5,10 +6,7 @@ import {
   OneToMany,
   Collection,
   Cascade,
-  ManyToOne,
-  Rel,
 } from '@mikro-orm/core'
-import { Turno } from '../turno/turno.entity.js'
 
 @Entity()
 export class Bloque  {
@@ -16,13 +14,10 @@ export class Bloque  {
   idBloque?: number
 
   @Property({ nullable: false })
-  horaIncio!: string
+  horaInicio!: string
 
   @Property({ nullable: false })
   horaFin!: string
 
 @OneToMany(() => Turno, (turno) => turno.bloque , {cascade: [Cascade.ALL]})
-  bloques = new Collection<Bloque>(this) 
-
-
-}
+  turnos = new Collection<Turno>(this)}
