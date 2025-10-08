@@ -1,23 +1,22 @@
-import { Turno } from '../turno/turno.entity.js'
-import {
-  Entity,
-  Property,
-  PrimaryKey,
-  OneToMany,
-  Collection,
-  Cascade,
-} from '@mikro-orm/core'
+import { Entity, PrimaryKey, Property } from "@mikro-orm/core";
 
 @Entity()
-export class Bloque  {
+export class Bloque {
   @PrimaryKey()
-  idBloque?: number
+  id!: number;
 
-  @Property({ nullable: false })
-  horaInicio!: string
+  @Property()
+  fecha!: string; // 'YYYY-MM-DD'
 
-  @Property({ nullable: false })
-  horaFin!: string
+  @Property()
+  horaInicio!: string; // '09:00'
 
-  @OneToMany(() => Turno, (turno) => turno.bloque , {cascade: [Cascade.ALL]})
-    turnos = new Collection<Turno>(this)}
+  @Property()
+  horaFin!: string; // '09:45'
+
+  @Property()
+  idPeluquero!: number; // FK a Persona donde type = 'peluquero'
+
+  @Property()
+  ocupado: boolean = false;
+}
