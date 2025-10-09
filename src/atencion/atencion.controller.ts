@@ -1,125 +1,74 @@
-import { Request, Response } from 'express';
-import { orm } from '../shared/orm.js';
-import { Atencion } from './atencion.entity.js';
-import { Bloque } from '../bloque/bloque.entity.js';
-import { Persona } from '../persona/persona.entity.js';
-import { Servicio } from '../servicio/servicio.entity.js';
-import { Turno } from '../turno/turno.entity.js';
+import { Request, Response } from "express";
+import { orm } from "../shared/orm.js";
+import { Atencion } from "./atencion.entity.js";
+import { Persona } from "../persona/persona.entity.js";
+import { Bloque } from "../bloque/bloque.entity.js";
+import { generarBloques } from "../bloque/bloque.controller.js";
 
-const em = orm.em.fork();
+const em = orm.em;
 
-export const crearAtencion = async (req: Request, res: Response) => {
+export async function crearAtencion(req: Request, res: Response) {
   try {
-    const { idCliente, idPeluquero, idServicios, fecha } = req.body;
+    const { clienteId, peluqueroId, fecha, horaInicio, duracion } = req.body;
 
-    const idClienteNum = Number(idCliente);
-    const idPeluqueroNum = Number(idPeluquero);
+    const cliente = await em.findOneOrFail(Persona, { idPersona: clienteId });
+    const peluquero = await em.findOneOrFail(Persona, { idPersona: peluqueroId });
 
-    const cliente: Persona = await em.findOneOrFail(Persona, { idPersona: idClienteNum });
-    const peluquero: Persona = await em.findOneOrFail(Persona, { idPersona: idPeluqueroNum });
-
-    const fechaObj = new Date(fecha);
-    const dia = fechaObj.getDay(); // 0 = domingo, 1 = lunes
-    if (dia === 0 || dia === 1) {
-      return res.status(400).json({ message: 'Solo se pueden agendar turnos de martes a sábado' });
-    }
-
-    const servicios = await em.find(Servicio, { codServicio: { $in: idServicios } });
-
-    const cantidadBloques = servicios.reduce((sum, s) => sum + s.cantTurnos, 0);
-
-    const bloquesLibres = await em.find(Bloque, {
-      idPeluquero: idPeluqueroNum,
-      fecha,
-      ocupado: false
-    }, { orderBy: { horaInicio: 'asc' } });
-
-    if (bloquesLibres.length < cantidadBloques) {
-      return res.status(400).json({ message: 'No hay suficientes bloques libres' });
-    }
-
-    const bloquesAsignados = bloquesLibres.slice(0, cantidadBloques);
-
-    const horaInicio = bloquesAsignados[0].horaInicio.split(':');
-    const horaInicioNum = parseInt(horaInicio[0], 10);
-    const minutosInicio = parseInt(horaInicio[1], 10);
-    const duracionTotal = cantidadBloques * 45; // minutos
-    const horaFinTotal = horaInicioNum * 60 + minutosInicio + duracionTotal;
-
-    if (horaInicioNum < 9 || horaFinTotal > 18 * 60) {
-      return res.status(400).json({ message: 'Turno fuera del horario permitido (09:00-18:00)' });
-    }
-
-    bloquesAsignados.forEach(b => b.ocupado = true);
+    const horaInicioDate = new Date(`${fecha}T${horaInicio}:00`);
+    const horaFinDate = new Date(horaInicioDate.getTime() + Number(duracion) * 60000);
 
     const atencion = em.create(Atencion, {
       cliente,
       peluquero,
-      fechaInicio: new Date(`${fecha}T${bloquesAsignados[0].horaInicio}:00`),
-      estado: 'pendiente'
+      fecha: new Date(fecha),
+      horaInicio: horaInicioDate,
+      horaFin: horaFinDate,
+      estado: "pendiente"
     });
-
-    servicios.forEach(servicio => atencion.servicios.add(servicio));
-
-    bloquesAsignados.forEach(bloque => {
-      const turno = em.create(Turno, {
-        bloque,
-        atencion,
-        estado: 'pendiente'
-      });
-      atencion.turnos.add(turno);
-    });
-
     await em.persistAndFlush(atencion);
 
-    res.status(201).json({ message: 'Atención creada', atencion });
+    const bloquesDia = generarBloques(fecha);
+    for (const b of bloquesDia) {
+      const existe = await em.findOne(Bloque, {
+        fecha: new Date(fecha),
+        peluquero: { idPersona: peluqueroId },
+        horaInicio: b.hora_inicio
+      });
+      if (!existe) {
+        const bloque = em.create(Bloque, {
+          fecha: new Date(fecha),
+          horaInicio: b.hora_inicio,
+          horaFin: b.hora_fin,
+          peluquero,
+          estado: "libre",
+          atencion: null
+        });
+        em.persist(bloque);
+      }
+    }
+    await em.flush();
 
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error });
+    const bloquesOcupar = await em.find(Bloque, {
+      fecha: new Date(fecha),
+      peluquero: { idPersona: peluqueroId },
+      horaInicio: { $gte: horaInicioDate.toTimeString().slice(0, 5) },
+      horaFin: { $lte: horaFinDate.toTimeString().slice(0, 5) }
+    });
+
+    bloquesOcupar.forEach(b => {
+      b.estado = "ocupado";
+      b.atencion = atencion;
+    });
+    await em.flush();
+
+    return res.status(201).json({ message: "Atención creada", atencion });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Error al crear atención" });
   }
-};
+}
 
-export const listarAtenciones = async (req: Request, res: Response) => {
-  try {
-    const { idPersona, type } = req.query;
-
-    if (!idPersona || !type) {
-      return res.status(400).json({ message: 'Faltan parámetros' });
-    }
-
-    const personaId = Number(idPersona);
-    if (isNaN(personaId)) {
-      return res.status(400).json({ message: 'idPersona inválido' });
-    }
-
-    let atenciones;
-
-    if (type === 'cliente') {
-      // Filtramos usando la relación ManyToOne correctamente
-      atenciones = await em.find(
-        Atencion,
-        { cliente: { idPersona: personaId } },
-        { populate: ['servicios', 'turnos', 'peluquero', 'descuentos', 'pagos'] }
-      );
-    } else if (type === 'peluquero') {
-      atenciones = await em.find(
-        Atencion,
-        { peluquero: { idPersona: personaId } },
-        { populate: ['servicios', 'turnos', 'cliente', 'descuentos', 'pagos'] }
-      );
-    } else {
-      return res.status(400).json({ message: 'Tipo inválido. Debe ser "cliente" o "peluquero".' });
-    }
-
-    res.json({ data: atenciones });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: 'Error al listar atenciones' });
-  }
-};
-
-/* 
+/*
 function findAll(req: Request, res: Response) {
   try {
     const atenciones = await em.find(Atencion, {}, { populate: ['descuentos', 'servicios', 'peluquero', 'cliente', 'turnos'] });

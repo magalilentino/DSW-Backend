@@ -1,4 +1,13 @@
-import { Entity, PrimaryKey, Property } from "@mikro-orm/core";
+import {
+  Entity,
+  ManyToOne,
+  Property,
+  Rel,
+  PrimaryKey,
+  Enum
+} from '@mikro-orm/core';
+import { Atencion } from '../atencion/atencion.entity.js';
+import { Persona } from '../persona/persona.entity.js';
 
 @Entity()
 export class Bloque {
@@ -6,17 +15,20 @@ export class Bloque {
   id!: number;
 
   @Property()
-  fecha!: string; // 'YYYY-MM-DD'
+  fecha!: Date; 
 
-  @Property()
-  horaInicio!: string; // '09:00'
+  @Property({ fieldName: 'hora_inicio' })
+  horaInicio!: string; 
 
-  @Property()
-  horaFin!: string; // '09:45'
+  @Property({ fieldName: 'hora_fin' })
+  horaFin!: string; 
 
-  @Property()
-  idPeluquero!: number; // FK a Persona donde type = 'peluquero'
+  @ManyToOne(() => Persona, { fieldName: 'peluquero' })
+  peluquero!: Rel<Persona>;
 
-  @Property()
-  ocupado: boolean = false;
+  @Enum(() => ["libre", "ocupado"])
+  estado: "libre" | "ocupado" = "libre";
+
+  @ManyToOne(() => Atencion, { fieldName: 'atencion', nullable: true })
+  atencion?: Rel<Atencion>;
 }

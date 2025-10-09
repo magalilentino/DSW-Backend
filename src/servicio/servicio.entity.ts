@@ -23,7 +23,7 @@ export class Servicio {
 
   @Property({ nullable: false })
     cantTurnos!: number
-  
+   
   @Property({ nullable: false })
     precio!: number
 
@@ -35,5 +35,4 @@ export class Servicio {
 
   @ManyToMany(() => Atencion, atencion => atencion.servicios) 
     atenciones = new Collection<Atencion>(this);
-
 }
