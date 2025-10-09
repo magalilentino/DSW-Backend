@@ -18,6 +18,9 @@ import { FormulaRouter } from './formula/formula.routes.js'
 import { AtencionRouter } from './atencion/atencion.routes.js'
 import { PersonaRouter } from './persona/persona.routes.js'
 
+import dotenv from 'dotenv';
+dotenv.config();
+
 const app = express();
 
 app.use(cors({ origin: 'http://localhost:5173' })); // React corre en 5173
@@ -41,7 +44,6 @@ app.use('/api/tono', TonoRouter)
 app.use('/api/turno', TurnoRouter)
 app.use('/api/formula', FormulaRouter)
 app.use('/api/atencion', AtencionRouter)
-
 
 
 app.use((_, res) => {

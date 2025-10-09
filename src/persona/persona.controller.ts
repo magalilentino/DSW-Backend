@@ -16,7 +16,7 @@ export function verificarToken(req: Request, res: Response, next: NextFunction) 
   const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+    const decoded = jwt.verify(token,  process.env.JWT_SECRET!);
 
     // Validamos que tenga las propiedades esperadas
     if (
@@ -74,13 +74,14 @@ export async function login(req: Request, res: Response) {
 
     const token = jwt.sign(
       { id: persona.idPersona, type: persona.type, nombre: persona.nombre },
-      '1234',
+       process.env.JWT_SECRET!,
       { expiresIn: '2h' }
     );
 
     res.status(200).json({
       message: 'Login exitoso',
       token,
+      idPersona: persona.idPersona,
       type: persona.type,
       nombre: persona.nombre
     });

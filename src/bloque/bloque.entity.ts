@@ -19,5 +19,5 @@ export class Bloque  {
   @Property({ nullable: false })
   horaFin!: string
 
-@OneToMany(() => Turno, (turno) => turno.bloque , {cascade: [Cascade.ALL]})
-  turnos = new Collection<Turno>(this)}
+  @OneToMany(() => Turno, (turno) => turno.bloque , {cascade: [Cascade.ALL]})
+    turnos = new Collection<Turno>(this)}

@@ -6,7 +6,6 @@ import { sanitizeServicioInput, findAll, findOne, add, update, remove,
 export const ServicioRouter = Router()
 
 ServicioRouter.get('/findAll', findAll)
-ServicioRouter.get('/:codServicio', findOne)
 ServicioRouter.post('/', sanitizeServicioInput, add)
 ServicioRouter.put('/:codServicio', sanitizeServicioInput, update)
 ServicioRouter.patch('/:codServicio', sanitizeServicioInput, update)
