@@ -9,11 +9,11 @@ import {
   Rel,
   PrimaryKey
 } from '@mikro-orm/core';
-import { Servicio } from '../servicio/servicio.entity.js';
-//import { Turno } from '../turno(desc)/turno.entity.js';
+import { Turno } from '../turno/turno.entity.js';
 import { Descuento } from '../descuento/descuento.entity.js';
 import { Pago } from '../pago/pago.entity.js';
 import { Persona } from '../persona/persona.entity.js';
+import { AtSer } from '../atencion-servicio/atSer.entity.js';
 
 @Entity()
 export class Atencion {
@@ -26,9 +26,6 @@ export class Atencion {
   @ManyToOne(() => Persona, { fieldName: 'peluquero' })
     peluquero!: Rel<Persona>;
 
-  @ManyToMany(() => Servicio, servicio => servicio.atenciones, { cascade: [Cascade.ALL], owner: true }) 
-    servicios = new Collection<Servicio>(this);
-
   @Property({ nullable: false })
     fecha!: Date;
 
@@ -40,6 +37,9 @@ export class Atencion {
 
   @Property({ nullable: false })
     estado!: "pendiente" | "finalizado" | "cancelado";
+
+  @OneToMany(() => AtSer, atSer => atSer.atencion, { cascade: [Cascade.ALL] })
+  atencionServicios = new Collection<AtSer>(this);
 
   @OneToMany(() => Pago, pago => pago.atencion, { cascade: [Cascade.ALL] })
     pagos = new Collection<Pago>(this);

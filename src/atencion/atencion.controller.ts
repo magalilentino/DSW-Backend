@@ -66,17 +66,95 @@ export async function crearAtencion(req: Request, res: Response) {
     console.error(err);
     return res.status(500).json({ error: "Error al crear atención" });
   }
+
+async function atencionesPendientes(req: Request, res: Response) {
+  try {
+    const idPersona = req.user?.id; 
+
+    if (!idPersona) {
+      return res.status(401).json({ message: "No se encontró el peluquero logueado" });
+    }
+
+    const peluquero = await em.findOneOrFail(Persona,{ idPersona, type: 'peluquero' });
+
+    const atenciones = await em.find(
+      Atencion,
+      {
+        peluquero: peluquero,
+        estado: "pendiente"
+      },
+      {
+        populate: ['descuentos', 'atencionServicios', 'peluquero', 'cliente']
+      }
+    );
+
+    res.status(200).json({ message: "se encontraron todas las atenciones pendientes", data: atenciones });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+
+
+}
+
+// async function confirmarAtencion (req: Request, res:Response) {
+//   const codServicio = Number.parseInt(req.params.codServicio)
+//   const servicio = await em.findOneOrFail(Servicio, {codServicio})
+
+//   req.servicio = servicio;
+
+// }
 }
 
 /*
 function findAll(req: Request, res: Response) {
   try {
-    const atenciones = await em.find(Atencion, {}, { populate: ['descuentos', 'servicios', 'peluquero', 'cliente', 'turnos'] });
-    res.status(200).json({ message: 'Se encontraron todas las atenciones', data: atenciones });
+    const atenciones = await em.find(Atencion, {},
+    { populate: ['descuentos', 'atencionServicios', 'peluquero', 'cliente'] })
+    res
+      .status(200)
+      .json({ message: 'se encontraron todas las atenciones', data: atenciones })
   } catch (error: any) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: error.message })
   }
 }
+
+
+
+async function findOne(req: Request, res: Response) {
+  try {
+    const idAtencion = Number.parseInt(req.params.idAtencion)
+    const atencion = await em.findOneOrFail(Atencion,{ idAtencion },  
+    { populate: ['descuentos', 'atencionServicios', 'peluquero', 'cliente'] })      //va en las relaciones que van de muchos a muchos en el owner 
+    res.status(200).json({ message: 'found atencion', data: atencion })
+  } catch (error: any) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
+// async function add(req: Request, res: Response) {
+//   try {
+//     const atencion = em.create(Atencion, req.body.sanitizedInput)
+//     const atencion = em.create(Atencion, {...req.body.sanitizedInput,cliente});
+
+//     await em.flush() 
+//     res
+//       .status(201)
+//       .json({ message: 'atencion creada', data: atencion })
+//   } catch (error: any) {
+//     console.error(error);
+//     return res.status(500).json({ message: "Error al crear la atención", error: error.message });
+//   }
+// }
+//------------------- OTRAS FUNCIONES -------------------
+
+// async function findAll(req: Request, res: Response) {
+//   try {
+//     const atenciones = await em.find(Atencion, {}, { populate: ['descuentos', 'servicios', 'peluquero', 'cliente', 'turnos'] });
+//     res.status(200).json({ message: 'Se encontraron todas las atenciones', data: atenciones });
+//   } catch (error: any) {
+//     res.status(500).json({ message: error.message });
+//   }
+// }
 
 // async function findOne(req: Request, res: Response) {
 //   try {
@@ -92,7 +170,7 @@ function findAll(req: Request, res: Response) {
 // async function contarTurnos(req: Request, res: Response) {
 //   try {
 //     const idAtencion = Number(req.params.idAtencion);
-//     const atencion = await em.findOneOrFail(Atencion, { idAtencion }, { populate: ['servicios'] });
+//     const atencion = await em.findOneOrFail(Atencion, { idAtencion }, { populate: ['atencionServicios'] });
 //     const totalTurnos = atencion.servicios.getItems().reduce((sum, s) => sum + s.cantTurnos, 0);
 //     res.status(200).json({ message: `Total de turnos para la atención ${idAtencion}`, totalTurnos });
 //   } catch (error: any) {
@@ -103,7 +181,7 @@ function findAll(req: Request, res: Response) {
 // async function calcularPrecioTotal(req: Request, res: Response) {
 //   try {
 //     const idAtencion = Number(req.params.idAtencion);
-//     const atencion = await em.findOneOrFail(Atencion, { idAtencion }, { populate: ['servicios'] });
+//     const atencion = await em.findOneOrFail(Atencion, { idAtencion }, { populate: ['atencionServicios'] });
 //     const precioTotal = atencion.servicios.getItems().reduce((sum, s) => sum + s.precio, 0);
 //     res.status(200).json({ message: `Precio total para la atención ${idAtencion}`, precioTotal });
 //   } catch (error: any) {
@@ -111,27 +189,26 @@ function findAll(req: Request, res: Response) {
 //   }
 // }
 
-async function atencionesPendientes(req: Request, res: Response) {
-  try {
-      const idPersona = req.user?.id;
-      if (!idPersona) return res.status(401).json({ message: "No se encontró el peluquero logueado" });
+// async function atencionesPendientes(req: Request, res: Response) {
+//   try {
+//       const idPersona = req.user?.id;
+//       if (!idPersona) return res.status(401).json({ message: "No se encontró el peluquero logueado" });
 
-      const peluquero = await em.findOneOrFail(Persona, { idPersona, type: 'peluquero' });
-      const atenciones = await em.find(Atencion, { peluquero, estado: 'pendiente' },
-        { populate: ['descuentos', 'servicios', 'peluquero', 'cliente', 'turnos'] });
+//       const peluquero = await em.findOneOrFail(Persona, { idPersona, type: 'peluquero' });
+//       const atenciones = await em.find(Atencion, { peluquero, estado: 'pendiente' },
+//         { populate: ['descuentos', 'servicios', 'peluquero', 'cliente', 'turnos'] });
         
-      res.status(200).json({ message: 'Atenciones pendientes encontradas', data: atenciones });
-    } catch (error: any) {
-      res.status(500).json({ message: error.message });
-  }
-}
+//       res.status(200).json({ message: 'Atenciones pendientes encontradas', data: atenciones });
+//     } catch (error: any) {
+//       res.status(500).json({ message: error.message });
+//   }
+// }
 
-export {
-  crearAtencion,
-  findAll,
-  findOne,
-  contarTurnos,
-  calcularPrecioTotal,
-  atencionesPendientes
-};
-+*/
+// export {
+//   crearAtencion,
+//   findAll,
+//   findOne,
+//   contarTurnos,
+//   calcularPrecioTotal,
+//   atencionesPendientes
+// } */

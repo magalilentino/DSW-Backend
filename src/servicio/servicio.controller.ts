@@ -28,7 +28,7 @@ export async function findAll(req: Request, res: Response) {
     const servicios = await em.find(
       Servicio,
       {},
-      { populate: ['tonos', 'productos'] }
+      { }
     )
     res.status(200).json({ message:'found all servicios', data: servicios })
   } catch (error: any) {
@@ -42,7 +42,7 @@ export async function findOne(req: Request, res: Response) {
     const servicio = await em.findOneOrFail(
       Servicio,
       { codServicio },
-      { populate: ['tonos', 'productos'] }
+      { }
     )
     res.status(200).json({ message:'found servicio', data: servicio })
   } catch (error: any) {
@@ -116,9 +116,7 @@ export const detalleServiciosPorPrecio = async (req: Request, res: Response) => 
       {
         precio: { $gte: min, $lte: max }
       },
-      {
-        populate: ['tonos', 'productos'], // trae todas las relaciones
-      }
+      {}
     );
 
     if (!servicios || servicios.length === 0) {
@@ -131,64 +129,64 @@ export const detalleServiciosPorPrecio = async (req: Request, res: Response) => 
   }
 };
 
-export async function listarProductosDeServicio(req: Request, res: Response) {
-    try {
-        // 1. Obtener el codigo del servicio desde los parámetros de la URL
-        const codServicio = Number(req.params.codServicio); 
-        if (!codServicio) {
-            return res.status(400).json({ message: "Se requiere el codigo del servicio." });
-        }
-        // 2. Buscar la atención por ID y hacer 'populate' a la relación de servicios
-        const servicio = await em.findOne(
-            Servicio,
-            { codServicio : codServicio }, 
-            { 
-                populate: ['productos'] //trae los productos relacionados
-            }
-        );
-        // 3. Verificar si se encontró el servicio
-        if (!servicio) {
-            return res.status(404).json({ message: "Servicio no encontrado." });
-        }
-        // 4. Devolver la lista de productos 
-        return res.status(200).json({ 
-            message: `Productos del servicio ${codServicio} listados.`,
-            data: servicio.productos //Devolvemos solo el array de productos
-        });
+// export async function listarProductosDeServicio(req: Request, res: Response) {
+//     try {
+//         // 1. Obtener el codigo del servicio desde los parámetros de la URL
+//         const codServicio = Number(req.params.codServicio); 
+//         if (!codServicio) {
+//             return res.status(400).json({ message: "Se requiere el codigo del servicio." });
+//         }
+//         // 2. Buscar la atención por ID y hacer 'populate' a la relación de servicios
+//         const servicio = await em.findOne(
+//             Servicio,
+//             { codServicio : codServicio }, 
+//             { 
+//                 populate: ['productos'] //trae los productos relacionados
+//             }
+//         );
+//         // 3. Verificar si se encontró el servicio
+//         if (!servicio) {
+//             return res.status(404).json({ message: "Servicio no encontrado." });
+//         }
+//         // 4. Devolver la lista de productos 
+//         return res.status(200).json({ 
+//             message: `Productos del servicio ${codServicio} listados.`,
+//             data: servicio.productos //Devolvemos solo el array de productos
+//         });
 
-    } catch (error: any) {
-        console.error(error);
-        return res.status(500).json({ message: error.message });
-    }
-}
+//     } catch (error: any) {
+//         console.error(error);
+//         return res.status(500).json({ message: error.message });
+//     }
+// }
 
-export async function listarTonosDeServicio(req: Request, res: Response) {
-    try {
-        // 1. Obtener el codigo del servicio desde los parámetros de la URL
-        const codServicio = Number(req.params.codServicio); 
-        if (!codServicio) {
-            return res.status(400).json({ message: "Se requiere el codigo del servicio." });
-        }
-        // 2. Buscar la atención por ID y hacer 'populate' a la relación de servicios
-        const servicio = await em.findOne(
-            Servicio,
-            { codServicio : codServicio }, 
-            { 
-                populate: ['tonos'] //trae los tonos relacionados
-            }
-        );
-        // 3. Verificar si se encontró el servicio
-        if (!servicio) {
-            return res.status(404).json({ message: "Servicio no encontrado." });
-        }
-        // 4. Devolver la lista de tonos 
-        return res.status(200).json({ 
-            message: `Tonos del servicio ${codServicio} listados.`,
-            data: servicio.tonos //Devolvemos solo el array de tonos
-        });
+// export async function listarTonosDeServicio(req: Request, res: Response) {
+//     try {
+//         // 1. Obtener el codigo del servicio desde los parámetros de la URL
+//         const codServicio = Number(req.params.codServicio); 
+//         if (!codServicio) {
+//             return res.status(400).json({ message: "Se requiere el codigo del servicio." });
+//         }
+//         // 2. Buscar la atención por ID y hacer 'populate' a la relación de servicios
+//         const servicio = await em.findOne(
+//             Servicio,
+//             { codServicio : codServicio }, 
+//             { 
+//                 populate: ['tonos'] //trae los tonos relacionados
+//             }
+//         );
+//         // 3. Verificar si se encontró el servicio
+//         if (!servicio) {
+//             return res.status(404).json({ message: "Servicio no encontrado." });
+//         }
+//         // 4. Devolver la lista de tonos 
+//         return res.status(200).json({ 
+//             message: `Tonos del servicio ${codServicio} listados.`,
+//             data: servicio.tonos //Devolvemos solo el array de tonos
+//         });
 
-    } catch (error: any) {
-        console.error(error);
-        return res.status(500).json({ message: error.message });
-    }
-}
+//     } catch (error: any) {
+//         console.error(error);
+//         return res.status(500).json({ message: error.message });
+//     }
+// }
