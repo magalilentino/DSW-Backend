@@ -1,8 +1,9 @@
+/*
 import { Request, Response, NextFunction } from 'express'
 import { orm } from '../shared/orm.js'
 import { Bloque } from "../bloque/bloque.entity.js";
 
-/*function sanitizeTurnoInput(
+unction sanitizeTurnoInput(
   req: Request,
   res: Response,
   next: NextFunction
@@ -18,7 +19,7 @@ import { Bloque } from "../bloque/bloque.entity.js";
     }
   })
   next()
-}*/
+}
 
 
 const em = orm.em.fork();

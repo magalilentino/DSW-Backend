@@ -1,123 +1,71 @@
-import { Request, Response } from 'express';
-import { orm } from '../shared/orm.js';
-import { Atencion } from './atencion.entity.js';
-import { Persona } from '../persona/persona.entity.js';
-import { Servicio } from '../servicio/servicio.entity.js';
-import { Turno } from '../turno/turno.entity.js';
-import { Bloque } from '../bloque/bloque.entity.js';
+import { Request, Response } from "express";
+import { orm } from "../shared/orm.js";
+import { Atencion } from "./atencion.entity.js";
+import { Persona } from "../persona/persona.entity.js";
+import { Bloque } from "../bloque/bloque.entity.js";
+import { generarBloques } from "../bloque/bloque.controller.js";
 
+const em = orm.em;
 
-  
-//   req.body.sanitizedInput = {
-//     estado: "pendiente",
-//     servicios: req.body.servicios,
-//     cliente: cliente,
-//     descuentos: req.body.descuentos,
-//     peluquero: req.body.peluquero
-    
-//   }
-//   more checks here
-
-//   Object.keys(req.body.sanitizedInput).forEach((key) => {
-//     if (req.body.sanitizedInput[key] === undefined) {
-//       delete req.body.sanitizedInput[key]
-//     }
-//   })
-//   next()
-// }
-
-
-const em = orm.em.fork(); // fork para cada request
-
-// //------------------- CREAR ATENCIÓN -------------------
-// async function crearAtencion(req: Request, res: Response) {
-//   try {
-//     const { cliente: idCliente, peluquero: idPeluquero, servicios: serviciosIds, fechaInicio } = req.body;
-
-//     if (!idCliente || !idPeluquero || !serviciosIds?.length || !fechaInicio) {
-//       return res.status(400).json({ message: "Faltan datos obligatorios" });
-//     }
-
-//     const cliente = await em.findOneOrFail(Persona, { idPersona: idCliente });
-//     const peluquero = await em.findOneOrFail(Persona, { idPersona: idPeluquero });
-
-//     const servicios = await em.find(Servicio, { codServicio: { $in: serviciosIds } });
-//     const duracionTotal = servicios.reduce((sum, s) => sum + s.cantTurnos, 0);
-
-// //------------------- Buscar bloques libres -------------------
-//     const todosBloques = await em.find(Bloque, {});
-//     const bloquesLibres: Bloque[] = [];
-
-//     for (const bloque of todosBloques) {
-//       const turnosOcupados = await em.count(Turno, { bloque, estado: { $ne: "disponible" } });
-//       if (turnosOcupados === 0) bloquesLibres.push(bloque);
-//     }
-
-//     if (bloquesLibres.length < duracionTotal) {
-//       return res.status(400).json({ message: "No hay suficientes bloques libres para los servicios seleccionados" });
-//     }
-
-//   //------------------- Buscar bloques consecutivos -------------------
-//     const ordenados = bloquesLibres.sort((a, b) => a.horaInicio.localeCompare(b.horaInicio));
-//     let secuencia: Bloque[] = [];
-
-//     for (let i = 0; i <= ordenados.length - duracionTotal; i++) {
-//       const tempSeq = ordenados.slice(i, i + duracionTotal);
-//       const consecutivos = tempSeq.every((bl, idx) => idx === 0 || bl.horaInicio === tempSeq[idx - 1].horaFin);
-//       if (consecutivos) {
-//         secuencia = tempSeq;
-//         break;
-//       }
-//     }
-
-//     if (secuencia.length !== duracionTotal) {
-//       return res.status(400).json({ message: "No se encontraron bloques consecutivos disponibles para la duración de los servicios" });
-//     }
-
-// //------------------- Crear atención -------------------
-//     const atencion = new Atencion();
-//     atencion.cliente = cliente;
-//     atencion.peluquero = peluquero;
-//     atencion.fechaInicio = new Date(fechaInicio);
-//     atencion.estado = "pendiente";
-
-// // ------------------- Asociar servicios -------------------
-//     for (const servicio of servicios) {
-//       atencion.servicios.add(servicio);
-//     }
-
-// //------------------- Crear turnos -------------------
-//     for (const bloque of secuencia) {
-//       const turno = new Turno();
-//       turno.estado = "pendiente";
-//       turno.bloque = bloque;
-//       turno.atencion = atencion;
-//       atencion.turnos.add(turno);
-//     }
-
-//     await em.persistAndFlush(atencion);
-
-//     return res.json({
-//       message: "Atención creada correctamente",
-//       atencionId: atencion.idAtencion,
-//       bloques: secuencia.map(b => ({ idBloque: b.id, inicio: b.horaInicio, fin: b.horaFin })),
-//     });
-//   } catch (error: any) {
-//      res.status(500).json({ message: error.message })
-//   }
-// }
-
-async function findAll(req: Request, res: Response) {
+export async function crearAtencion(req: Request, res: Response) {
   try {
-    const atenciones = await em.find(Atencion, {},
-    { populate: ['descuentos', 'atencionServicios', 'peluquero', 'cliente'] })
-    res
-      .status(200)
-      .json({ message: 'se encontraron todas las atenciones', data: atenciones })
-  } catch (error: any) {
-    res.status(500).json({ message: error.message })
+    const { clienteId, peluqueroId, fecha, horaInicio, duracion } = req.body;
+
+    const cliente = await em.findOneOrFail(Persona, { idPersona: clienteId });
+    const peluquero = await em.findOneOrFail(Persona, { idPersona: peluqueroId });
+
+    const horaInicioDate = new Date(`${fecha}T${horaInicio}:00`);
+    const horaFinDate = new Date(horaInicioDate.getTime() + Number(duracion) * 60000);
+
+    const atencion = em.create(Atencion, {
+      cliente,
+      peluquero,
+      fecha: new Date(fecha),
+      horaInicio: horaInicioDate,
+      horaFin: horaFinDate,
+      estado: "pendiente"
+    });
+    await em.persistAndFlush(atencion);
+
+    const bloquesDia = generarBloques(fecha);
+    for (const b of bloquesDia) {
+      const existe = await em.findOne(Bloque, {
+        fecha: new Date(fecha),
+        peluquero: { idPersona: peluqueroId },
+        horaInicio: b.hora_inicio
+      });
+      if (!existe) {
+        const bloque = em.create(Bloque, {
+          fecha: new Date(fecha),
+          horaInicio: b.hora_inicio,
+          horaFin: b.hora_fin,
+          peluquero,
+          estado: "libre",
+          atencion: null
+        });
+        em.persist(bloque);
+      }
+    }
+    await em.flush();
+
+    const bloquesOcupar = await em.find(Bloque, {
+      fecha: new Date(fecha),
+      peluquero: { idPersona: peluqueroId },
+      horaInicio: { $gte: horaInicioDate.toTimeString().slice(0, 5) },
+      horaFin: { $lte: horaFinDate.toTimeString().slice(0, 5) }
+    });
+
+    bloquesOcupar.forEach(b => {
+      b.estado = "ocupado";
+      b.atencion = atencion;
+    });
+    await em.flush();
+
+    return res.status(201).json({ message: "Atención creada", atencion });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Error al crear atención" });
   }
-}
 
 async function atencionesPendientes(req: Request, res: Response) {
   try {
@@ -148,12 +96,26 @@ async function atencionesPendientes(req: Request, res: Response) {
 
 }
 
-async function confirmarAtencion (req: Request, res:Response) {
-  const codServicio = Number.parseInt(req.params.codServicio)
-  const servicio = await em.findOneOrFail(Servicio, {codServicio})
+// async function confirmarAtencion (req: Request, res:Response) {
+//   const codServicio = Number.parseInt(req.params.codServicio)
+//   const servicio = await em.findOneOrFail(Servicio, {codServicio})
 
-  req.servicio = servicio;
+//   req.servicio = servicio;
 
+// }
+}
+
+/*
+function findAll(req: Request, res: Response) {
+  try {
+    const atenciones = await em.find(Atencion, {},
+    { populate: ['descuentos', 'atencionServicios', 'peluquero', 'cliente'] })
+    res
+      .status(200)
+      .json({ message: 'se encontraron todas las atenciones', data: atenciones })
+  } catch (error: any) {
+    res.status(500).json({ message: error.message })
+  }
 }
 
 
@@ -249,4 +211,4 @@ async function findOne(req: Request, res: Response) {
 //   contarTurnos,
 //   calcularPrecioTotal,
 //   atencionesPendientes
-// };
+// } */
