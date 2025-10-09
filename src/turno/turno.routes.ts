@@ -1,12 +1,7 @@
-import { Router } from 'express'
-import { sanitizeTurnoInput, findAll, findOne, add, update, remove, obtenerDisponibles } from './turno.controller.js'
+import { Router } from 'express';
+import { obtenerDisponibles } from './turno.controller.js';
 
-export const TurnoRouter = Router()
+export const TurnoRouter = Router();
 
-TurnoRouter.get('/', findAll);
-TurnoRouter.get('/disponibles', obtenerDisponibles); // <--- nuevo endpoint
-TurnoRouter.get('/:idTurno', findOne); // <--- detalle de turno por id
-TurnoRouter.post('/', sanitizeTurnoInput, add);
-TurnoRouter.put('/:idTurno', sanitizeTurnoInput, update);
-TurnoRouter.patch('/:idTurno', sanitizeTurnoInput, update);
-TurnoRouter.delete('/:idTurno', remove);
+// Listar bloques libres de un peluquero en un día
+TurnoRouter.get('/disponibles', obtenerDisponibles);

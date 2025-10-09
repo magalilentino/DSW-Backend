@@ -8,7 +8,7 @@ import {
   ManyToMany,
   Rel,
   PrimaryKey
-} from '@mikro-orm/core'
+} from '@mikro-orm/core';
 import { Servicio } from '../servicio/servicio.entity.js';
 import { Turno } from '../turno/turno.entity.js';
 import { Descuento } from '../descuento/descuento.entity.js';
@@ -18,29 +18,37 @@ import { Persona } from '../persona/persona.entity.js';
 @Entity()
 export class Atencion {
   @PrimaryKey()
-    idAtencion!: number 
+  idAtencion?: number;
 
-  @ManyToOne(() => Persona, {fieldName : 'cliente'})
-    cliente!: Rel<Persona> 
+  @ManyToOne(() => Persona, { fieldName: 'cliente' })
+  cliente!: Rel<Persona>; // Persona con type = 'cliente'
 
-  @ManyToOne(() => Persona, {fieldName : 'peluquero'})
-    peluquero!: Rel<Persona>
-      
-  @ManyToMany(() => Servicio, servicio => servicio.atenciones, {cascade: [Cascade.ALL], owner: true }) 
-    servicios = new Collection<Servicio>(this);
+  @ManyToOne(() => Persona, { fieldName: 'peluquero' })
+  peluquero!: Rel<Persona>; // Persona con type = 'peluquero'
 
-  @Property({ nullable: false })
-    fechaInicio!: Date;
+  @ManyToMany(() => Servicio, servicio => servicio.atenciones, { cascade: [Cascade.ALL], owner: true }) 
+  servicios = new Collection<Servicio>(this);
 
   @Property({ nullable: false })
-    estado!: "pendiente" | "finalizado" | "cancelado" 
+  fechaInicio!: Date;
 
-  @OneToMany(() => Turno, (turno) => turno.atencion , {cascade: [Cascade.ALL]})
-    turnos = new Collection<Turno>(this) 
+  @Property({ nullable: false })
+  estado!: "pendiente" | "finalizado" | "cancelado";
 
-   @OneToMany(() => Pago, (pago) => pago.atencion , {cascade: [Cascade.ALL]})
-    pagos = new Collection<Pago>(this) 
+  // Turnos ocupados por esta atención (uno o varios)
+  @OneToMany(() => Turno, turno => turno.atencion, { cascade: [Cascade.ALL] })
+  turnos = new Collection<Turno>(this);
 
-    @ManyToMany(() => Descuento, descuento => descuento.atenciones, {cascade: [Cascade.ALL], owner: true }) 
-    descuentos = new Collection<Descuento>(this);
+  @OneToMany(() => Pago, pago => pago.atencion, { cascade: [Cascade.ALL] })
+  pagos = new Collection<Pago>(this);
+
+  @ManyToMany(() => Descuento, descuento => descuento.atenciones, { cascade: [Cascade.ALL], owner: true }) 
+  descuentos = new Collection<Descuento>(this);
+
+
+
+  getCantidadBloques(): number {
+    return this.servicios.getItems().reduce((sum, s) => sum + s.cantTurnos, 0);
+  }
 }
+

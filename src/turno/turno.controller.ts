@@ -1,13 +1,8 @@
 import { Request, Response, NextFunction } from 'express'
-import { Turno } from './turno.entity.js'
 import { orm } from '../shared/orm.js'
-import { MikroORM, EntityManager } from "@mikro-orm/core";
 import { Bloque } from "../bloque/bloque.entity.js";
-import { Persona } from "../persona/persona.entity.js";
 
-const em = orm.em
-
-function sanitizeTurnoInput(
+/*function sanitizeTurnoInput(
   req: Request,
   res: Response,
   next: NextFunction
@@ -23,53 +18,44 @@ function sanitizeTurnoInput(
     }
   })
   next()
-}
+}*/
 
-//------------------------------------------------------------------------------------------------------
-async function obtenerDisponibles(req: Request, res: Response) {
+
+const em = orm.em.fork();
+
+export const obtenerDisponibles = async (req: Request, res: Response) => {
   try {
-    const peluqueroId = parseInt(req.query.peluqueroId as string);
+    const idPeluquero = Number(req.query.peluqueroId);
     const fecha = req.query.fecha as string;
 
-    if (!peluqueroId || !fecha) {
-      return res.status(400).json({ error: "Falta peluqueroId o fecha" });
+    if (!idPeluquero || !fecha) {
+      return res.status(400).json({ message: 'Faltan parámetros: peluqueroId o fecha' });
     }
 
-    const bloques = await em.find(Bloque, {}, { orderBy: { horaInicio: "ASC" } });
+    // Buscamos los bloques libres para ese peluquero y fecha
+    const bloques = await em.find(Bloque, {
+      idPeluquero,
+      fecha,
+      ocupado: false
+    }, { orderBy: { horaInicio: 'asc' } });
 
-    const bloquesIds = bloques
-      .map(b => b.idBloque)
-      .filter((id): id is number => id !== undefined);
-
-    const turnosOcupados = await em.createQueryBuilder(Turno, 't')
-      .leftJoin('t.bloque', 'b')
-      .leftJoin('t.atencion', 'a')
-      .where({
-        't.estado': { $in: ['pendiente', 'finalizado'] },
-        'b.idBloque': { $in: bloquesIds },
-        'a.peluquero': peluqueroId,
-        'a.fechaInicio': fecha
-      })
-      .select(['b.idBloque'])
-      .getResultList();
-
-    const bloquesOcupadosIds = new Set(turnosOcupados.map(t => t.bloque.idBloque!));
-
-    const bloquesLibres = bloques.filter(b => b.idBloque && !bloquesOcupadosIds.has(b.idBloque));
-
-    return res.json(bloquesLibres.map(b => ({
-      idBloque: b.idBloque,
+    // Formateamos para el frontend
+    const bloquesFormateados = bloques.map(b => ({
+      idBloque: b.id,
       inicio: b.horaInicio,
       fin: b.horaFin
-    })));
+    }));
+
+    res.json(bloquesFormateados);
 
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Error obteniendo bloques disponibles" });
+    res.status(500).json({ error: 'Error al obtener bloques disponibles' });
   }
-}
-//------------------------------------------------------------------------------------------------------
+};
 
+//------------------------------------------------------------------------------------------------------
+/* 
 async function findAll(req: Request, res: Response) {
   try {
     const turnos = await em.find(
@@ -132,3 +118,4 @@ async function remove(req: Request, res: Response) {
 }
 
 export { sanitizeTurnoInput, obtenerDisponibles, findAll, findOne, add, update, remove }
+*/

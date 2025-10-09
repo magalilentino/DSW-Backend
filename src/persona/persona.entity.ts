@@ -6,39 +6,38 @@ import {
   OneToMany,
   Cascade,
   Collection
-} from '@mikro-orm/core'
+} from '@mikro-orm/core';
 import { Atencion } from '../atencion/atencion.entity.js';
 
 @Entity()
 export class Persona {
-    @PrimaryKey()
-    idPersona?: number  
+  @PrimaryKey()
+  idPersona?: number;
 
-    @Property({ nullable: false, unique: true})
-    dni!: string
-    
-    @Property({ nullable: false, hidden: true}) //  hidden: true oculta el campo en JSON
-    clave!: string
+  @Property({ nullable: false, unique: true })
+  dni!: string;
 
-    @Property({ nullable: false })
-    nombre!: string 
+  @Property({ nullable: false, hidden: true })
+  clave!: string;
 
-    @Property({ nullable: false })
-    apellido!: string 
+  @Property({ nullable: false })
+  nombre!: string;
 
-    @Property({ nullable: false})
-    telefono!: string
-    
-    @Property({ nullable: false, unique: true })
-    email!: string 
+  @Property({ nullable: false })
+  apellido!: string;
 
-    @Enum(() => ["peluquero", "cliente"])
-    type!: "peluquero" | "cliente"
+  @Property({ nullable: false })
+  telefono!: string;
 
-    @OneToMany(() => Atencion, (atencion) => atencion.cliente , {cascade: [Cascade.ALL]})
-    atencionesCli = new Collection<Atencion>(this) 
+  @Property({ nullable: false, unique: true })
+  email!: string;
 
-    @OneToMany(() => Atencion, (atencion) => atencion.peluquero , {cascade: [Cascade.PERSIST]})
-    atencionesPel = new Collection<Atencion>(this)
+  @Enum(() => ["peluquero", "cliente"])
+  type!: "peluquero" | "cliente";
 
+  @OneToMany(() => Atencion, atencion => atencion.cliente, { cascade: [Cascade.ALL] })
+  atencionesCli = new Collection<Atencion>(this);
+
+  @OneToMany(() => Atencion, atencion => atencion.peluquero, { cascade: [Cascade.PERSIST] })
+  atencionesPel = new Collection<Atencion>(this);
 }
