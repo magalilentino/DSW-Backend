@@ -126,3 +126,36 @@ export async function register(req: Request, res: Response) {
   }
 }
 
+export async function getPersonaById(req: Request, res: Response) {
+  try {
+
+    const id = Number(req.params.id);
+
+    const persona = await em.findOne(Persona, { idPersona: id });
+    if (!persona) return res.status(404).json({ message: "Persona no encontrada" });
+
+    res.status(200).json(persona);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error al obtener la persona" });
+  }
+}
+
+export async function updatePersona(req: Request, res: Response) {
+  try {
+    const id = Number(req.params.id);
+    const persona = await em.findOne(Persona, { idPersona: id });
+
+    if (!persona) {
+      return res.status(404).json({ message: "Persona no encontrada" });
+    }
+
+    em.assign(persona, req.body); 
+    await em.flush();
+
+    res.json(persona);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error al actualizar la persona" });
+  }
+}
