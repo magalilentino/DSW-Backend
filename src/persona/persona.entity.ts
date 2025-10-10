@@ -20,7 +20,7 @@ import { Atencion } from '../atencion/atencion.entity.js';
 }
 )
 export class Persona {
-  @PrimaryKey()
+  @PrimaryKey({ fieldName: 'id_persona' })
   idPersona?: number;
 
   @Property({ nullable: false, unique: true })

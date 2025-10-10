@@ -4,7 +4,6 @@ import 'reflect-metadata'
 import { orm, syncSchema } from './shared/orm.js'
 import { RequestContext } from '@mikro-orm/core'
 import 'dotenv/config';
-
 import { AtencionRouter } from './atencion/atencion.routes.js'
 import { BloqueRouter } from './bloque/bloque.routes.js'
 import { CategoriaRouter } from './categoria/categoria.routes.js'
@@ -16,6 +15,7 @@ import { PersonaRouter } from './persona/persona.routes.js'
 import { ProductoRouter } from './producto/producto.routes.js'
 import { ServicioRouter } from './servicio/servicio.routes.js'
 import { TonoRouter } from './tono/tono.routes.js'
+
 // import { TurnoRouter } from './turno(desc)/turno.routes.js'
 //import { ClienteRouter } from './persona/cliente/cliente.routes.js'
 //import { PeluqueroRouter } from './persona/peluquero/peluquero.routes.js'
@@ -40,6 +40,7 @@ app.use('/api/persona', PersonaRouter)
 app.use('/api/producto', ProductoRouter)
 app.use('/api/servicio', ServicioRouter)
 app.use('/api/tono', TonoRouter)
+
 //app.use('/api/cliente', ClienteRouter)
 //app.use('/api/peluquero', PeluqueroRouter)
 // app.use('/api/turno', TurnoRouter)
