@@ -6,6 +6,8 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 
 const em = orm.em
 
+const JWT_SECRET = process.env.JWT_SECRET;
+
 export function verificarToken(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
 
@@ -16,7 +18,7 @@ export function verificarToken(req: Request, res: Response, next: NextFunction) 
   const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(token,  process.env.JWT_SECRET!);
+    const decoded = jwt.verify(token,  JWT_SECRET!);
 
     // Validamos que tenga las propiedades esperadas
     if (
@@ -74,7 +76,7 @@ export async function login(req: Request, res: Response) {
 
     const token = jwt.sign(
       { id: persona.idPersona, type: persona.type, nombre: persona.nombre },
-       process.env.JWT_SECRET!,
+       JWT_SECRET!,
       { expiresIn: '2h' }
     );
 
@@ -126,36 +128,3 @@ export async function register(req: Request, res: Response) {
   }
 }
 
-export async function getPersonaById(req: Request, res: Response) {
-  try {
-
-    const id = Number(req.params.id);
-
-    const persona = await em.findOne(Persona, { idPersona: id });
-    if (!persona) return res.status(404).json({ message: "Persona no encontrada" });
-
-    res.status(200).json(persona);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error al obtener la persona" });
-  }
-}
-
-export async function updatePersona(req: Request, res: Response) {
-  try {
-    const id = Number(req.params.id);
-    const persona = await em.findOne(Persona, { idPersona: id });
-
-    if (!persona) {
-      return res.status(404).json({ message: "Persona no encontrada" });
-    }
-
-    em.assign(persona, req.body); 
-    await em.flush();
-
-    res.json(persona);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error al actualizar la persona" });
-  }
-}

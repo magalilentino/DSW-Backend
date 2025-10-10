@@ -70,11 +70,11 @@ export async function crearAtencion(req: Request, res: Response) {
       horaFin: { $lte: horaFinDate.toTimeString().slice(0, 5) }
     });
 
-  //   bloquesOcupar.forEach(b => {
-  //     b.estado = "ocupado";
-  //     b.atencion = atencion;
-  //   });
-  //   await em.flush();
+      bloquesOcupar.forEach(b => {
+      b.estado = "ocupado";
+      b.atencion = atencion;
+      });
+      await em.flush();
 
    
     const atencionConServicios = await em.findOneOrFail(
