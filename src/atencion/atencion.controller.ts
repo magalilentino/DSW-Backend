@@ -7,67 +7,69 @@ import { generarBloques } from "../bloque/bloque.controller.js";
 
 const em = orm.em;
 
-export async function crearAtencion(req: Request, res: Response) {
-  try {
-    const { clienteId, peluqueroId, fecha, horaInicio, duracion } = req.body;
+// export async function crearAtencion(req: Request, res: Response) {
+//   try {
+//     const { clienteId, peluqueroId, fecha, horaInicio, duracion } = req.body;
 
-    const cliente = await em.findOneOrFail(Persona, { idPersona: clienteId });
-    const peluquero = await em.findOneOrFail(Persona, { idPersona: peluqueroId });
+//     const cliente = await em.findOneOrFail(Persona, { idPersona: clienteId });
+//     const peluquero = await em.findOneOrFail(Persona, { idPersona: peluqueroId });
 
-    const horaInicioDate = new Date(`${fecha}T${horaInicio}:00`);
-    const horaFinDate = new Date(horaInicioDate.getTime() + Number(duracion) * 60000);
+//     const horaInicioDate = new Date(`${fecha}T${horaInicio}:00`);
+//     const horaFinDate = new Date(horaInicioDate.getTime() + Number(duracion) * 60000);
 
-    const atencion = em.create(Atencion, {
-      cliente,
-      peluquero,
-      fecha: new Date(fecha),
-      horaInicio: horaInicioDate,
-      horaFin: horaFinDate,
-      estado: "pendiente"
-    });
-    await em.persistAndFlush(atencion);
+//     const atencion = em.create(Atencion, {
+//       cliente,
+//       peluquero,
+//       fecha: new Date(fecha),
+//       horaInicio: horaInicioDate,
+//       horaFin: horaFinDate,
+//       estado: "pendiente"
+//     });
+//     await em.persistAndFlush(atencion);
 
-    const bloquesDia = generarBloques(fecha);
-    for (const b of bloquesDia) {
-      const existe = await em.findOne(Bloque, {
-        fecha: new Date(fecha),
-        peluquero: { idPersona: peluqueroId },
-        horaInicio: b.hora_inicio
-      });
-      if (!existe) {
-        const bloque = em.create(Bloque, {
-          fecha: new Date(fecha),
-          horaInicio: b.hora_inicio,
-          horaFin: b.hora_fin,
-          peluquero,
-          estado: "libre",
-          atencion: null
-        });
-        em.persist(bloque);
-      }
-    }
-    await em.flush();
+  //   const bloquesDia = generarBloques(fecha);
+  //   for (const b of bloquesDia) {
+  //     const existe = await em.findOne(Bloque, {
+  //       fecha: new Date(fecha),
+  //       peluquero: { idPersona: peluqueroId },
+  //       horaInicio: b.hora_inicio
+  //     });
+  //     if (!existe) {
+  //       const bloque = em.create(Bloque, {
+  //         fecha: new Date(fecha),
+  //         horaInicio: b.hora_inicio,
+  //         horaFin: b.hora_fin,
+  //         peluquero,
+  //         estado: "libre",
+  //         atencion: null
+  //       });
+  //       em.persist(bloque);
+  //     }
+  //   }
+  //   await em.flush();
 
-    const bloquesOcupar = await em.find(Bloque, {
-      fecha: new Date(fecha),
-      peluquero: { idPersona: peluqueroId },
-      horaInicio: { $gte: horaInicioDate.toTimeString().slice(0, 5) },
-      horaFin: { $lte: horaFinDate.toTimeString().slice(0, 5) }
-    });
+  //   const bloquesOcupar = await em.find(Bloque, {
+  //     fecha: new Date(fecha),
+  //     peluquero: { idPersona: peluqueroId },
+  //     horaInicio: { $gte: horaInicioDate.toTimeString().slice(0, 5) },
+  //     horaFin: { $lte: horaFinDate.toTimeString().slice(0, 5) }
+  //   });
 
-    bloquesOcupar.forEach(b => {
-      b.estado = "ocupado";
-      b.atencion = atencion;
-    });
-    await em.flush();
+  //   bloquesOcupar.forEach(b => {
+  //     b.estado = "ocupado";
+  //     b.atencion = atencion;
+  //   });
+  //   await em.flush();
 
-    return res.status(201).json({ message: "Atención creada", atencion });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Error al crear atención" });
-  }
+  //   return res.status(201).json({ message: "Atención creada", atencion });
+  // } catch (err) {
+  //   console.error(err);
+  //   return res.status(500).json({ error: "Error al crear atención" });
+  // }
 
-async function atencionesPendientes(req: Request, res: Response) {
+
+
+export async function atencionesPendientes(req: Request, res: Response) {
   try {
     const idPersona = req.user?.id; 
 
@@ -103,7 +105,7 @@ async function atencionesPendientes(req: Request, res: Response) {
 //   req.servicio = servicio;
 
 // }
-}
+
 
 /*
 function findAll(req: Request, res: Response) {
@@ -211,4 +213,5 @@ async function findOne(req: Request, res: Response) {
 //   contarTurnos,
 //   calcularPrecioTotal,
 //   atencionesPendientes
-// } */
+// } 
+*/

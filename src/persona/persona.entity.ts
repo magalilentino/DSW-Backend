@@ -9,7 +9,16 @@ import {
 } from '@mikro-orm/core';
 import { Atencion } from '../atencion/atencion.entity.js';
 
-@Entity()
+@Entity({
+  discriminatorColumn: 'type', 
+    
+    // 2. Mapear los valores del Enum a la clase base Persona
+    discriminatorMap: {
+        peluquero: 'Persona', // Tanto Peluquero como Cliente son instancias de Persona
+        cliente: 'Persona',   // (Micro-ORM maneja los tipos internamente)
+    },
+}
+)
 export class Persona {
   @PrimaryKey()
   idPersona?: number;
@@ -40,4 +49,5 @@ export class Persona {
 
   @OneToMany(() => Atencion, atencion => atencion.peluquero, { cascade: [Cascade.PERSIST] })
   atencionesPel = new Collection<Atencion>(this);
+
 }

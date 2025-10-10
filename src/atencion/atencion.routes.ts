@@ -1,31 +1,13 @@
-import { Router } from 'express';
-import { crearAtencion } from "./atencion.controller.js";
+import { Router } from 'express'
+import { atencionesPendientes } from './atencion.controller.js'
+import {verificarToken} from '../persona/persona.controller.js'
 
-export const AtencionRouter = Router();
+export const AtencionRouter = Router()
 
-AtencionRouter.post("/crear", crearAtencion);
-// import { Router } from 'express';
-// import { findAll, findOne, add,   contarTurnos, calcularPrecioTotal, atencionesPendientes } from './atencion.controller.js';
-// import {verificarToken} from '../persona/persona.controller.js'
-// export const AtencionRouter = Router()
-
-// AtencionRouter.get('/pendientes', verificarToken, atencionesPendientes)
-// AtencionRouter.get('/', findAll);
-// AtencionRouter.get('/:idAtencion', findOne);
-// AtencionRouter.get('/:idAtencion/turnos', contarTurnos)
-// AtencionRouter.get('/:idAtencion/precio', calcularPrecioTotal)
-// AtencionRouter.post('/', verificarToken, crearAtencion);
-
-// //La URL completa para acceder será: GET /atenciones/pendientes
-// AtencionRouter.get( 
-//     '/pendientes', 
-//     verificarToken,     
-//     atencionesPendientes 
-// );
-// AtencionRouter.get('/', findAll)
-// AtencionRouter.get('/: idAtencion', findOne)
-// AtencionRouter.post('/',sanitizeAtencionInput, add)
-// AtencionRouter.put('/: idAtencion', sanitizeAtencionInput, update)
-// AtencionRouter.delete('/: idAtencion', remove)
-// AtencionRouter.get('/:idAtencion/turnos', contarTurnos);
-// AtencionRouter.get('/:idAtencion/precio', calcularPrecioTotal);
+// AtencionRouter.post("/crear", crearAtencion)
+AtencionRouter.get('/pendientes', verificarToken, atencionesPendientes)
+// // AtencionRouter.get('/', findAll)
+// // AtencionRouter.get('/:idAtencion', findOne)
+// // AtencionRouter.get('/:idAtencion/turnos', contarTurnos)
+// // AtencionRouter.get('/:idAtencion/precio', calcularPrecioTotal)
+// AtencionRouter.post('/', verificarToken, crearAtencion)

@@ -109,7 +109,8 @@ async function remove(req: Request, res: Response) {
   }
 }
 
-export const listarProductos = async (req:Request, res: Response) => {
+// lista de productos filtrados por categoria y marca 
+export const listarProductos = async (req:Request, res: Response) => {  
   try {
     const { idMarca, idCategoria } = req.query;
 

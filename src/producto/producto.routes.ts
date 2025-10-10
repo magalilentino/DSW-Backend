@@ -9,6 +9,6 @@ ProductoRouter.post('/', sanitizeProductoInput, add)
 ProductoRouter.put('/:idProducto', sanitizeProductoInput, update)
 ProductoRouter.patch('/:idProducto', sanitizeProductoInput, update)
 ProductoRouter.delete('/:idProducto', remove)
-ProductoRouter.get('/listar', listarProductos);
+ProductoRouter.get('/listarProductos', listarProductos);
 ProductoRouter.get('/detalle/:idProducto', detalleProducto);
 ProductoRouter.get('/productosPorServicio/:codServicio', productosDeServicio);
