@@ -95,19 +95,19 @@ export function buscarGruposConsecutivos(
   const grupos: { hora_inicio: string; hora_fin: string }[][] = [];
 
   for (let i = 0; i <= bloquesLibres.length - cantidad; i++) {
-    const grupo = bloquesLibres.slice(i, i + cantidad);
     let esConsecutivo = true;
-
-    for (let j = 1; j < grupo.length; j++) {
-      const prev = new Date(`1970-01-01T${grupo[j - 1].hora_fin}:00`);
-      const cur = new Date(`1970-01-01T${grupo[j].hora_inicio}:00`);
-      if (cur.getTime() - prev.getTime() !== 45 * 60000) {
+    for (let j = 1; j < cantidad; j++) {
+      const prevFin = new Date(`1970-01-01T${bloquesLibres[i + j - 1].hora_fin}:00`);
+      const curInicio = new Date(`1970-01-01T${bloquesLibres[i + j].hora_inicio}:00`);
+      const diff = (curInicio.getTime() - prevFin.getTime()) / 60000; // diferencia en minutos
+      if (diff !== 0) { // si no empieza justo después del anterior
         esConsecutivo = false;
         break;
       }
     }
-
-    if (esConsecutivo) grupos.push(grupo);
+    if (esConsecutivo) {
+      grupos.push(bloquesLibres.slice(i, i + cantidad));
+    }
   }
 
   return grupos;

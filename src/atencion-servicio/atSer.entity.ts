@@ -21,7 +21,7 @@ export class AtSer {
   @ManyToOne(() => Atencion, {fieldName : 'atencion'})
   atencion!: Rel<Atencion>
 
-  @ManyToOne(() => Servicio, {fieldName : 'atencion'})
+  @ManyToOne(() => Servicio, {fieldName : 'servicio'})
   servicio!: Rel<Servicio>
 
   @OneToMany(() => ProdUt, prodUt => prodUt.atSer, { cascade: [Cascade.ALL] })
@@ -29,7 +29,6 @@ export class AtSer {
 
   @OneToMany(() => TonoUt, tonoUt => tonoUt.atSer, { cascade: [Cascade.ALL] })
   tonosUtilizados = new Collection<TonoUt>(this);
-
 }
 
   

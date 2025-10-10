@@ -46,7 +46,7 @@ async function productosDeServicio(req: Request, res: Response) {
     const productos = await em.find(
       Producto,
       {
-        servicios: servicio,
+       // servicios: servicio,
       },
       {
         populate: ['categoria', 'marcas', 'formulas']

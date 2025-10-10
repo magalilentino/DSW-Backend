@@ -41,7 +41,7 @@ async function tonosDeServicio(req: Request, res: Response) {
     const tonos = await em.find(
       Tono,
       {
-        servicios: servicio,
+       // servicios: servicio,
       },
       {
         populate: ['formulas']

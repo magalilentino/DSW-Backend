@@ -27,8 +27,8 @@ export class Producto {
   @ManyToMany(() => Marca, marca => marca.productos, {cascade: [Cascade.ALL], owner: true }) 
     marcas = new Collection<Marca>(this);
 
-  @ManyToMany(() => Servicio, servicio => servicio.productos)
-    servicios = new Collection<Servicio>(this);
+  //@ManyToMany(() => Servicio, servicio => servicio.productos)
+  //servicios = new Collection<Servicio>(this);
 
   @ManyToMany(() => Formula, formula => formula.productos,{cascade: [Cascade.ALL] }) 
   formulas = new Collection<Formula>(this);
