@@ -20,7 +20,6 @@ export function verificarToken(req: Request, res: Response, next: NextFunction) 
   try {
     const decoded = jwt.verify(token,  JWT_SECRET!);
 
-    // Validamos que tenga las propiedades esperadas
     if (
       typeof decoded === "object" &&
       "id" in decoded &&
@@ -40,26 +39,6 @@ export function verificarToken(req: Request, res: Response, next: NextFunction) 
     return res.status(403).json({ message: "Token inválido o expirado" });
   }
 }
-
-//middleware
-// export function verificarToken(req: Request, res: Response, next: NextFunction) {
-//   const authHeader = req.headers.authorization;
-
-//   if (!authHeader) {
-//     return res.status(401).json({ message: "Token no proporcionado" });
-//   }
-
-//   const token = authHeader.split(" ")[1];
-
-//   try {
-//     const decoded = jwt.verify(token, "1234"); // misma clave que usás en login
-//     req.user = decoded; // ahora tenés acceso a req.user.id, req.user.type, etc.
-//     next();
-//   } catch (error) {
-//     return res.status(403).json({ message: "Token inválido o expirado" });
-//   }
-// }
-
 
 export async function login(req: Request, res: Response) {
   try {
@@ -127,4 +106,38 @@ export async function register(req: Request, res: Response) {
     res.status(500).json({ message: 'Error interno del servidor' });
   }
 }
+
+export async function getPersonaById(req: Request, res: Response) {
+  try {
+
+    const id = Number(req.params.id);
+
+    const persona = await em.findOne(Persona, { idPersona: id });
+    if (!persona) return res.status(404).json({ message: "Persona no encontrada" });
+
+    res.status(200).json(persona);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error al obtener la persona" });
+  }
+}
+
+//middleware
+// export function verificarToken(req: Request, res: Response, next: NextFunction) {
+//   const authHeader = req.headers.authorization;
+
+//   if (!authHeader) {
+//     return res.status(401).json({ message: "Token no proporcionado" });
+//   }
+
+//   const token = authHeader.split(" ")[1];
+
+//   try {
+//     const decoded = jwt.verify(token, "1234"); // misma clave que usás en login
+//     req.user = decoded; // ahora tenés acceso a req.user.id, req.user.type, etc.
+//     next();
+//   } catch (error) {
+//     return res.status(403).json({ message: "Token inválido o expirado" });
+//   }
+// }
 

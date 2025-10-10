@@ -9,7 +9,6 @@ import {
   Rel,
   PrimaryKey
 } from '@mikro-orm/core';
-import { Turno } from '../turno/turno.entity.js';
 import { Descuento } from '../descuento/descuento.entity.js';
 import { Pago } from '../pago/pago.entity.js';
 import { Persona } from '../persona/persona.entity.js';
@@ -39,7 +38,7 @@ export class Atencion {
     estado!: "pendiente" | "finalizado" | "cancelado";
 
   @OneToMany(() => AtSer, atSer => atSer.atencion, { cascade: [Cascade.ALL] })
-  atencionServicios = new Collection<AtSer>(this);
+    atencionServicios = new Collection<AtSer>(this);
 
   @OneToMany(() => Pago, pago => pago.atencion, { cascade: [Cascade.ALL] })
     pagos = new Collection<Pago>(this);
@@ -47,6 +46,3 @@ export class Atencion {
   @ManyToMany(() => Descuento, descuento => descuento.atenciones, { cascade: [Cascade.ALL], owner: true }) 
     descuentos = new Collection<Descuento>(this);
 }  
-
-/*@OneToMany(() => Turno, turno => turno.atencion, { cascade: [Cascade.ALL] })
-    turnos = new Collection<Turno>(this);*/

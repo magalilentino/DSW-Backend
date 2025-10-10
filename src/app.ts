@@ -19,7 +19,6 @@ import { AtSerRouter} from './atencion-servicio/atSer.routes.js'
 import { TonoUtRouter } from './tono-utilizado/tonoUt.routes.js'
 import { ProdUtRouter } from './producto-utilizado/prodUt.routes.js'
 
-// import { TurnoRouter } from './turno(desc)/turno.routes.js'
 //import { ClienteRouter } from './persona/cliente/cliente.routes.js'
 //import { PeluqueroRouter } from './persona/peluquero/peluquero.routes.js'
 
@@ -49,7 +48,6 @@ app.use('/api/prodUt', ProdUtRouter)
 
 //app.use('/api/cliente', ClienteRouter)
 //app.use('/api/peluquero', PeluqueroRouter)
-// app.use('/api/turno', TurnoRouter)
 
 app.use((_, res) => {
   res.status(404).send({ message: 'Resource not found' })

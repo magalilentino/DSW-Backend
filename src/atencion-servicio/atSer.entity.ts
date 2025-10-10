@@ -18,10 +18,10 @@ export class AtSer {
   @PrimaryKey()
   idAtSer?: number;
 
-  @ManyToOne(() => Atencion, {fieldName : 'atencion'})
+  @ManyToOne(() => Atencion, {fieldName : 'atencion_id'})
   atencion!: Rel<Atencion>
 
-  @ManyToOne(() => Servicio, {fieldName : 'servicio'})
+  @ManyToOne(() => Servicio, {fieldName : 'servicio_id'})
   servicio!: Rel<Servicio>
 
   @OneToMany(() => ProdUt, prodUt => prodUt.atSer, { cascade: [Cascade.ALL] })

@@ -34,10 +34,12 @@ export async function crearAtencion(req: Request, res: Response) {
     if (Array.isArray(servicios)) {
       for (const codServicio of servicios) {
         const servicio = await em.findOneOrFail(Servicio, { codServicio });
-        const atSer = em.create(AtSer, { atencion, servicio });
-        em.persist(atSer);
+        const atSer = new AtSer();
+        atSer.atencion = atencion;
+        atSer.servicio = servicio;
+        atencion.atencionServicios.add(atSer);
       }
-      await em.flush();
+      await em.persistAndFlush(atencion);
     }
 
    
@@ -90,6 +92,8 @@ export async function crearAtencion(req: Request, res: Response) {
       }
     );
 
+    console.log(JSON.stringify(atencionConServicios, null, 2));
+
     return res.status(201).json({
       message: "Atención creada con servicios",
       atencion: atencionConServicios
@@ -125,33 +129,75 @@ export async function atencionesPendientes(req: Request, res: Response) {
 export async function getHistoricoByCliente(req: Request, res: Response) {
   try {
     const idPersona = Number(req.params.idPersona);
+
     const atenciones = await em.find(
       Atencion,
-      { cliente: { idPersona }, estado: ["finalizado", "cancelado"] },
-      { orderBy: { fecha: "DESC" }, populate: ["peluquero", "atencionServicios", "atencionServicios.servicio"] }
+      { cliente: { idPersona }, estado: { $in: ["finalizado", "cancelado"] } },
+      {
+        populate: [
+          "peluquero",
+          "atencionServicios",
+          "atencionServicios.servicio" 
+        ],
+        orderBy: { fecha: "DESC" }
+      }
     );
-    res.json(atenciones);
+
+    const result = atenciones.map(a => ({
+      idAtencion: a.idAtencion,
+      fecha: a.fecha,
+      horaInicio: a.horaInicio,
+      horaFin: a.horaFin,
+      estado: a.estado,
+      peluquero: a.peluquero,
+      atencionServicios: a.atencionServicios.getItems().map(as => ({
+        idAtSer: as.idAtSer,
+        servicio: as.servicio
+      }))
+    }));
+
+    res.json(result);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Error al obtener el histórico" });
+    res.status(500).json({ message: "Error al obtener el histórico de atenciones" });
   }
 }
 
 export async function getPendientesByCliente(req: Request, res: Response) {
   try {
     const idPersona = Number(req.params.idPersona);
+
     const atenciones = await em.find(
       Atencion,
       { cliente: { idPersona }, estado: "pendiente" },
-      { orderBy: { fecha: "ASC" }, populate: ["peluquero", "atencionServicios", "atencionServicios.servicio"] }
+      {
+        populate: [
+          "peluquero",
+          "atencionServicios",
+          "atencionServicios.servicio"
+        ]
+      }
     );
-    res.json(atenciones);
+
+    const result = atenciones.map(a => ({
+      idAtencion: a.idAtencion,
+      fecha: a.fecha,
+      horaInicio: a.horaInicio,
+      horaFin: a.horaFin,
+      estado: a.estado,
+      peluquero: a.peluquero,
+      atencionServicios: a.atencionServicios.getItems().map(as => ({
+        idAtSer: as.idAtSer,
+        servicio: as.servicio
+      }))
+    }));
+
+    res.json(result);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Error al obtener las atenciones pendientes" });
   }
 }
-
 
 
 // async function confirmarAtencion (req: Request, res:Response) {
