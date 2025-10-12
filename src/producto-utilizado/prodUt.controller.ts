@@ -2,11 +2,10 @@ import { Request, Response, NextFunction } from 'express'
 import { ProdUt } from './prodUt.entity.js'
 import { Producto } from '../producto/producto.entity.js'
 import { orm } from '../shared/orm.js'
-import { EntityManager } from '@mikro-orm/core';
+
 import { AtSer } from '../atencion-servicio/atSer.entity.js'; // Necesitamos la referencia a AtSer
 
 const em = orm.em
-
 
 export function sanitizeProdUtInput(
   req: Request,
@@ -38,27 +37,33 @@ export async function add(req: Request, res: Response) {
   }
 }
 
-
-
 // Interfaz para la data que viene del frontend
 interface ProductoPayload {
     idProducto: number;
     cantidad: number;
 }
 
-/**
- * Registra o actualiza la lista de productos utilizados para un Servicio-Atención (AtSer) específico.
- * * @param em El EntityManager de MikroORM.
- * @param req Objeto Request de Express.
- * @param res Objeto Response de Express.
- */
-export async function registrarProdsUt(em: EntityManager, req: Request, res: Response) {
-    // 1. Obtener IDs y Data
-    const idAtSer = parseInt(req.params.idAtSer as string, 10);
+interface RegistrarProdsUtParams {
+    idAtSer: string;
+}
+
+export async function registrarProdsUt( req: Request<RegistrarProdsUtParams>, res: Response) {
+
+  
+     // Desestructurar de forma segura
+    const { idAtSer } = req.params;
+    
+    // Asegurarse de que no sea undefined (aunque no debería serlo si la ruta coincide)
+    if (!idAtSer) {
+        return res.status(400).json({ message: "ID de Servicio-Atención (idAtSer) es requerido." });
+    }  
+  
+  // 1. Obtener IDs y Data
+    const idAtSerInt = parseInt(req.params.idAtSer as string, 10);
     //const idAtSer = Number(req.params.idAtSer);
     const { productos } = req.body as { productos: ProductoPayload[] }; // Array de productos seleccionados
 
-    if (isNaN(idAtSer) || idAtSer <= 0) {
+    if (isNaN(idAtSerInt) || idAtSerInt <= 0) {
         return res.status(400).json({ message: "ID de Servicio-Atención no válido." });
     }
     // const atSer = await em.findOneOrFail(AtSer,{ idAtSer });
@@ -75,7 +80,7 @@ export async function registrarProdsUt(em: EntityManager, req: Request, res: Res
             // const atSer = await tx.findOne(AtSer, { idAtSer });
             // const atSerRef = tx.getReference(AtSer, idAtSer); 
 
-            const atSerEntity = await tx.findOne(AtSer, { idAtSer }); 
+            const atSerEntity = await tx.findOne(AtSer, { idAtSer: idAtSerInt }); 
 
             if (!atSerEntity) {
                 // Este error puede indicar que la URL es incorrecta o la atención fue eliminada
@@ -87,23 +92,34 @@ export async function registrarProdsUt(em: EntityManager, req: Request, res: Res
             // Usamos nativeDelete para mayor eficiencia en la limpieza masiva.
             await tx.nativeDelete(ProdUt, { atSer: atSerEntity});
 
-
-            // 4. Crear e insertar nuevos registros (solo si hay productos con cantidad > 0)
             const productosAInsertar = productos
-                .filter(p => p.cantidad > 0)
-                .map(p => {
-                    const productoRef = tx.getReference('Producto', p.idProducto); // Obtiene una referencia a la entidad Producto
+          .filter(p => p.cantidad > 0)
+          .map(p => {
+            //const productoRef = tx.getReference(Producto, idProducto as any);
+            return tx.create(ProdUt, {
+              producto: tx.getReference(Producto,  p.idProducto as any), //El as any le dice a TypeScript: “confía en mí, este número representa una entidad válida”.
+              atSer: atSerEntity,
+              cantidad: p.cantidad,
+            });
+          });
+
+
+        // 4. Crear e insertar nuevos registros (solo si hay productos con cantidad > 0)
+            // const productosAInsertar = productos
+            //     .filter(p => p.cantidad > 0)
+            //     .map(p => {
+            //         const productoRef = tx.getReference('Producto', p.idProducto); // Obtiene una referencia a la entidad Producto
                     
-                    return {
-                        producto: productoRef, // <-- Usamos la REFERENCIA del objeto Producto
-                        atSer:atSerEntity,       // <-- Usamos la ENTIDAD AtSer (o su referencia)
-                        cantidad: p.cantidad,
-                    };
-                    // Aquí asumimos que las FKs en ProdUt son: producto, atSer, y la propiedad cantidad
-                    // producto: await em.findOne(Producto,{ p.idProducto }),
-                    // atSer: atSer, 
-                    // cantidad: p.cantidad,
-                });
+            //         return {
+            //             producto: productoRef, // <-- Usamos la REFERENCIA del objeto Producto
+            //             atSer:atSerEntity,       // <-- Usamos la ENTIDAD AtSer (o su referencia)
+            //             cantidad: p.cantidad,
+            //         };
+            //         // Aquí asumimos que las FKs en ProdUt son: producto, atSer, y la propiedad cantidad
+            //         // producto: await em.findOne(Producto,{ p.idProducto }),
+            //         // atSer: atSer, 
+            //         // cantidad: p.cantidad,
+            //     });
 
              // 4. Inserción Múltiple (Bulk Insert)
             if (productosAInsertar.length > 0) {
@@ -115,7 +131,7 @@ export async function registrarProdsUt(em: EntityManager, req: Request, res: Res
             // aquí se actualizaría el estado del AtSer a 'REALIZADO' o similar.
             // atSer.estado_ejecucion = 'REALIZADO'; 
             // await tx.persistAndFlush(atSer); 
-        });
+    });
 
 
         return res.status(200).json({ 
