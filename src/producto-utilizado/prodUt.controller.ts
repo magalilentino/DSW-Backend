@@ -52,10 +52,14 @@ interface ProductoPayload {
  * @param req Objeto Request de Express.
  * @param res Objeto Response de Express.
  */
-export async function registrarProductosUtilizados(em: EntityManager, req: Request, res: Response) {
+export async function registrarProdsUt(em: EntityManager, req: Request, res: Response) {
     // 1. Obtener IDs y Data
-    const idAtSer = parseInt(req.params.idAtSer as string, 10);
-    //const idAtSer = Number(req.params.idAtSer);
+    // const { idAtSer }  = parseInt(req.params.idAtSer as string, 10);
+    const idAtSerString = req.params.idAtSer as string; 
+    
+    // 2. Convertir ese string a un entero
+    const idAtSer = parseInt(idAtSerString, 10); 
+    
     const { productos } = req.body as { productos: ProductoPayload[] }; // Array de productos seleccionados
 
     if (isNaN(idAtSer) || idAtSer <= 0) {
@@ -69,13 +73,13 @@ export async function registrarProductosUtilizados(em: EntityManager, req: Reque
 
     try {
         // Ejecutamos todo dentro de una transacción para garantizar atomicidad
-        await em.transactional(async (tx) => {
+        await em.transactional(async (em) => {
             
             // 2. Verificar que el AtSer exista
-            // const atSer = await tx.findOne(AtSer, { idAtSer });
+            // const atSer = await em.findOne(AtSer, { idAtSer });
             // const atSerRef = tx.getReference(AtSer, idAtSer); 
 
-            const atSerEntity = await tx.findOne(AtSer, { idAtSer }); 
+            const atSerEntity = await em.findOne(AtSer, { idAtSer }); 
 
             if (!atSerEntity) {
                 // Este error puede indicar que la URL es incorrecta o la atención fue eliminada
@@ -85,14 +89,14 @@ export async function registrarProductosUtilizados(em: EntityManager, req: Reque
             // 3. Limpiar registros antiguos
             // Esto garantiza que si el peluquero cambia de 3 productos a 1, los 2 anteriores se eliminen.
             // Usamos nativeDelete para mayor eficiencia en la limpieza masiva.
-            await tx.nativeDelete(ProdUt, { atSer: atSerEntity});
+            await em.nativeDelete(ProdUt, { atSer: atSerEntity});
 
 
             // 4. Crear e insertar nuevos registros (solo si hay productos con cantidad > 0)
             const productosAInsertar = productos
                 .filter(p => p.cantidad > 0)
                 .map(p => {
-                    const productoRef = tx.getReference('Producto', p.idProducto); // Obtiene una referencia a la entidad Producto
+                    const productoRef = em.getReference('Producto', p.idProducto); // Obtiene una referencia a la entidad Producto
                     
                     return {
                         producto: productoRef, // <-- Usamos la REFERENCIA del objeto Producto
@@ -108,13 +112,13 @@ export async function registrarProductosUtilizados(em: EntityManager, req: Reque
              // 4. Inserción Múltiple (Bulk Insert)
             if (productosAInsertar.length > 0) {
                  // MikroORM inserta automáticamente cada objeto del array como una fila distinta
-                await tx.persist(productosAInsertar).flush();
+                await em.persist(productosAInsertar).flush();
             }
             
             // Opcional: Si el registro de productos es el final de la ejecución, 
             // aquí se actualizaría el estado del AtSer a 'REALIZADO' o similar.
             // atSer.estado_ejecucion = 'REALIZADO'; 
-            // await tx.persistAndFlush(atSer); 
+            // await em.persistAndFlush(atSer); 
         });
 
 

@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import { Producto } from './producto.entity.js'
 import { orm } from '../shared/orm.js'
 import { Servicio } from '../servicio/servicio.entity.js'
+import { Marca } from '../marca/marca.entity.js'
 
 const em = orm.em
 
@@ -109,54 +110,35 @@ async function remove(req: Request, res: Response) {
   }
 }
 
-
-
-// lista de productos filtrados por categoria y marca
+//lista de productos filtrados por categoria y marca 
 export async function listarProductos(req: Request, res: Response) {
-    try {
-        // 1. Obtener y convertir los query params de String a Number
-        const { idMarca, idCategoria } = req.query;
+  try {
+    const filtros: Record<string, any> = {};
+    const { idMarca, idCategoria } = req.query;
+    // const marcaId = idMarca ? Number(idMarca) : undefined;
 
-        // Convertir a Number. Si no existe o no es un número válido, será undefined.
-        const marcaId = idMarca ? Number(idMarca) : undefined;
-        const categoriaId = idCategoria ? Number(idCategoria) : undefined;
-
-        // 2. Construir el objeto de filtros (where) de Micro-ORM
-        const filtros: any = {};
-
-        // Agregar filtro de marca solo si es un número válido
-        if (marcaId && !isNaN(marcaId)) {
-            filtros.marcas = { id: marcaId }; 
-        }
-
-        // Agregar filtro de categoría solo si es un número válido
-        if (categoriaId && !isNaN(categoriaId)) {
-            filtros.categoria = categoriaId;
-        }
-        
-        // 3. Ejecutar la búsqueda con filtros y populate (para asegurar la carga)
-        const productos = await em.find(
-            "Producto", // Puedes usar la clase Producto importada o el string "Producto"
-            filtros,    // Objeto de filtros. Si está vacío, trae todos.
-            {
-                // Incluir populate es una buena práctica para evitar errores de serialización.
-                // Reemplaza 'marca' y 'categoria' con los nombres de las propiedades de relación en tu Producto.entity.ts
-                populate: ['marca', 'categoria'], 
-                
-                // Si quieres traer solo ciertos campos (si tu entidad tiene muchos):
-                fields: ["idProducto", "descripcion", "categoria.nombreCategoria"], 
-            }
-        );
-
-        // 4. Devolver la respuesta
-        res.status(200).json(productos);
-
-    } catch (error: any) {
-        console.error("Error al listar productos con filtros:", error);
-        // Devuelve el mensaje de error para ayudar en el diagnóstico del frontend
-        res.status(500).json({ message: error.message || "Error al conectar con la base de datos." });
+    if (idMarca) {
+      filtros.marcas = { idMarca: idMarca };
     }
-}
+
+    if (idCategoria) {
+      filtros.categoria = idCategoria; 
+    }
+
+    const productos = await em.find(
+      "Producto",
+      filtros,
+      {
+        fields: ["idProducto", "descripcion"], 
+      }
+    );
+
+    res.json(productos);
+  } catch (error:any) {
+    console.error("Error en listarProductos:", error);
+    res.status(500).json({ message: error.message });
+  }
+};
 
 
 export const detalleProducto = async (req: Request, res: Response) => {
