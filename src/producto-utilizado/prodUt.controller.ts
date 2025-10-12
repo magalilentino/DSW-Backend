@@ -52,7 +52,7 @@ interface ProductoPayload {
  * @param req Objeto Request de Express.
  * @param res Objeto Response de Express.
  */
-export async function registrarProductosUtilizados(em: EntityManager, req: Request, res: Response) {
+export async function registrarProdsUt(em: EntityManager, req: Request, res: Response) {
     // 1. Obtener IDs y Data
     const idAtSer = parseInt(req.params.idAtSer as string, 10);
     //const idAtSer = Number(req.params.idAtSer);

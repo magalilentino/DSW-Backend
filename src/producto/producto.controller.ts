@@ -114,19 +114,33 @@ export const listarProductos = async (req:Request, res: Response) => {
   try {
     const { idMarca, idCategoria } = req.query;
 
+    const filtros: Record<string, any> = {};
+
+    if (idMarca) {
+      // Asume que la propiedad de relación se llama 'marca'
+      filtros.marcas = idMarca; 
+    }
+
+    if (idCategoria) {
+      // Asume que la propiedad de relación se llama 'categoria'
+      filtros.categoria = idCategoria; 
+    }
+
     const productos = await em.find(
       "Producto",
+      filtros,
+      // {
+      //   ...(idMarca ? { marca: idMarca } : {}),
+      //   ...(idCategoria ? { categoria: idCategoria } : {}),
+      // },
       {
-        ...(idMarca ? { marca: idMarca } : {}),
-        ...(idCategoria ? { categoria: idCategoria } : {}),
-      },
-      {
-        fields: ["id", "descripcion"], // solo estas propiedades
+        fields: ["idProducto", "descripcion"], // solo estas propiedades
       }
     );
 
     res.json(productos);
   } catch (error:any) {
+    console.error("Error en listarProductos:", error);
     res.status(500).json({ message: error.message });
   }
 };
