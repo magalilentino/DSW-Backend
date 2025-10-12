@@ -53,11 +53,25 @@ export async function login(req: Request, res: Response) {
       return res.status(401).json({ message: 'Credenciales inválidas' });
     }
 
-    const token = jwt.sign(
+    // Obtener el secret de las variables de entorno
+  const secret = process.env.JWT_SECRET;
+
+  // 1. **VALIDACIÓN CRÍTICA**: Si el secret no está cargado, lanza un error interno.
+  if (!secret) {
+      throw new Error("La clave secreta JWT_SECRET no está configurada.");
+  }
+
+  const token = jwt.sign(
       { id: persona.idPersona, type: persona.type, nombre: persona.nombre },
-       JWT_SECRET!,
+      secret, // Usamos la variable local 'secret'
       { expiresIn: '2h' }
-    );
+  );
+
+    // const token = jwt.sign(
+    //   { id: persona.idPersona, type: persona.type, nombre: persona.nombre },
+    //   JWT_SECRET!,
+    //   { expiresIn: '2h' }
+    // );
 
     res.status(200).json({
       message: 'Login exitoso',
