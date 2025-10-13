@@ -18,6 +18,27 @@ const em = orm.em
 //     }
 // }
 
+export async function findOne (req: Request, res: Response) {
+    try {
+        const id = Number(req.params.idAtSer);
+        
+        const atSer = await em.findOneOrFail(AtSer, { idAtSer: id }, {
+            populate: ['atencion'] 
+        });
+
+        // Devolver la información necesaria, incluyendo el ID de la Atención
+        return res.status(200).json({
+            idAtSer: atSer.idAtSer,
+            // Accedemos al id de la entidad Atención a través de la relación cargada
+            idAtencion: atSer.atencion.idAtencion,  
+        });
+
+    } catch (error: any) {
+        console.error(error);
+        return res.status(404).json({ message: 'Atencion-Servicio no encontrado', error: error.message });
+    }
+};
+
 
 export async function ServiciosPorAtencion(req: Request, res: Response) {
     try {

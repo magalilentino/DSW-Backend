@@ -34,6 +34,9 @@ export class Atencion {
   @Property({ nullable: false })
     horaFin!: Date;
 
+  @Property({ nullable: true })
+    descripcion!: string
+
   @Property({ nullable: false })
     estado!: "pendiente" | "finalizado" | "cancelado";
 

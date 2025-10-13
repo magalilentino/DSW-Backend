@@ -87,10 +87,6 @@ export async function registrarProdsUt( req: Request<RegistrarProdsUtParams>, re
                     // Si se seleccionó un tono, obtenemos su referencia
                     atSerEntity.tono = tx.getReference(Tono, idTono as any); 
                 }
-                // else {
-                //     // Si no se seleccionó o se seleccionó "ninguno", lo ponemos en null
-                //     atSerEntity.tono = ; 
-                // }
 
                 // Persistir el cambio en AtSer (solo la relación y el tono, sin cambiar el estado de Atencion aquí)
                 await tx.persistAndFlush(atSerEntity);

@@ -26,7 +26,8 @@ export async function crearAtencion(req: Request, res: Response) {
       fecha: new Date(fecha),
       horaInicio: horaInicioDate,
       horaFin: horaFinDate,
-      estado: "pendiente"
+      estado: "pendiente",
+      descripcion: "" 
     });
     await em.persistAndFlush(atencion);
 
@@ -169,6 +170,7 @@ export async function cancelarAtencion(req: Request, res: Response) {
 export async function finalizarAtencion(req: Request, res: Response) {
     try {
         const idAtencion = parseInt(req.params.idAtencion as string, 10);
+        const descripcion = req.body as { descripcion?: string}
 
         if (isNaN(idAtencion) || idAtencion <= 0) {
             return res.status(400).json({ message: "ID de Atención no válido." });
@@ -178,6 +180,9 @@ export async function finalizarAtencion(req: Request, res: Response) {
 
         // 1. Cambiar el estado
         atencion.estado = "finalizado"; 
+        if(descripcion){
+          atencion.descripcion = descripcion as any;
+        }
 
         await em.persistAndFlush(atencion);
 
