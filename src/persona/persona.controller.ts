@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import { orm } from '../shared/orm.js';
 import { Persona } from './persona.entity.js';
 import bcrypt from 'bcrypt';
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 const em = orm.em
 
