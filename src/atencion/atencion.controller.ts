@@ -126,6 +126,71 @@ export async function atencionesPendientes(req: Request, res: Response) {
   }
 }
 
+export async function cancelarAtencion(req: Request, res: Response) {
+    try {
+        // Obtener y convertir la ID de la Atención a número (Viene como string de req.params)
+        const idAtencionString = req.params.idAtencion as string;
+        const idAtencion = parseInt(idAtencionString, 10);
+
+        // Validación
+        if (isNaN(idAtencion) || idAtencion <= 0) {
+            return res.status(400).json({ message: "ID de Atención no válido." });
+        }
+
+        // 2. Buscar la Atención por ID
+        // Usamos findOneOrFail para asegurar que existe
+        const atencion = await em.findOneOrFail(Atencion, { idAtencion });
+
+        // 3. Actualizar el estado
+        atencion.estado = "cancelado"; 
+
+        // 4. Persistir los cambios en la base de datos
+        // Usamos em.flush() para ejecutar la operación UPDATE
+        await em.persistAndFlush(atencion);
+
+        // 5. Respuesta exitosa
+        return res.status(200).json({ 
+            message: `Atención ${idAtencion} cancelada exitosamente.`,
+            idAtencion: atencion.idAtencion
+        });
+
+    } catch (error: any) {
+        // Manejar errores si no se encuentra la atención (findOneOrFail lanza error) 
+        // o si hay un fallo en la DB.
+        console.error("Error al cancelar atención:", error);
+
+        if (error.name === 'NotFoundError') {
+            return res.status(404).json({ message: `Atención con ID ${req.params.idAtencion} no encontrada.` });
+        }
+        return res.status(500).json({ message: "Error interno del servidor al cancelar la atención.", error: error.message });
+    }
+  }
+
+export async function finalizarAtencion(req: Request, res: Response) {
+    try {
+        const idAtencion = parseInt(req.params.idAtencion as string, 10);
+
+        if (isNaN(idAtencion) || idAtencion <= 0) {
+            return res.status(400).json({ message: "ID de Atención no válido." });
+        }
+
+        const atencion = await em.findOneOrFail(Atencion, { idAtencion });
+
+        // 1. Cambiar el estado
+        atencion.estado = "finalizado"; 
+
+        await em.persistAndFlush(atencion);
+
+        return res.status(200).json({ 
+            message: `Atención ${idAtencion} registrada como finalizada.`
+        });
+
+    } catch (error: any) {
+        console.error("Error al finalizar atención:", error);
+        return res.status(500).json({ message: "Error interno del servidor." });
+    }
+}
+
 export async function getHistoricoByCliente(req: Request, res: Response) {
   try {
     const idPersona = Number(req.params.idPersona);

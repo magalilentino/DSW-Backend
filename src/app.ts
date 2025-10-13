@@ -16,7 +16,6 @@ import { ProductoRouter } from './producto/producto.routes.js'
 import { ServicioRouter } from './servicio/servicio.routes.js'
 import { TonoRouter } from './tono/tono.routes.js'
 import { AtSerRouter} from './atencion-servicio/atSer.routes.js'
-import { TonoUtRouter } from './tono-utilizado/tonoUt.routes.js'
 import { ProdUtRouter } from './producto-utilizado/prodUt.routes.js'
 
 //import { ClienteRouter } from './persona/cliente/cliente.routes.js'
@@ -24,7 +23,11 @@ import { ProdUtRouter } from './producto-utilizado/prodUt.routes.js'
 
 const app = express();
 
-app.use(cors({ origin: 'http://localhost:5173' })); // React corre en 5173
+app.use(cors({
+    origin: 'http://localhost:5173', // React corre en 5173
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], 
+    allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 app.use(express.json());
 
 app.use((req, res, next) => {
@@ -43,7 +46,6 @@ app.use('/api/producto', ProductoRouter)
 app.use('/api/servicio', ServicioRouter)
 app.use('/api/tono', TonoRouter)
 app.use('/api/atSer', AtSerRouter)
-app.use('/api/tonoUt', TonoUtRouter)
 app.use('/api/prodUt', ProdUtRouter)
 
 //app.use('/api/cliente', ClienteRouter)

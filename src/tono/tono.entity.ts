@@ -9,7 +9,7 @@ import {
   PrimaryKey,
   OneToMany
 } from '@mikro-orm/core'
-import { Servicio } from '../servicio/servicio.entity.js'
+import { AtSer } from '../atencion-servicio/atSer.entity.js'
 import { Formula } from '../formula/formula.entity.js'
 
 @Entity()
@@ -26,4 +26,7 @@ export class Tono {
   
   @OneToMany(() => Formula, (formula) => formula.tono , {cascade: [Cascade.ALL]})
     formulas = new Collection<Formula>(this) 
+
+  @OneToMany(() => AtSer, (atSer) => atSer.tono , {cascade: [Cascade.ALL]})
+    atSers = new Collection<AtSer>(this)
 }
