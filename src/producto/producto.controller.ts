@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express'
 import { Producto } from './producto.entity.js'
 import { orm } from '../shared/orm.js'
 import { Servicio } from '../servicio/servicio.entity.js'
+import { Marca } from '../marca/marca.entity.js'
 
 const em = orm.em
 
@@ -109,32 +110,26 @@ async function remove(req: Request, res: Response) {
   }
 }
 
-// lista de productos filtrados por categoria y marca 
-export const listarProductos = async (req:Request, res: Response) => {  
+//lista de productos filtrados por categoria y marca 
+export async function listarProductos(req: Request, res: Response) {
   try {
-    const { idMarca, idCategoria } = req.query;
-
     const filtros: Record<string, any> = {};
+    const { idMarca, idCategoria } = req.query;
+    // const marcaId = idMarca ? Number(idMarca) : undefined;
 
     if (idMarca) {
-      // Asume que la propiedad de relación se llama 'marca'
-      filtros.marcas = idMarca; 
+      filtros.marcas = { idMarca: idMarca };
     }
 
     if (idCategoria) {
-      // Asume que la propiedad de relación se llama 'categoria'
       filtros.categoria = idCategoria; 
     }
 
     const productos = await em.find(
       "Producto",
       filtros,
-      // {
-      //   ...(idMarca ? { marca: idMarca } : {}),
-      //   ...(idCategoria ? { categoria: idCategoria } : {}),
-      // },
       {
-        fields: ["idProducto", "descripcion"], // solo estas propiedades
+        fields: ["idProducto", "descripcion"], 
       }
     );
 

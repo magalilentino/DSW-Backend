@@ -30,7 +30,7 @@ export async function ServiciosPorAtencion(req: Request, res: Response) {
         const serviciosAten = await em.find(
         AtSer,
         { atencion: atencion},
-        { populate: ['tonosUtilizados', 'productosUtilizados', 'atencion', 'servicio']}
+        { populate: [ 'productosUtilizados', 'atencion', 'servicio']}
         )
         res.status(200).json({ message: 'found all servicios - atenciones ', data: serviciosAten })
     } catch (error: any) {
