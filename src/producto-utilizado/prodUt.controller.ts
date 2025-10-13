@@ -4,6 +4,7 @@ import { Producto } from '../producto/producto.entity.js'
 import { orm } from '../shared/orm.js'
 
 import { AtSer } from '../atencion-servicio/atSer.entity.js'; // Necesitamos la referencia a AtSer
+import { Tono } from '../tono/tono.entity.js';
 
 const em = orm.em
 
@@ -61,7 +62,7 @@ export async function registrarProdsUt( req: Request<RegistrarProdsUtParams>, re
   // 1. Obtener IDs y Data
     const idAtSerInt = parseInt(req.params.idAtSer as string, 10);
     //const idAtSer = Number(req.params.idAtSer);
-    const { productos } = req.body as { productos: ProductoPayload[] }; // Array de productos seleccionados
+    const { productos, idTono } = req.body as { productos: ProductoPayload[], idTono?: number  }; // Array de productos seleccionados
 
     if (isNaN(idAtSerInt) || idAtSerInt <= 0) {
         return res.status(400).json({ message: "ID de Servicio-Atención no válido." });
@@ -81,7 +82,19 @@ export async function registrarProdsUt( req: Request<RegistrarProdsUtParams>, re
             // const atSerRef = tx.getReference(AtSer, idAtSer); 
             const atSerEntity = await tx.findOne(AtSer, { idAtSer: idAtSerInt }); 
 
-            if (!atSerEntity) {
+            if (atSerEntity) {
+                if (idTono && idTono > 0) {
+                    // Si se seleccionó un tono, obtenemos su referencia
+                    atSerEntity.tono = tx.getReference(Tono, idTono as any); 
+                }
+                // else {
+                //     // Si no se seleccionó o se seleccionó "ninguno", lo ponemos en null
+                //     atSerEntity.tono = ; 
+                // }
+
+                // Persistir el cambio en AtSer (solo la relación y el tono, sin cambiar el estado de Atencion aquí)
+                await tx.persistAndFlush(atSerEntity);
+            }else{ 
                 // Este error puede indicar que la URL es incorrecta o la atención fue eliminada
                 return res.status(404).json({ message: "El Servicio-Atención (AtSer) no existe." });
             }
@@ -114,11 +127,11 @@ export async function registrarProdsUt( req: Request<RegistrarProdsUtParams>, re
             // await tx.persistAndFlush(atSer); 
     });
         return res.status(200).json({ 
-            message: "Productos utilizados registrados y actualizados exitosamente."
+            message: "datos del servicio cargados"
         });
 
     } catch (error: any) {
-        console.error("Error al registrar productos utilizados:", error);
+        console.error("Error al registrar datos del servicio:", error);
         return res.status(500).json({ message: "Error interno del servidor al guardar productos.", error: error.message });
     }
 }
