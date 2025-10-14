@@ -85,7 +85,7 @@ export async function remove(req: Request, res: Response) {
 }
 export const listarServiciosPorPrecio = async (req: Request, res: Response) => {
   try {
-    // tomamos rango de precio desde query params
+    
     const min = req.query.min ? Number(req.query.min) : 0;
     const max = req.query.max ? Number(req.query.max) : Number.MAX_SAFE_INTEGER;
 
@@ -95,7 +95,7 @@ export const listarServiciosPorPrecio = async (req: Request, res: Response) => {
         precio: { $gte: min, $lte: max } // rango de precio
       },
       {
-        fields: ['codServicio', 'nombreServicio', 'descripcion', 'precio'], // solo info básica
+        fields: ['codServicio', 'nombreServicio', 'descripcion', 'precio', 'cantTurnos'],
       }
     );
 
