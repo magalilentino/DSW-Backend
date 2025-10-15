@@ -24,8 +24,7 @@ function sanitizeMarcaInput(
 
 async function findAll(req: Request, res: Response) {
   try {
-    const marcas = await em.find(Marca, {}, 
-    { populate: ['productos'] })
+    const marcas = await em.find(Marca, {} , { populate: ['productos'] } )
     res
       .status(200)
       .json({ message: 'se encontraron todas las marcas', data: marcas })

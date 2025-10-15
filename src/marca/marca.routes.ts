@@ -5,7 +5,7 @@ export const MarcaRouter = Router()
 
 
 MarcaRouter.get('/', findAll)
-MarcaRouter.get('/: idMarca', findOne)
+MarcaRouter.get('/:idMarca', findOne)
 MarcaRouter.post('/', sanitizeMarcaInput, add)
-MarcaRouter.put('/: idMarca', sanitizeMarcaInput, update)
-MarcaRouter.delete('/: idMarca', remove)
+MarcaRouter.put('/:idMarca', sanitizeMarcaInput, update)
+MarcaRouter.delete('/:idMarca', remove)
