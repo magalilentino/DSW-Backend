@@ -58,17 +58,19 @@ async function tonosDeServicio(req: Request, res: Response) {
 
 async function findOne(req: Request, res: Response) {
   try {
-    const idTono = Number.parseInt(req.params.idTono)
-    const tono = await em.findOneOrFail(
-      Tono,
-      { idTono }
-      //{ populate: ['productos', 'servicios'] }
-    )
-    res.status(200).json({ message: 'found tono', data: tono })
+    const idTono = Number.parseInt(req.params.idTono);
+    const tono = await em.findOne(Tono, { idTono });
+
+    if (!tono) {
+      return res.status(404).json({ message: "Tono no encontrado" });
+    }
+
+    res.status(200).json({ message: "found tono", data: tono });
   } catch (error: any) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: error.message });
   }
 }
+
 
 async function add(req: Request, res: Response) {
   try {
@@ -96,12 +98,24 @@ async function update(req: Request, res: Response) {
 
 async function remove(req: Request, res: Response) {
   try {
-    const idTono = Number.parseInt(req.params.idTono)
-    const tono = await em.findOneOrFail(Tono, { idTono })
-    await em.removeAndFlush(tono)
+    const idTono = Number.parseInt(req.params.idTono);
+    const tono = await em.findOne(Tono, { idTono });
+
+    if (!tono) {
+      return res.status(404).json({ message: "Tono no encontrado" });
+    }
+
+    tono.formulas.removeAll();
+      tono.atSers.removeAll();
+    await em.flush();
+
+    await em.removeAndFlush(tono);
+    res.status(200).json({ message: "Tono eliminado correctamente" });
   } catch (error: any) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: error.message });
   }
 }
+
+
 
 export { sanitizeTonoInput, findAll, findOne, add, update, remove, tonosDeServicio }
