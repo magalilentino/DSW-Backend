@@ -7,10 +7,10 @@ import { sanitizeServicioInput, findAll, findOne, add, update, remove,
 export const ServicioRouter = Router()
 
 ServicioRouter.get('/findAll', findAll)
-ServicioRouter.post('/', sanitizeServicioInput, add)
+ServicioRouter.post('/add', sanitizeServicioInput, add)
 ServicioRouter.put('/:codServicio', sanitizeServicioInput, update)
 ServicioRouter.patch('/:codServicio', sanitizeServicioInput, update)
-ServicioRouter.delete('/:codServicio', remove)
+ServicioRouter.delete('/delete/:codServicio', remove)
 ServicioRouter.get('/listarPorPrecio', listarServiciosPorPrecio);
 ServicioRouter.get('/detalle/:codServicio', detalleServiciosPorPrecio);
 //ServicioRouter.get('/ProductosDelServicio/:codServicio', listarProductosDeServicio);  
