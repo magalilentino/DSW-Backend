@@ -5,7 +5,7 @@ export const FormulaRouter = Router()
 
 
 FormulaRouter.get('/', findAll)
-FormulaRouter.get('/: idFormula', findOne)
+FormulaRouter.get('/:idFormula', findOne)
 FormulaRouter.post('/', sanitizeFormulaInput, add)
-FormulaRouter.put('/: idFormula', sanitizeFormulaInput, update)
-FormulaRouter.delete('/: idFormula', remove)
+FormulaRouter.put('/:idFormula', sanitizeFormulaInput, update)
+FormulaRouter.delete('/:idFormula', remove)
