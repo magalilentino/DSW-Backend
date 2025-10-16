@@ -55,7 +55,7 @@ async function add(req: Request, res: Response) {
 
 async function update(req: Request, res: Response) {
   try {
-    const idFormula = Number.parseInt(req.params.id)
+    const idFormula = Number.parseInt(req.params.idFormula)
     const formulaToUpdate = await em.findOneOrFail(Formula,{ idFormula })
     em.assign(formulaToUpdate, req.body.sanitizedInput)
     await em.flush()
@@ -69,7 +69,7 @@ async function update(req: Request, res: Response) {
 
 async function remove(req: Request, res: Response) {
   try {
-    const idFormula= Number.parseInt(req.params.id)
+    const idFormula= Number.parseInt(req.params.idFormula)
     const formula = await em.findOneOrFail(Formula,{ idFormula })  
     await em.removeAndFlush(formula)
     res.status(200).send({ message: 'formula deleted' })
