@@ -233,6 +233,7 @@ export async function getHistoricoByCliente(req: Request, res: Response) {
   }
 }
 
+
 export async function getPendientesByCliente(req: Request, res: Response) {
   try {
     const idPersona = Number(req.params.idPersona);

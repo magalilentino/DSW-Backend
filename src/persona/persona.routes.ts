@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { sanitizePersonaInput } from './sanitizePersonaInput.js';
-import { register, login, getPersonaById, verificarToken } from './persona.controller.js';
+import { register, login, getPersonaById, verificarToken} from './persona.controller.js';
 import { PeluqueroRouter } from "./peluquero/peluquero.routes.js";
 
 export const PersonaRouter = Router();
