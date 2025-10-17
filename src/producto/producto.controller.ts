@@ -1,8 +1,6 @@
 import { Request, Response, NextFunction } from 'express'
 import { Producto } from './producto.entity.js'
 import { orm } from '../shared/orm.js'
-import { Servicio } from '../servicio/servicio.entity.js'
-import { Marca } from '../marca/marca.entity.js'
 
 const em = orm.em
 
@@ -13,8 +11,6 @@ function sanitizeProductoInput(
 ) {
   req.body.sanitizedInput = {
   descripcion: req.body.descripcion,
-  // formulas: req.body.formulas, 
-  // servicios: req.body.servicios,
   marcas: req.body.marcas,
   categoria: req.body.categoria, 
 
@@ -105,6 +101,7 @@ async function remove(req: Request, res: Response) {
     const idProducto = Number.parseInt(req.params.idProducto)
     const producto = await em.findOneOrFail(Producto, { idProducto })
     await em.removeAndFlush(producto)
+    return res.status(200).json({ message: `Producto ${idProducto} eliminado correctamente` });
   } catch (error: any) {
     res.status(500).json({ message: error.message })
   }

@@ -89,11 +89,27 @@ export async function update(req: Request, res: Response) {
 
 export async function remove(req: Request, res: Response) {
   try {
+    console.log("hola2");
     const codServicio = Number.parseInt(req.params.codServicio);
-    const servicio = await em.findOneOrFail(Servicio, { codServicio }); 
+    console.log("hola");
+    const servicio = await em.findOneOrFail(Servicio, { codServicio },  {
+    populate: ['atencionesServicio.atencion']
+  }
+  ); 
+   const tienePendientes = servicio.atencionesServicio.getItems().some(
+  rel => rel.atencion?.estado === 'pendiente'
+);
+
+if (tienePendientes) {
+  return res.status(400).json({
+    message: "No se puede eliminar el servicio porque está asociado a atenciones pendientes."
+  });
+}
+
     await em.removeAndFlush(servicio);
     res.status(204).send();
   } catch (error: any) {
+    console.error("Error al eliminar servicio:", error);
     res.status(500).json({ message: error.message });
   }
 }
