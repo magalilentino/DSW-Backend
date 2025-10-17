@@ -14,6 +14,7 @@ export function sanitizeServicioInput(
     descripcion: req.body.descripcion,
     cantTurnos: Number(req.body.cant_turnos),
     precio: Number(req.body.precio),
+    activo: true,
     // tiempoDemora: req.body.tiempoDemora,
     // tonos: req.body.tonos,
     // productos: req.body.productos
@@ -56,7 +57,7 @@ export async function add(req: Request, res: Response) {
 
 export async function findAll(req: Request, res: Response) {
   try {
-    const servicios = await em.find(Servicio, {}, {});
+    const servicios = await em.find(Servicio, {activo:true}, {});
     res.status(200).json({ message: "found all servicios", data: servicios });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -66,7 +67,7 @@ export async function findAll(req: Request, res: Response) {
 export async function findOne(req: Request, res: Response) {
   try {
     const codServicio = Number.parseInt(req.params.codServicio);
-    const servicio = await em.findOneOrFail(Servicio, { codServicio }, {});
+    const servicio = await em.findOneOrFail(Servicio, { codServicio , activo:true }, {});
     res.status(200).json({ message: "found servicio", data: servicio });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -89,24 +90,10 @@ export async function update(req: Request, res: Response) {
 
 export async function remove(req: Request, res: Response) {
   try {
-    console.log("hola2");
     const codServicio = Number.parseInt(req.params.codServicio);
-    console.log("hola");
-    const servicio = await em.findOneOrFail(Servicio, { codServicio },  {
-    populate: ['atencionesServicio.atencion']
-  }
-  ); 
-   const tienePendientes = servicio.atencionesServicio.getItems().some(
-  rel => rel.atencion?.estado === 'pendiente'
-);
-
-if (tienePendientes) {
-  return res.status(400).json({
-    message: "No se puede eliminar el servicio porque está asociado a atenciones pendientes."
-  });
-}
-
-    await em.removeAndFlush(servicio);
+    const servicio = await em.findOneOrFail(Servicio, { codServicio });
+    servicio.activo = false; 
+    await em.flush();
     res.status(204).send();
   } catch (error: any) {
     console.error("Error al eliminar servicio:", error);

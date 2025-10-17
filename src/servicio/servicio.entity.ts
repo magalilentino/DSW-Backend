@@ -29,6 +29,9 @@ export class Servicio {
   @Property({ nullable: false })
     precio!: number
 
+  @Property({ nullable: false })
+    activo!: boolean;
+
   @OneToMany(() => AtSer, atSer => atSer.servicio, { cascade: [Cascade.ALL] })
     atencionesServicio = new Collection<AtSer>(this);
 
