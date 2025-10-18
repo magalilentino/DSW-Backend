@@ -19,13 +19,16 @@ export class Formula{
 @Property({ nullable: false })
   cantidad!: number
 
+@Property({ nullable: false })
+  activo!: boolean
+
 // @ManyToMany(() => Producto, producto => producto.formulas, {cascade: [Cascade.ALL], owner: true }) 
 //   productos = new Collection<Producto>(this);
 
- @ManyToOne(() => Producto, {fieldName : 'producto'})
+@ManyToOne(() => Producto, {fieldName : 'producto'})
     producto!: Rel<Producto>
 
- @ManyToOne(() => Tono, {fieldName : 'tono'})
+@ManyToOne(() => Tono, {fieldName : 'tono'})
     tono!: Rel<Tono>
 
 
