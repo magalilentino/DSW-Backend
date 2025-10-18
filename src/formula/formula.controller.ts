@@ -11,7 +11,7 @@ function sanitizeFormulaInput(
 ) {
   req.body.sanitizedInput = {
     cantidad: req.body.cantidad,
-    productos: req.body.productos,
+    producto: req.body.producto,
     tono: req.body.tono,
     
   }
@@ -26,7 +26,7 @@ function sanitizeFormulaInput(
 
 async function findAll(req: Request, res: Response) {
   try {
-    const formulas = await em.find(Formula,{},{ populate: ['tono', 'productos'] })
+    const formulas = await em.find(Formula,{},{ populate: ['tono', 'producto'] })
     res.status(200).json({ message: 'found all formulas', data: formulas })
   } catch (error: any) {
     res.status(500).json({ message: error.message })
@@ -36,7 +36,7 @@ async function findAll(req: Request, res: Response) {
 async function findOne(req: Request, res: Response) {
   try {
     const idFormula = Number.parseInt(req.params.idFormula)
-    const formula = await em.findOneOrFail(Formula,{ idFormula },{ populate: ['tono', 'productos'] })
+    const formula = await em.findOneOrFail(Formula,{ idFormula },{ populate: ['tono', 'producto'] })
     res.status(200).json({ message: 'found formula', data: formula })
   } catch (error: any) {
     res.status(500).json({ message: error.message })

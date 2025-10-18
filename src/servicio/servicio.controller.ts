@@ -64,6 +64,15 @@ export async function findAll(req: Request, res: Response) {
   }
 }
 
+export async function findAllAyD(req: Request, res: Response) {
+  try {
+    const servicios = await em.find(Servicio, {}, {});
+    res.status(200).json({ message: "found all servicios", data: servicios });
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
 export async function findOne(req: Request, res: Response) {
   try {
     const codServicio = Number.parseInt(req.params.codServicio);

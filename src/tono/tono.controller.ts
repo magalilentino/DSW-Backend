@@ -10,7 +10,8 @@ function sanitizeTonoInput(
   next: NextFunction
 ) {
   req.body.sanitizedInput = {
-    nombre: req.body.nombre
+    nombre: req.body.nombre,
+    activo: 1
     
   }
   Object.keys(req.body.sanitizedInput).forEach((key) => {
@@ -27,6 +28,18 @@ async function findAll(req: Request, res: Response) {
       Tono,
       {}
       //{ populate: ['servicios', 'productos'] }
+    )
+    res.status(200).json({ message: 'found all tono', data: tono })
+  } catch (error: any) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
+async function findAllActivos(req: Request, res: Response) {
+  try {
+    const tono = await em.find(
+      Tono,
+      {activo:true}
     )
     res.status(200).json({ message: 'found all tono', data: tono })
   } catch (error: any) {
@@ -105,11 +118,9 @@ async function remove(req: Request, res: Response) {
       return res.status(404).json({ message: "Tono no encontrado" });
     }
 
-    tono.formulas.removeAll();
-      tono.atSers.removeAll();
+    tono.activo = false;
     await em.flush();
 
-    await em.removeAndFlush(tono);
     res.status(200).json({ message: "Tono eliminado correctamente" });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -118,4 +129,4 @@ async function remove(req: Request, res: Response) {
 
 
 
-export { sanitizeTonoInput, findAll, findOne, add, update, remove, tonosDeServicio }
+export { sanitizeTonoInput, findAll, findOne, add, update, remove, tonosDeServicio, findAllActivos }

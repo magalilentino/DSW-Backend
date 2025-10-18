@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express'
 import { Producto } from './producto.entity.js'
 import { orm } from '../shared/orm.js'
+import { ProdUt } from '../producto-utilizado/prodUt.entity.js'
+import { Formula } from '@mikro-orm/core'
 
 const em = orm.em
 
@@ -28,6 +30,19 @@ async function findAll(req: Request, res: Response) {
     const productos = await em.find(
       Producto,
       {},
+      { populate: ['categoria', 'marcas'] }
+    )
+    res.status(200).json({ message: 'found all producto', data: productos })
+  } catch (error: any) {
+    res.status(500).json({ message: error.message })
+  }
+}
+
+async function findAllActivos(req: Request, res: Response) {
+  try {
+    const productos = await em.find(
+      Producto,
+      {activo :true},
       { populate: ['categoria', 'marcas'] }
     )
     res.status(200).json({ message: 'found all producto', data: productos })
@@ -99,10 +114,18 @@ async function update(req: Request, res: Response) {
 async function remove(req: Request, res: Response) {
   try {
     const idProducto = Number.parseInt(req.params.idProducto)
-    const producto = await em.findOneOrFail(Producto, { idProducto })
-    await em.removeAndFlush(producto)
+    const producto = await em.findOneOrFail(Producto, { idProducto }, {populate: ['formulas', 'marcas']
+})
+    const usos = await em.count(Formula, { producto: producto });
+    if (usos > 0) {
+      return res.status(400).json({
+        message: "No se puede eliminar el producto pertenece a un tono, elimine primero el tono"
+      });
+    }
+    await em.flush()
     return res.status(200).json({ message: `Producto ${idProducto} eliminado correctamente` });
   } catch (error: any) {
+    console.error("Error al eliminar producto:", error);
     res.status(500).json({ message: error.message })
   }
 }

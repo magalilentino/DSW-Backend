@@ -20,6 +20,9 @@ export class Tono {
   @Property({ nullable: false })
   nombre!: String
 
+  @Property({ nullable: false })
+  activo!: boolean
+
   //@ManyToMany(() => Servicio, (servicio) => servicio.tonos, {cascade: [Cascade.ALL]})
   //servicios = new Collection<Servicio>(this)
 

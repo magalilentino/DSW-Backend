@@ -7,6 +7,7 @@ import {
   Rel,
   PrimaryKey,
   Collection,
+  OneToMany,
 } from '@mikro-orm/core'
 import { Categoria } from '../categoria/categoria.entity.js';
 import { Marca } from '../marca/marca.entity.js';
@@ -21,17 +22,23 @@ export class Producto {
   @Property({ nullable: false })
     descripcion!: string
 
+  @Property({ nullable: false })
+    activo!: boolean
+
   @ManyToOne(() => Categoria, {fieldName : 'categoria'})
     categoria!: Rel<Categoria>
 
-  @ManyToMany(() => Marca, marca => marca.productos, {cascade: [Cascade.ALL, Cascade.REMOVE], owner: true }) 
+  @ManyToMany(() => Marca, marca => marca.productos, {cascade: [Cascade.ALL], owner: true }) 
     marcas = new Collection<Marca>(this);
 
   //@ManyToMany(() => Servicio, servicio => servicio.productos)
   //servicios = new Collection<Servicio>(this);
 
-  @ManyToMany(() => Formula, formula => formula.productos,{cascade: [Cascade.ALL, Cascade.REMOVE] }) 
-  formulas = new Collection<Formula>(this);
+  // @ManyToMany(() => Formula, formula => formula.productos,{cascade: [Cascade.ALL, Cascade.REMOVE] }) 
+  // formulas = new Collection<Formula>(this);
+
+   @OneToMany(() => Formula, (formula) => formula.producto , {cascade: [Cascade.ALL]})
+    formulas = new Collection<Formula>(this) 
 
 
 }
