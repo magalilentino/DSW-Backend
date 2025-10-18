@@ -10,6 +10,7 @@ import {
 } from '@mikro-orm/core'
 import { Producto } from '../producto/producto.entity.js';
 import { Tono } from '../tono/tono.entity.js';
+import { ProdMar } from '../productos-marcas/prodMar.entity.js';
 
 @Entity()
 export class Formula{ 
@@ -19,11 +20,14 @@ export class Formula{
 @Property({ nullable: false })
   cantidad!: number
 
+@Property({ nullable: false })
+  activo!: boolean
+
 // @ManyToMany(() => Producto, producto => producto.formulas, {cascade: [Cascade.ALL], owner: true }) 
 //   productos = new Collection<Producto>(this);
 
- @ManyToOne(() => Producto, {fieldName : 'producto'})
-    producto!: Rel<Producto>
+ @ManyToOne(() => ProdMar, {fieldName : 'prodMar'})
+    prodMar!: Rel<ProdMar>
 
  @ManyToOne(() => Tono, {fieldName : 'tono'})
     tono!: Rel<Tono>

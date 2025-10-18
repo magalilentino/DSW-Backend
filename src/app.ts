@@ -17,6 +17,7 @@ import { ServicioRouter } from './servicio/servicio.routes.js'
 import { TonoRouter } from './tono/tono.routes.js'
 import { AtSerRouter} from './atencion-servicio/atSer.routes.js'
 import { ProdUtRouter } from './producto-utilizado/prodUt.routes.js'
+import { ProdMarRouter } from './productos-marcas/prodMar.routes.js'
 
 //import { ClienteRouter } from './persona/cliente/cliente.routes.js'
 //import { PeluqueroRouter } from './persona/peluquero/peluquero.routes.js'
@@ -47,6 +48,7 @@ app.use('/api/servicio', ServicioRouter)
 app.use('/api/tono', TonoRouter)
 app.use('/api/atSer', AtSerRouter)
 app.use('/api/prodUt', ProdUtRouter)
+app.use('/api/prodMar', ProdMarRouter)
 
 //app.use('/api/cliente', ClienteRouter)
 //app.use('/api/peluquero', PeluqueroRouter)

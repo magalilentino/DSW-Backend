@@ -31,7 +31,7 @@ async function findAll(req: Request, res: Response) {
     const productos = await em.find(
       Producto,
       {},
-      { populate: ['categoria', 'marcas'] }
+      { populate: ['categoria', 'productosMarcas'] }
     )
     res.status(200).json({ message: 'found all producto', data: productos })
   } catch (error: any) {
@@ -44,7 +44,7 @@ async function findAllActivos(req: Request, res: Response) {
     const productos = await em.find(
       Producto,
       {activo :true},
-      { populate: ['categoria', 'marcas'] }
+      { populate: ['categoria', 'productosMarcas'] }
     )
     res.status(200).json({ message: 'found all producto', data: productos })
   } catch (error: any) {
@@ -62,7 +62,7 @@ async function productosDeServicio(req: Request, res: Response) {
        // servicios: servicio,
       },
       {
-        populate: ['categoria', 'marcas', 'formulas']
+        populate: ['categoria', 'productosMarcas']
       }
     );
 
@@ -80,7 +80,7 @@ async function findOne(req: Request, res: Response) {
     const producto = await em.findOneOrFail(
       Producto,
       { idProducto },
-      { populate: ['categoria', 'marcas'] }
+      { populate: ['categoria', 'productosMarcas'] }
     )
     res.status(200).json({ message: 'found producto', data: producto })
   } catch (error: any) {
@@ -115,7 +115,7 @@ async function update(req: Request, res: Response) {
 async function remove(req: Request, res: Response) {
   try {
     const idProducto = Number.parseInt(req.params.idProducto)
-    const producto = await em.findOneOrFail(Producto, { idProducto }, {populate: ['formulas', 'marcas']
+    const producto = await em.findOneOrFail(Producto, { idProducto }, {populate: [ 'productosMarcas']
 })
     const usos = await em.count(Formula, { producto: producto });
     if (usos > 0) {
@@ -140,7 +140,7 @@ export async function listarProductos(req: Request, res: Response) {
     // const marcaId = idMarca ? Number(idMarca) : undefined;
 
     if (idMarca) {
-      filtros.marcas = { idMarca: idMarca };
+      filtros.productosMarcas = { idMarca: idMarca };
     }
 
     if (idCategoria) {
@@ -162,12 +162,11 @@ export async function listarProductos(req: Request, res: Response) {
   }
 };
 
-
 export const detalleProducto = async (req: Request, res: Response) => {
   try {
     const  idProducto  = Number.parseInt(req.params.idProducto);
 
-    const producto = await em.findOne(Producto, { idProducto },  { populate: ["marcas", "categoria"] } );
+    const producto = await em.findOne(Producto, { idProducto },  { populate: [ "categoria"] } );
 
     if (!producto) {
       return res.status(404).json({ message: "Producto no encontrado" });
