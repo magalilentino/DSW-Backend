@@ -13,7 +13,7 @@ function sanitizeProductoInput(
 ) {
   req.body.sanitizedInput = {
   descripcion: req.body.descripcion,
-  marcas: req.body.marcas,
+  productosMarcas: req.body.productosMarcas,
   categoria: req.body.categoria, 
   activo: true,
 

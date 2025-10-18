@@ -17,6 +17,9 @@ export class ProdMar {
   @PrimaryKey()
   idPM!: number;
 
+  @Property({ nullable: false })
+  activo!: boolean;
+
   @ManyToOne(() => Producto, { fieldName: "producto" })
   producto!: Rel<Producto>;
 
