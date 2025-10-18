@@ -15,6 +15,7 @@ function sanitizeProductoInput(
   descripcion: req.body.descripcion,
   marcas: req.body.marcas,
   categoria: req.body.categoria, 
+  activo: true,
 
   }
   Object.keys(req.body.sanitizedInput).forEach((key) => {
@@ -122,6 +123,7 @@ async function remove(req: Request, res: Response) {
         message: "No se puede eliminar el producto pertenece a un tono, elimine primero el tono"
       });
     }
+    producto.activo = false;
     await em.flush()
     return res.status(200).json({ message: `Producto ${idProducto} eliminado correctamente` });
   } catch (error: any) {

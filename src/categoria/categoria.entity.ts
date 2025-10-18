@@ -16,7 +16,7 @@ export class Categoria {
   @Property({ nullable: false })
   nombreCategoria!: string
 
-  @OneToMany(() => Producto, (producto) => producto.categoria , {cascade: [Cascade.ALL]})
+  @OneToMany(() => Producto, (producto) => producto.categoria )
   productos= new Collection<Producto>(this) 
 }
 
