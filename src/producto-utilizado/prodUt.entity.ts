@@ -5,8 +5,8 @@ import {
   PrimaryKey,
   Rel
 } from '@mikro-orm/core'
-import { Producto } from '../producto/producto.entity.js'
 import { AtSer } from '../atencion-servicio/atSer.entity.js'
+import { ProdMar } from '../productos-marcas/prodMar.entity.js'
 
 @Entity()
 export class ProdUt {
@@ -16,10 +16,9 @@ export class ProdUt {
   @Property({ nullable: false })
     cantidad!: number
 
-  @ManyToOne(() => Producto, {fieldName : 'producto'})
-    producto!: Rel<Producto>
+  @ManyToOne(() => ProdMar, {fieldName : 'prodMar'})
+    prodMar!: Rel<ProdMar>
 
   @ManyToOne(() => AtSer, {fieldName : 'atSer'})
     atSer!: Rel<AtSer>
-
 }

@@ -118,7 +118,7 @@ export async function atencionesPendientes(req: Request, res: Response) {
     const atenciones = await em.find(
       Atencion,
       { peluquero, estado: "pendiente" },
-      { populate: ["descuentos", "atencionServicios", "atencionServicios.servicio", "peluquero", "cliente"] }
+      { populate: [ "atencionServicios", "atencionServicios.servicio", "peluquero", "cliente"] }
     );
 
     res.status(200).json({ message: "Se encontraron todas las atenciones pendientes", data: atenciones });
