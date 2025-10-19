@@ -5,6 +5,7 @@ import { orm } from '../shared/orm.js'
 import { AtSer } from '../atencion-servicio/atSer.entity.js'; // Necesitamos la referencia a AtSer
 import { Tono } from '../tono/tono.entity.js';
 import { ProdMar } from './prodMar.entity.js';
+import { Marca } from '../marca/marca.entity.js';
 
 const em = orm.em
 
@@ -16,6 +17,7 @@ export function sanitizeProdUtInput(
   req.body.sanitizedInput = {
   producto: req.body.producto,
   marca: req.body.marca, 
+  activo: true,
 
   }
   Object.keys(req.body.sanitizedInput).forEach((key) => {
@@ -33,6 +35,105 @@ export async function findAll(req: Request, res: Response) {
       } catch (error: any) {
         res.status(500).json({ message: error.message });
       }
+}
+
+export async function marcasPorProd(req: Request, res: Response) {
+      try {
+        const idProducto = Number.parseInt(req.params.idProducto)
+        const producto = await em.findOneOrFail(Producto, { idProducto });
+        const prodMarcas = await em.find(ProdMar, {producto, activo:true}, {populate: ['producto', 'marca']});
+        res.status(200).json({ message: "found all marcas del producto", data: prodMarcas });
+      } catch (error: any) {
+        res.status(500).json({ message: error.message });
+      }
+}
+
+export async function sincronizarProdMar(req: Request, res: Response) {
+  try {
+    const idProducto = Number(req.params.idProducto);
+    const { prodMarcIds } = req.body as { prodMarcIds: number[] };
+
+    if (!idProducto || !Array.isArray(prodMarcIds)) {
+      return res.status(400).json({ message: "Datos inválidos" });
+    }
+
+    const producto = await em.findOne(Producto, { idProducto });
+    if (!producto) {
+      return res.status(404).json({ message: "Producto no encontrado" });
+    }
+
+    // 1. Buscar todos los ProdMar actuales del producto
+    const actuales = await em.find(ProdMar, { producto }, { populate: ['marca'] });
+
+    // 2. Extraer los IDs de marca actuales
+    const marcasActualesIds = actuales.map(pm => pm.marca.idMarca);
+
+    // 3. Determinar marcas a agregar
+    const marcasAAgregar = prodMarcIds.filter(id => !marcasActualesIds.includes(id));
+
+    // 4. Determinar marcas a eliminar
+    const marcasAEliminar = actuales.filter(pm => !prodMarcIds.includes(pm.marca.idMarca));
+
+    // 5. Crear nuevos ProdMar si faltan
+    for (const idMarca of marcasAAgregar) {
+      const marca = await em.findOne(Marca, { idMarca });
+      if (marca) {
+        const nuevo = new ProdMar();
+        nuevo.producto = producto;
+        nuevo.marca = marca;
+        nuevo.activo = true;
+
+        await em.persist(nuevo);
+      }
+    }
+
+    // 6. Eliminar los que sobran
+    for (const pm of marcasAEliminar) {
+      pm.activo = false;
+    }
+
+    await em.flush();
+
+    return res.status(200).json({ message: "ProdMar sincronizados correctamente" });
+  } catch (error: any) {
+    console.error("Error al sincronizar ProdMar:", error);
+    return res.status(500).json({ message: "Error interno del servidor" });
+  }
+}
+
+export async function addPorListaMarcas(req: Request, res: Response) {
+    try {
+        const idProducto = Number(req.params.idProducto);
+        const { marcasIds } = req.body as { marcasIds: number[] };
+
+        if (!idProducto || !Array.isArray(marcasIds)) {
+        return res.status(400).json({ message: "Datos inválidos" });
+        }
+
+        const producto = await em.findOne(Producto, { idProducto });
+        if (!producto) {
+        return res.status(404).json({ message: "Producto no encontrado" });
+        }
+
+        for (const idMarca of marcasIds) {
+        const marca = await em.findOne(Marca, { idMarca });
+        if (marca) {
+            const nuevo = new ProdMar();
+            nuevo.producto = producto;
+            nuevo.marca = marca;
+            nuevo.activo = true;
+
+            await em.persist(nuevo);
+        }
+        }
+        await em.flush();
+        return res.status(200).json({ message: "ProdMar creados correctamente" });
+    } catch (error) {
+         console.error("Error al crear ProdMar:", error);
+
+        return res.status(500).json({ message: "Error interno del servidor" });
+    }
+
 }
 
 //lista de productos filtrados por categoria y marca 
@@ -76,96 +177,3 @@ export async function add(req: Request, res: Response) {
   }
 }
 
-// // Interfaz para la data que viene del frontend
-// interface ProductoPayload {
-//     idProducto: number;
-//     cantidad: number;
-// }
-
-// interface RegistrarProdsUtParams {
-//     idAtSer: string;
-// }
-
-
-// export async function registrarProdsUt( req: Request<RegistrarProdsUtParams>, res: Response) {
-
-//      // Desestructurar de forma segura
-//     const { idAtSer } = req.params;
-    
-//     // Asegurarse de que no sea undefined (aunque no debería serlo si la ruta coincide)
-//     if (!idAtSer) {
-//         return res.status(400).json({ message: "ID de Servicio-Atención (idAtSer) es requerido." });
-//     }  
-  
-//   // 1. Obtener IDs y Data
-//     const idAtSerInt = parseInt(req.params.idAtSer as string, 10);
-//     //const idAtSer = Number(req.params.idAtSer);
-//     const { productos, idTono } = req.body as { productos: ProductoPayload[], idTono?: number  }; // Array de productos seleccionados
-
-//     if (isNaN(idAtSerInt) || idAtSerInt <= 0) {
-//         return res.status(400).json({ message: "ID de Servicio-Atención no válido." });
-//     }
-//     // const atSer = await em.findOneOrFail(AtSer,{ idAtSer });
-//     // Si no hay productos, la intención es limpiar la lista (aunque la BD lo hará).
-//     if (!Array.isArray(productos)) {
-//         return res.status(400).json({ message: "El formato de la lista de productos es incorrecto." });
-//     }
-
-//     try {
-//         // Ejecutamos todo dentro de una transacción para garantizar atomicidad
-//         await em.transactional(async (tx) => {
-            
-//             // 2. Verificar que el AtSer exista
-//             // const atSer = await em.findOne(AtSer, { idAtSer });
-//             // const atSerRef = tx.getReference(AtSer, idAtSer); 
-//             const atSerEntity = await tx.findOne(AtSer, { idAtSer: idAtSerInt }); 
-
-//             if (atSerEntity) {
-//                 if (idTono && idTono > 0) {
-//                     // Si se seleccionó un tono, obtenemos su referencia
-//                     atSerEntity.tono = tx.getReference(Tono, idTono as any); 
-//                 }
-
-//                 // Persistir el cambio en AtSer (solo la relación y el tono, sin cambiar el estado de Atencion aquí)
-//                 await tx.persistAndFlush(atSerEntity);
-//             }else{ 
-//                 // Este error puede indicar que la URL es incorrecta o la atención fue eliminada
-//                 return res.status(404).json({ message: "El Servicio-Atención (AtSer) no existe." });
-//             }
-
-//             // 3. Limpiar registros antiguos
-//             // Esto garantiza que si el peluquero cambia de 3 productos a 1, los 2 anteriores se eliminen.
-//             // Usamos nativeDelete para mayor eficiencia en la limpieza masiva.
-//             await em.nativeDelete(ProdUt, { atSer: atSerEntity});
-
-//             const productosAInsertar = productos
-//           .filter(p => p.cantidad > 0)
-//           .map(p => {
-//             //const productoRef = tx.getReference(Producto, idProducto as any);
-//             return tx.create(ProdUt, {
-//               producto: tx.getReference(Producto,  p.idProducto as any), //El as any le dice a TypeScript: “confía en mí, este número representa una entidad válida”.
-//               atSer: atSerEntity,
-//               cantidad: p.cantidad,
-//             });
-//           });
-
-//              // 4. Inserción Múltiple (Bulk Insert)
-//             if (productosAInsertar.length > 0) {
-//                  // MikroORM inserta automáticamente cada objeto del array como una fila distinta
-//                 await em.persist(productosAInsertar).flush();
-//             }
-            
-//             // Opcional: Si el registro de productos es el final de la ejecución, 
-//             // aquí se actualizaría el estado del AtSer a 'REALIZADO' o similar.
-//             // atSer.estado_ejecucion = 'REALIZADO'; 
-//             // await tx.persistAndFlush(atSer); 
-//     });
-//         return res.status(200).json({ 
-//             message: "datos del servicio cargados"
-//         });
-
-//     } catch (error: any) {
-//         console.error("Error al registrar datos del servicio:", error);
-//         return res.status(500).json({ message: "Error interno del servidor al guardar productos.", error: error.message });
-//     }
-//}
