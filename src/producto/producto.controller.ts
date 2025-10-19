@@ -115,22 +115,32 @@ async function update(req: Request, res: Response) {
 async function remove(req: Request, res: Response) {
   try {
     const idProducto = Number.parseInt(req.params.idProducto)
-    const producto = await em.findOneOrFail(Producto, { idProducto }, {populate: [ 'productosMarcas']
-})
-    const usos = await em.count(Formula, { producto: producto });
+    const producto = await em.findOneOrFail(Producto, { idProducto }, {populate: [ 'productosMarcas']})
+    const idProdMarcas = producto.productosMarcas.getIdentifiers('idPM'); 
+//caso de que no tenga productos marcas asociados 
+    if (idProdMarcas.length === 0) {
+      producto.activo = false;
+      await em.flush();
+      return res.status(200).json({ message: `Producto ${idProducto} eliminado correctamente` });
+    }
+
+    const usos = await em.count(Formula, { prodMar: { $in: idProdMarcas } }); //cuento la cantidad de usos 
+
     if (usos > 0) {
       return res.status(400).json({
-        message: "No se puede eliminar el producto pertenece a un tono, elimine primero el tono"
+        message: `No se puede eliminar el producto. Está siendo utilizado en ${usos} fórmulas de tonos.`, 
       });
     }
+//caso de que no tenga formulas asociadas 
     producto.activo = false;
-    await em.flush()
+    await em.flush();
     return res.status(200).json({ message: `Producto ${idProducto} eliminado correctamente` });
-  } catch (error: any) {
+  }catch (error: any) {
     console.error("Error al eliminar producto:", error);
     res.status(500).json({ message: error.message })
   }
 }
+
 
 //lista de productos filtrados por categoria y marca 
 export async function listarProductos(req: Request, res: Response) {

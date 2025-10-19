@@ -10,9 +10,6 @@ import {
   OneToMany,
 } from '@mikro-orm/core'
 import { Categoria } from '../categoria/categoria.entity.js';
-import { Marca } from '../marca/marca.entity.js';
-import { Servicio } from '../servicio/servicio.entity.js';
-import { Formula } from '../formula/formula.entity.js';
 import { ProdMar } from '../productos-marcas/prodMar.entity.js';
 
 @Entity()
