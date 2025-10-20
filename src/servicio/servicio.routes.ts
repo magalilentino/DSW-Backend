@@ -10,7 +10,6 @@ ServicioRouter.get('/findAll', findAll)
 ServicioRouter.get('/findById/:codServicio', findOne)
 ServicioRouter.post('/add', sanitizeServicioInput, add)
 ServicioRouter.put('/:codServicio', sanitizeServicioInput, update)
-ServicioRouter.patch('/:codServicio', sanitizeServicioInput, update)
 ServicioRouter.delete('/delete/:codServicio', remove);
 ServicioRouter.get('/listarPorPrecio', listarServiciosPorPrecio);
 ServicioRouter.get('/detalle/:codServicio', detalleServiciosPorPrecio);

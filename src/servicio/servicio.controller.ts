@@ -10,9 +10,9 @@ export function sanitizeServicioInput(
   next: NextFunction
 ) {
   req.body.sanitizedInput = {
-    nombreServicio: req.body.nombre_servicio,
+    nombreServicio: req.body.nombreServicio,
     descripcion: req.body.descripcion,
-    cantTurnos: Number(req.body.cant_turnos),
+    cantTurnos: Number(req.body.cantTurnos),
     precio: Number(req.body.precio),
     activo: true,
     // tiempoDemora: req.body.tiempoDemora,
@@ -30,6 +30,7 @@ export function sanitizeServicioInput(
 export async function add(req: Request, res: Response) {
   try {
     const input = req.body.sanitizedInput;
+    console.log(input);
     if (
       !input.nombreServicio ||
       !input.precio ||
@@ -76,7 +77,7 @@ export async function findAllAyD(req: Request, res: Response) {
 export async function findOne(req: Request, res: Response) {
   try {
     const codServicio = Number.parseInt(req.params.codServicio);
-    const servicio = await em.findOneOrFail(Servicio, { codServicio , activo:true }, {});
+    const servicio = await em.findOneOrFail(Servicio, { codServicio }, {});
     res.status(200).json({ message: "found servicio", data: servicio });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -103,7 +104,7 @@ export async function remove(req: Request, res: Response) {
     const servicio = await em.findOneOrFail(Servicio, { codServicio });
     servicio.activo = false; 
     await em.flush();
-    res.status(204).send();
+    return res.status(200).json({ message: `Servicio ${codServicio} eliminado correctamente` });
   } catch (error: any) {
     console.error("Error al eliminar servicio:", error);
     res.status(500).json({ message: error.message });
