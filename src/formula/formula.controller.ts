@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction} from 'express'
 import { Formula } from './formula.entity.js'
 import { orm } from '../shared/orm.js'
+import { Tono } from '../tono/tono.entity.js'
 
 const em = orm.em
 
@@ -13,7 +14,7 @@ function sanitizeFormulaInput(
     cantidad: req.body.cantidad,
     prodMar: req.body.prodMar,
     tono: req.body.tono,
-    activo: 1
+    activo: true
     
   }
  
@@ -86,5 +87,16 @@ async function remove(req: Request, res: Response) {
   }
 }
 
+async function formulasPorTono(req: Request, res: Response) {
+      try {
+        const idTono = Number.parseInt(req.params.idTono)
+        const tono = await em.findOneOrFail(Tono, { idTono });
+        const formulas = await em.find(Formula, {tono}, {populate: ['tono', 'prodMar.producto', 'prodMar.marca']});
+        res.status(200).json({ message: "found all marcas del producto", data: formulas });
+      } catch (error: any) {
+        res.status(500).json({ message: error.message });
+      }
+}
 
-export {sanitizeFormulaInput, findAll, findOne, add, update, remove }
+
+export {sanitizeFormulaInput, findAll, findOne, add, update, remove, formulasPorTono }

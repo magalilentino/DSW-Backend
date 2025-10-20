@@ -70,8 +70,6 @@ async function productosDeServicio(req: Request, res: Response) {
   } catch (error: any) {
     res.status(500).json({ message: "no se encontraron productos para el servicio seleccionado" });
   }
-
-
 }
 
 async function findOne(req: Request, res: Response) {
@@ -124,7 +122,7 @@ async function remove(req: Request, res: Response) {
       return res.status(200).json({ message: `Producto ${idProducto} eliminado correctamente` });
     }
 
-    const usos = await em.count(Formula, { prodMar: { $in: idProdMarcas } }); //cuento la cantidad de usos 
+    const usos = await em.count(Formula, { prodMar: { $in: idProdMarcas }, activo: true }); //cuento la cantidad de usos 
 
     if (usos > 0) {
       return res.status(400).json({

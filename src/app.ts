@@ -10,7 +10,6 @@ import { CategoriaRouter } from './categoria/categoria.routes.js'
 import { DescuentoRouter } from './descuento/descuento.routes.js'
 import { FormulaRouter } from './formula/formula.routes.js'
 import { MarcaRouter } from './marca/marca.routes.js'
-import { PagoRouter } from './pago/pago.routes.js'
 import { PersonaRouter } from './persona/persona.routes.js'
 import { ProductoRouter } from './producto/producto.routes.js'
 import { ServicioRouter } from './servicio/servicio.routes.js'
@@ -41,7 +40,6 @@ app.use('/api/categoria', CategoriaRouter)
 app.use('/api/descuento', DescuentoRouter)
 app.use('/api/formula', FormulaRouter)
 app.use('/api/marca', MarcaRouter)
-app.use('/api/pago', PagoRouter)
 app.use('/api/persona', PersonaRouter)
 app.use('/api/producto', ProductoRouter)
 app.use('/api/servicio', ServicioRouter)
@@ -50,8 +48,6 @@ app.use('/api/atSer', AtSerRouter)
 app.use('/api/prodUt', ProdUtRouter)
 app.use('/api/prodMar', ProdMarRouter)
 
-//app.use('/api/cliente', ClienteRouter)
-//app.use('/api/peluquero', PeluqueroRouter)
 
 app.use((_, res) => {
   res.status(404).send({ message: 'Resource not found' })

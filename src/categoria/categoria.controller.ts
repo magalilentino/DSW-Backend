@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express'
 import { Categoria } from './categoria.entity.js'
 import { orm } from '../shared/orm.js'
+import { Producto } from '../producto/producto.entity.js'
 
 const em = orm.em
 
@@ -71,20 +72,29 @@ async function update(req: Request, res: Response) {
   }
 }
 
-async function remove(req: Request, res: Response) {
-  try {
-    const idCategoria = Number.parseInt(req.params.idCategoria);
-    const categoria = await em.findOne(Categoria, { idCategoria });
 
-    if (!categoria) {
-      return res.status(404).json({ message: "Categoría no encontrada" });
+async function remove(req: Request, res: Response) {
+const idCategoria = Number.parseInt(req.params.idCategoria);
+const categoria = await em.findOne(Categoria, {idCategoria});
+const productosActivos = await em.find(Producto, {
+  categoria,
+  activo: true
+});
+
+   if (!categoria) {
+      return res.status(404).json({ mensaje: "Categoría no encontrada" });
     }
 
-    await em.removeAndFlush(categoria);
-    res.status(200).json({ message: "Categoría eliminada correctamente" });
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
-  }
-}
 
-export { sanitizeCategoriaInput, findAll, findOne, add, update, remove }
+  if (productosActivos.length > 0) {
+    return res.status(409).json({
+      mensaje: "No se puede eliminar la categoría porque tiene productos activos"
+    });
+  }
+
+  await em.removeAndFlush(categoria);
+  return res.status(200).json({ mensaje: "Categoría eliminada correctamente" });
+
+ }
+
+export { sanitizeCategoriaInput, findAll, findOne, add, update, remove}

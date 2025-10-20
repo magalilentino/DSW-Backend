@@ -25,16 +25,8 @@ export class Producto {
 
   @ManyToOne(() => Categoria, {fieldName : 'categoria'})
     categoria!: Rel<Categoria>
-    
-  //@ManyToMany(() => Servicio, servicio => servicio.productos)
-  //servicios = new Collection<Servicio>(this);
-
-  // @ManyToMany(() => Formula, formula => formula.productos,{cascade: [Cascade.ALL, Cascade.REMOVE] }) 
-  // formulas = new Collection<Formula>(this); 
 
   @OneToMany(() => ProdMar, (prodMar) => prodMar.producto, { cascade: [Cascade.ALL] })
   productosMarcas = new Collection<ProdMar>(this);
-
-
 
 }
