@@ -11,10 +11,20 @@ export async function obtenerBloquesDisponibles(req: Request, res: Response) {
       return res.status(400).json({ error: "fecha, peluqueroId y duracionTotal son requeridos" });
     }
 
-    const bloquesDia = generarBloques(String(fecha));
+    let bloquesDia = generarBloques(String(fecha));
+
+    // Filtrar bloques pasados si la fecha es hoy
+    const ahora = new Date();
+    const fechaRequest = new Date(String(fecha));
+    bloquesDia = bloquesDia.filter(b => {
+      const [h, m] = b.hora_inicio.split(":").map(Number);
+      const bloqueDate = new Date(fechaRequest);
+      bloqueDate.setHours(h, m, 0, 0);
+      return bloqueDate.getTime() > ahora.getTime();
+    });
 
     const ocupadosResult = await em.find(Bloque, {
-      fecha: new Date(String(fecha)),
+      fecha: fechaRequest,
       peluquero: { idPersona: Number(peluqueroId) },
       estado: "ocupado"
     });
@@ -44,10 +54,20 @@ export async function obtenerBloquesDia(req: Request, res: Response) {
       return res.status(400).json({ error: "fecha y peluqueroId son requeridos" });
     }
 
-    const bloquesDia = generarBloques(String(fecha));
+    let bloquesDia = generarBloques(String(fecha));
+
+    // Filtrar bloques pasados si la fecha es hoy
+    const ahora = new Date();
+    const fechaRequest = new Date(String(fecha));
+    bloquesDia = bloquesDia.filter(b => {
+      const [h, m] = b.hora_inicio.split(":").map(Number);
+      const bloqueDate = new Date(fechaRequest);
+      bloqueDate.setHours(h, m, 0, 0);
+      return bloqueDate.getTime() > ahora.getTime();
+    });
 
     const ocupadosResult = await em.find(Bloque, {
-      fecha: new Date(String(fecha)),
+      fecha: fechaRequest,
       peluquero: { idPersona: Number(peluqueroId) },
       estado: "ocupado"
     });
@@ -99,8 +119,8 @@ export function buscarGruposConsecutivos(
     for (let j = 1; j < cantidad; j++) {
       const prevFin = new Date(`1970-01-01T${bloquesLibres[i + j - 1].hora_fin}:00`);
       const curInicio = new Date(`1970-01-01T${bloquesLibres[i + j].hora_inicio}:00`);
-      const diff = (curInicio.getTime() - prevFin.getTime()) / 60000; // diferencia en minutos
-      if (diff !== 0) { // si no empieza justo después del anterior
+      const diff = (curInicio.getTime() - prevFin.getTime()) / 60000;
+      if (diff !== 0) {
         esConsecutivo = false;
         break;
       }
