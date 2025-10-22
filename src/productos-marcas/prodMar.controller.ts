@@ -147,8 +147,8 @@ export async function listarProductos(req: Request, res: Response) {
       filtros.marca = idMarca ;
     }
 
-    if (idCategoria) {
-      filtros.producto.categoria = idCategoria; 
+   if (idCategoria) {
+      filtros.producto = { categoria: { idCategoria: Number(idCategoria) } };
     }
 
     const productosMar = await em.find(
