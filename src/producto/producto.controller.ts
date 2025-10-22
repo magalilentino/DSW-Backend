@@ -139,7 +139,6 @@ async function remove(req: Request, res: Response) {
   }
 }
 
-
 //lista de productos filtrados por categoria y marca 
 export async function listarProductos(req: Request, res: Response) {
   try {

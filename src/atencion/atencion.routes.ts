@@ -1,5 +1,6 @@
 import { Router } from 'express';
-import { crearAtencion, getHistoricoByCliente, getPendientesByCliente, atencionesPendientes, cancelarAtencion, finalizarAtencion, atencionesCompletadasHoy, atencionesPendientesHoy, gananciasHoy} from "./atencion.controller.js";
+import { crearAtencion, getHistoricoByCliente, getPendientesByCliente, atencionesPendientes, turnosHoy, 
+    cancelarAtencion, finalizarAtencion, atencionesCompletadasHoy, atencionesPendientesHoy, gananciasHoy} from "./atencion.controller.js";
 import { verificarToken } from "../persona/persona.controller.js";
 
 export const AtencionRouter = Router()
@@ -13,3 +14,4 @@ AtencionRouter.patch('/finalizar/:idAtencion', finalizarAtencion);
 AtencionRouter.get("/pendientes-hoy", verificarToken, atencionesPendientesHoy);
 AtencionRouter.get("/completadas-hoy", verificarToken, atencionesCompletadasHoy);
 AtencionRouter.get("/ganancias-hoy", verificarToken, gananciasHoy);
+AtencionRouter.get("/turnos-hoy", verificarToken, turnosHoy); 

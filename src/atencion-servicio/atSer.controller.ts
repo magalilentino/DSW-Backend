@@ -5,18 +5,6 @@ import { orm } from '../shared/orm.js'
 
 const em = orm.em
 
-// export async function findAll(req: Request, res: Response) {
-//     try {
-//         const atSers = await em.find(
-//         AtSer,
-//         {},
-//         { populate: ['tonosUtilizados', 'productosUtilizados', 'atencion', 'servicio']}
-//         )
-//         res.status(200).json({ message: 'found all servicios - atenciones ', data: atSers })
-//     } catch (error: any) {
-//         res.status(500).json({ message: error.message })
-//     }
-// }
 
 export async function findOne (req: Request, res: Response) {
     try {

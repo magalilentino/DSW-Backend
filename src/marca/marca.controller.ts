@@ -92,23 +92,7 @@ if (productosActivos.length === 0) {
 } else {
   res.status(409).json({ mensaje: "No se puede eliminar la marca porque tiene productos activos" });
 }}
-//   try {
-//     const idMarca = Number.parseInt(req.params.idMarca)
-//     const marca = await em.findOneOrFail(Marca, {idMarca}, {populate: [ 'productosMarcas']})
-//     const idProdMarcas =marca.productosMarcas.getIdentifiers('idPM');
-// //caso de que no tenga productos marcas asociados 
-//     if (marca.productosMarcas === 0) {
-//       await em.removeAndFlush(marca)
-//       return res.status(200).json({ message: `Marca ${idMarca} eliminada correctamente` });
-//     }else {
-//       return res.status(400).json({
-//         message: `No se puede eliminar la marca ya que existen productos pertenecientes a esta, elimine primero el producto.`, 
-//       });
-//     }
-//   } catch (error: any) {
-//     res.status(500).json({ message: error.message })
-//   }
-// }
+
 
 export {sanitizeMarcaInput, findAll, findOne, add, update, remove }
 
