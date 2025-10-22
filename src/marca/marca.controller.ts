@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express'
 import { orm } from '../shared/orm.js'
 import { Marca } from './marca.entity.js'
 import { ProdMar } from '../productos-marcas/prodMar.entity.js'
+import { Producto } from '../producto/producto.entity.js'
 //import { t } from '@mikro-orm/core'
 
 const em = orm.em
@@ -73,19 +74,36 @@ async function update(req: Request, res: Response) {
 }
 
 async function remove(req: Request, res: Response) {
-const idMarca = parseInt(req.params.idMarca);
-const marca = await em.findOne(Marca, {idMarca});
+  try {
+    const idMarca = Number(req.params.idMarca);
 
-if (!marca) {
-  return res.status(404).json({ mensaje: "Marca no encontrada" });
+    const marca = await em.findOne(Marca, { idMarca });
+    if (!marca) {
+      return res.status(404).json({ mensaje: "Marca no encontrada" });
+    }
+
+    const marcaRef = em.getReference(Marca, idMarca as unknown as Marca);
+
+    const relaciones = await em.find(ProdMar, {
+      marca: marcaRef,
+    });
+
+    if (relaciones.length > 0) {
+      return res.status(409).json({
+        mensaje: "No se puede eliminar la marca porque tiene productos relacionados.",
+      });
+    }
+
+    await em.removeAndFlush(marcaRef);
+    return res.status(200).json({ mensaje: "Marca eliminada correctamente" });
+
+  } catch (error: any) {
+    res.status(500).json({ mensaje: error.message });
+  }
 }
 
-// Buscar productos activos asociados a la marca
-const productosActivos = await em.find(ProdMar, {
-  marca,
-  activo: true
-});
 
+<<<<<<< HEAD
 if (productosActivos.length === 0) {
   await em.removeAndFlush(marca);
   res.json({ mensaje: "Marca eliminada correctamente" });
@@ -93,6 +111,8 @@ if (productosActivos.length === 0) {
   res.status(409).json({ mensaje: "No se puede eliminar la marca porque tiene productos activos" });
 }}
 
+=======
+>>>>>>> b8aac649108881945834e33fa2278affddbc967d
 
 export {sanitizeMarcaInput, findAll, findOne, add, update, remove }
 
