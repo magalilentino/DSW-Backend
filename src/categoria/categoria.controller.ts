@@ -74,27 +74,36 @@ async function update(req: Request, res: Response) {
 
 
 async function remove(req: Request, res: Response) {
-const idCategoria = Number.parseInt(req.params.idCategoria);
-const categoria = await em.findOne(Categoria, {idCategoria});
-const productosActivos = await em.find(Producto, {
-  categoria,
-  activo: true
-});
+  try {
+    const idCategoria = Number(req.params.idCategoria);
 
-   if (!categoria) {
+    const categoria = await em.findOne(Categoria, { idCategoria });
+    if (!categoria) {
       return res.status(404).json({ mensaje: "Categoría no encontrada" });
     }
 
+    
+    const categoriaRef = em.getReference(Categoria, idCategoria as unknown as Categoria);
 
-  if (productosActivos.length > 0) {
-    return res.status(409).json({
-      mensaje: "No se puede eliminar la categoría porque tiene productos activos"
+    const productosActivos = await em.find(Producto, {
+      categoria: categoriaRef,
+      activo: true
     });
+
+    if (productosActivos.length > 0) {
+      return res.status(409).json({
+        mensaje: "No se puede eliminar la categoría porque tiene productos activos"
+      });
+    }
+
+    await em.removeAndFlush(categoriaRef);
+    return res.status(200).json({ mensaje: "Categoría eliminada correctamente" });
+
+  } catch (error: any) {
+    res.status(500).json({ mensaje: error.message });
   }
+}
 
-  await em.removeAndFlush(categoria);
-  return res.status(200).json({ mensaje: "Categoría eliminada correctamente" });
 
- }
 
 export { sanitizeCategoriaInput, findAll, findOne, add, update, remove}
