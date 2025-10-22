@@ -32,6 +32,9 @@ importers:
       jsonwebtoken:
         specifier: ^9.0.2
         version: 9.0.2
+      luxon:
+        specifier: ^3.7.2
+        version: 3.7.2
       mysql2:
         specifier: ^3.14.3
         version: 3.14.3
@@ -46,11 +49,14 @@ importers:
         specifier: ^2.8.19
         version: 2.8.19
       '@types/express':
-        specifier: 5.0.2
+        specifier: ^5.0.2
         version: 5.0.2
       '@types/jsonwebtoken':
         specifier: ^9.0.10
         version: 9.0.10
+      '@types/luxon':
+        specifier: ^3.7.1
+        version: 3.7.1
       '@types/node':
         specifier: 22.15.21
         version: 22.15.21
@@ -128,6 +134,9 @@ packages:
 
   '@types/jsonwebtoken@9.0.10':
     resolution: {integrity: sha512-asx5hIG9Qmf/1oStypjanR7iKTv0gXQ1Ov/jfrX6kS/EO0OFni8orbmGCn0672NHR3kXHwpAwR+B368ZGN/2rA==}
+
+  '@types/luxon@3.7.1':
+    resolution: {integrity: sha512-H3iskjFIAn5SlJU7OuxUmTEpebK6TKB8rxZShDslBMZJ5u9S//KM1sbdAisiSrqwLQncVjnpi2OK2J51h+4lsg==}
 
   '@types/mime@1.3.5':
     resolution: {integrity: sha512-/pyBZWSLD2n0dcHE3hq8s8ZvcETHtEuF+3E7XVt0Ig2nvsVQXdghHVcEkIWjy9A0wKfTn97a/PSDYohKIlnP/w==}
@@ -525,6 +534,10 @@ packages:
     resolution: {integrity: sha512-Nv9KddBcQSlQopmBHXSsZVY5xsdlZkdH/Iey0BlcBYggMd4two7cZnKOK9vmy3nY0O5RGH99z1PCeTpPqszUYg==}
     engines: {bun: '>=1.0.0', deno: '>=1.30.0', node: '>=8.0.0'}
 
+  luxon@3.7.2:
+    resolution: {integrity: sha512-vtEhXh/gNjI9Yg1u4jX/0YVPMvxzHuGgCm6tC5kZyb08yjGWGnqAjGJvcXbqQR2P3MyMEFnRbpcdFS6PBcLqew==}
+    engines: {node: '>=12'}
+
   map-stream@0.1.0:
     resolution: {integrity: sha512-CkYQrPYZfWnu/DAmVCpTSX/xHpKZ80eKh2lAkyA6AJTef6bW+6JpbQZN5rofum7da+SyN1bi5ctTm+lTfcCW3g==}
 
@@ -920,6 +933,8 @@ snapshots:
     dependencies:
       '@types/ms': 2.1.0
       '@types/node': 22.15.21
+
+  '@types/luxon@3.7.1': {}
 
   '@types/mime@1.3.5': {}
 
@@ -1329,6 +1344,8 @@ snapshots:
   lru-cache@7.18.3: {}
 
   lru.min@1.1.2: {}
+
+  luxon@3.7.2: {}
 
   map-stream@0.1.0: {}
 

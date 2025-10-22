@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { orm } from "../shared/orm.js";
 import { Bloque } from "./bloque.entity.js";
+import { DateTime } from "luxon";
 
 const em = orm.em;
 
@@ -13,18 +14,15 @@ export async function obtenerBloquesDisponibles(req: Request, res: Response) {
 
     let bloquesDia = generarBloques(String(fecha));
 
-    // Filtrar bloques pasados si la fecha es hoy
-    const ahora = new Date();
-    const fechaRequest = new Date(String(fecha));
+    // Filtrar bloques que ya pasaron
+    const ahora = DateTime.now().setZone("America/Argentina/Buenos_Aires");
     bloquesDia = bloquesDia.filter(b => {
-      const [h, m] = b.hora_inicio.split(":").map(Number);
-      const bloqueDate = new Date(fechaRequest);
-      bloqueDate.setHours(h, m, 0, 0);
-      return bloqueDate.getTime() > ahora.getTime();
+      const bloqueInicio = DateTime.fromISO(`${fecha}T${b.hora_inicio}`, { zone: "America/Argentina/Buenos_Aires" });
+      return bloqueInicio >= ahora;
     });
 
     const ocupadosResult = await em.find(Bloque, {
-      fecha: fechaRequest,
+      fecha: new Date(String(fecha)),
       peluquero: { idPersona: Number(peluqueroId) },
       estado: "ocupado"
     });
@@ -56,18 +54,15 @@ export async function obtenerBloquesDia(req: Request, res: Response) {
 
     let bloquesDia = generarBloques(String(fecha));
 
-    // Filtrar bloques pasados si la fecha es hoy
-    const ahora = new Date();
-    const fechaRequest = new Date(String(fecha));
+    // Filtrar bloques que ya pasaron
+    const ahora = DateTime.now().setZone("America/Argentina/Buenos_Aires");
     bloquesDia = bloquesDia.filter(b => {
-      const [h, m] = b.hora_inicio.split(":").map(Number);
-      const bloqueDate = new Date(fechaRequest);
-      bloqueDate.setHours(h, m, 0, 0);
-      return bloqueDate.getTime() > ahora.getTime();
+      const bloqueInicio = DateTime.fromISO(`${fecha}T${b.hora_inicio}`, { zone: "America/Argentina/Buenos_Aires" });
+      return bloqueInicio >= ahora;
     });
 
     const ocupadosResult = await em.find(Bloque, {
-      fecha: fechaRequest,
+      fecha: new Date(String(fecha)),
       peluquero: { idPersona: Number(peluqueroId) },
       estado: "ocupado"
     });
@@ -86,6 +81,7 @@ export async function obtenerBloquesDia(req: Request, res: Response) {
     return res.status(500).json({ error: "Error al obtener bloques del día" });
   }
 }
+
 
 export function generarBloques(fecha: string, horaInicio = "09:00", horaFin = "18:00", duracionMin = 45) {
   const bloques: { hora_inicio: string; hora_fin: string }[] = [];
@@ -119,8 +115,8 @@ export function buscarGruposConsecutivos(
     for (let j = 1; j < cantidad; j++) {
       const prevFin = new Date(`1970-01-01T${bloquesLibres[i + j - 1].hora_fin}:00`);
       const curInicio = new Date(`1970-01-01T${bloquesLibres[i + j].hora_inicio}:00`);
-      const diff = (curInicio.getTime() - prevFin.getTime()) / 60000;
-      if (diff !== 0) {
+      const diff = (curInicio.getTime() - prevFin.getTime()) / 60000; // diferencia en minutos
+      if (diff !== 0) { // si no empieza justo después del anterior
         esConsecutivo = false;
         break;
       }
