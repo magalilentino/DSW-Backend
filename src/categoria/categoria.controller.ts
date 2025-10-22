@@ -87,12 +87,11 @@ async function remove(req: Request, res: Response) {
 
     const productosActivos = await em.find(Producto, {
       categoria: categoriaRef,
-      activo: true
     });
 
     if (productosActivos.length > 0) {
       return res.status(409).json({
-        mensaje: "No se puede eliminar la categoría porque tiene productos activos"
+        mensaje: "No se puede eliminar la categoría porque tiene productos relacionados.",
       });
     }
 
