@@ -102,5 +102,14 @@ async function remove(req: Request, res: Response) {
   }
 }
 
+/*
+if (productosActivos.length === 0) {
+  await em.removeAndFlush(marca);
+  res.json({ mensaje: "Marca eliminada correctamente" });
+} else {
+  res.status(409).json({ mensaje: "No se puede eliminar la marca porque tiene productos activos" });
+}}
+*/
+
 export {sanitizeMarcaInput, findAll, findOne, add, update, remove }
 
