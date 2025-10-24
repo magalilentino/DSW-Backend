@@ -12,7 +12,7 @@ function sanitizeProductoInput(
   next: NextFunction
 ) {
   req.body.sanitizedInput = {
-  descripcion: req.body.descripcio,
+  descripcion: req.body.descripcion,
   categoria: req.body.categoria, 
   activo: true,
 

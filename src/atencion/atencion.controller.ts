@@ -177,7 +177,6 @@ export async function finalizarAtencion(req: Request, res: Response) {
 
         const atencion = await em.findOneOrFail(Atencion, { idAtencion });
 
-        // 1. Cambiar el estado
         atencion.estado = "finalizado"; 
         if(descripcion){
           atencion.descripcion = descripcion as any;
