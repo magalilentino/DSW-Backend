@@ -112,4 +112,3 @@ if (productosActivos.length === 0) {
 */
 
 export {sanitizeMarcaInput, findAll, findOne, add, update, remove }
-

@@ -56,9 +56,9 @@ export async function add(req: Request, res: Response) {
   }
 }
 
-export async function findAll(req: Request, res: Response) {
-  try {
-    const servicios = await em.find(Servicio, {activo:true}, {});
+export async function findAll(req: Request, res: Response) { //req y res recibe y envia
+  try { //el try maneja errores, si ocurre algo va a catch
+    const servicios = await em.find(Servicio, {activo:true}, {}); //busca  los servicios con el filtro activo:true 
     res.status(200).json({ message: "found all servicios", data: servicios });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -113,9 +113,8 @@ export async function remove(req: Request, res: Response) {
 
 export const listarServiciosPorPrecio = async (req: Request, res: Response) => {
   try {
-    const min = req.query.min ? Number(req.query.min) : 0;
-    const max = req.query.max ? Number(req.query.max) : Number.MAX_SAFE_INTEGER;
-
+    const min = req.query.min ? Number(req.query.min) : 0; //0 valor default minimo posible
+    const max = req.query.max ? Number(req.query.max) : Number.MAX_SAFE_INTEGER; //valor default maximo posible de js
     const servicios = await em.find(
       Servicio,
       {
@@ -131,36 +130,6 @@ export const listarServiciosPorPrecio = async (req: Request, res: Response) => {
         ],
       }
     );
-
-    res.json(servicios);
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-// Detalle completo de servicios dentro del rango de precio
-export const detalleServiciosPorPrecio = async (
-  req: Request,
-  res: Response
-) => {
-  try {
-    const min = req.query.min ? Number(req.query.min) : 0;
-    const max = req.query.max ? Number(req.query.max) : Number.MAX_SAFE_INTEGER;
-
-    const servicios = await em.find(
-      Servicio,
-      {
-        precio: { $gte: min, $lte: max },
-      },
-      {}
-    );
-
-    if (!servicios || servicios.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No se encontraron servicios en ese rango" });
-    }
-
     res.json(servicios);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
