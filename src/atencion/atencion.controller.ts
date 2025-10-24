@@ -35,16 +35,16 @@ export async function crearAtencion(req: Request, res: Response) {
   
     if (Array.isArray(servicios)) {
       for (const codServicio of servicios) {
-        const servicio = await em.findOneOrFail(Servicio, { codServicio }); //busca los servicios que mando el usuario y los guarda en el array
+        const servicio = await em.findOneOrFail(Servicio, { codServicio }); 
         const atSer = new AtSer();
         atSer.atencion = atencion;
         atSer.servicio = servicio;    
         atencion.atencionServicios.add(atSer);
       }
-      await em.persistAndFlush(atencion); //guarda nuevamente la atencion con los servicios
+      await em.persistAndFlush(atencion); 
     }
 
-    const bloquesDia = generarBloques(fecha); //genera los bloques del dia si no existen
+    const bloquesDia = generarBloques(fecha); 
     for (const b of bloquesDia) {
       const existe = await em.findOne(Bloque, {
         fecha: new Date(fecha),
@@ -52,7 +52,7 @@ export async function crearAtencion(req: Request, res: Response) {
         horaInicio: b.hora_inicio
       });
       if (!existe) {
-        const bloque = em.create(Bloque, { //busca si existen los bloques, si no existen los crea
+        const bloque = em.create(Bloque, { 
           fecha: new Date(fecha), 
           horaInicio: b.hora_inicio,
           horaFin: b.hora_fin,
@@ -72,7 +72,7 @@ export async function crearAtencion(req: Request, res: Response) {
       horaFin: { $lte: horaFinDate.toTimeString().slice(0, 5) }
     });
 
-      bloquesOcupar.forEach(b => {    //busca los bloques que coinciden con la atencion y los marca como ocupados
+      bloquesOcupar.forEach(b => {    
       b.estado = "ocupado";
       b.atencion = atencion;
       });
@@ -108,7 +108,7 @@ export async function atencionesPendientes(req: Request, res: Response) {
   try {
     const idPersona = req.user?.id;
     if (!idPersona) {
-      return res.status(401).json({ message: "No se encontró el peluquero logueado" }); // atenciones del peluquero logueado
+      return res.status(401).json({ message: "No se encontró el peluquero logueado" }); 
     }
     const peluquero = await em.findOneOrFail(Persona, { idPersona, type: "peluquero" });
     const atenciones = await em.find(

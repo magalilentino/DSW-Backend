@@ -14,24 +14,24 @@ export async function obtenerBloquesDisponibles(req: Request, res: Response) {
 
     let bloquesDia = generarBloques(String(fecha));
 
-    // Filtrar bloques que ya pasaron
+    
     const ahora = DateTime.now().setZone("America/Argentina/Buenos_Aires");
     bloquesDia = bloquesDia.filter(b => {
       const bloqueInicio = DateTime.fromISO(`${fecha}T${b.hora_inicio}`, { zone: "America/Argentina/Buenos_Aires" });
       return bloqueInicio >= ahora;
     });
 
-    const ocupadosResult = await em.find(Bloque, {  //bloques ocupados
+    const ocupadosResult = await em.find(Bloque, {  
       fecha: new Date(String(fecha)),
       peluquero: { idPersona: Number(peluqueroId) },
       estado: "ocupado"
     });
 
     const ocupados = ocupadosResult.map(o => o.horaInicio);
-    const libres = bloquesDia.filter(b => !ocupados.includes(b.hora_inicio)); //filtra los bloques libres
+    const libres = bloquesDia.filter(b => !ocupados.includes(b.hora_inicio)); 
 
     const necesarios = Math.ceil(Number(duracionTotal) / 45);
-    const gruposDisponibles = buscarGruposConsecutivos(libres, necesarios); //bloques consecu
+    const gruposDisponibles = buscarGruposConsecutivos(libres, necesarios); 
 
     const respuesta = gruposDisponibles.map(grupo => ({
       hora_inicio: grupo[0].hora_inicio,
@@ -77,8 +77,8 @@ export function buscarGruposConsecutivos(
     for (let j = 1; j < cantidad; j++) {
       const prevFin = new Date(`1970-01-01T${bloquesLibres[i + j - 1].hora_fin}:00`);
       const curInicio = new Date(`1970-01-01T${bloquesLibres[i + j].hora_inicio}:00`);
-      const diff = (curInicio.getTime() - prevFin.getTime()) / 60000; // diferencia en minutos
-      if (diff !== 0) { // si no empieza justo después del anterior
+      const diff = (curInicio.getTime() - prevFin.getTime()) / 60000; 
+      if (diff !== 0) { 
         esConsecutivo = false;
         break;
       }

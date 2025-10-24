@@ -6,20 +6,20 @@ import jwt from "jsonwebtoken";
 
 const em = orm.em
 
-const JWT_SECRET = process.env.JWT_SECRET; //clave para verificar el token, viene el .env
+const JWT_SECRET = process.env.JWT_SECRET; 
 
 export function verificarToken(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
-    return res.status(401).json({ message: "Token no proporcionado" });   //verifica que haya un token en el header
+    return res.status(401).json({ message: "Token no proporcionado" });   
   }
-  const token = authHeader.split(" ")[1]; //extrae el token del header
+  const token = authHeader.split(" ")[1]; 
   try {
-    const decoded = jwt.verify(token,  JWT_SECRET!); //verifica que el toquen sea valido
+    const decoded = jwt.verify(token,  JWT_SECRET!); 
     if (
       typeof decoded === "object" &&
       "id" in decoded &&
-      "type" in decoded &&              //si el token tiene esos datos, los guarda en req.user para que los controladorrs sepan quien hizo la peticion
+      "type" in decoded &&                    
       "nombre" in decoded
     ) {
       req.user = {

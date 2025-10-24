@@ -62,19 +62,19 @@ export async function sincronizarProdMar(req: Request, res: Response) {
       return res.status(404).json({ message: "Producto no encontrado" });
     }
 
-    // 1. Buscar todos los ProdMar actuales del producto
+    
     const actuales = await em.find(ProdMar, { producto }, { populate: ['marca'] });
 
-    // 2. Extraer los IDs de marca actuales
+    
     const marcasActualesIds = actuales.map(pm => pm.marca.idMarca);
 
-    // 3. Determinar marcas a agregar
+    
     const marcasAAgregar = prodMarcIds.filter(id => !marcasActualesIds.includes(id));
 
-    // 4. Determinar marcas a eliminar
+    
     const marcasAEliminar = actuales.filter(pm => !prodMarcIds.includes(pm.marca.idMarca));
 
-    // 5. Crear nuevos ProdMar si faltan
+    
     for (const idMarca of marcasAAgregar) {
       const marca = await em.findOne(Marca, { idMarca });
       if (marca) {
@@ -87,7 +87,7 @@ export async function sincronizarProdMar(req: Request, res: Response) {
       }
     }
 
-    // 6. Eliminar los que sobran
+    
     for (const pm of marcasAEliminar) {
       pm.activo = false;
     }
@@ -136,12 +136,12 @@ export async function addPorListaMarcas(req: Request, res: Response) {
 
 }
 
-//lista de productos filtrados por categoria y marca 
+
 export async function listarProductos(req: Request, res: Response) {
   try {
     const filtros: Record<string, any> = {};
     const { idMarca, idCategoria } = req.query;
-    // const marcaId = idMarca ? Number(idMarca) : undefined;
+    
 
     if (idMarca) {
       filtros.marca = idMarca ;
