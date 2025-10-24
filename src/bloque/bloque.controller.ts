@@ -21,17 +21,17 @@ export async function obtenerBloquesDisponibles(req: Request, res: Response) {
       return bloqueInicio >= ahora;
     });
 
-    const ocupadosResult = await em.find(Bloque, {
+    const ocupadosResult = await em.find(Bloque, {  //bloques ocupados
       fecha: new Date(String(fecha)),
       peluquero: { idPersona: Number(peluqueroId) },
       estado: "ocupado"
     });
 
     const ocupados = ocupadosResult.map(o => o.horaInicio);
-    const libres = bloquesDia.filter(b => !ocupados.includes(b.hora_inicio));
+    const libres = bloquesDia.filter(b => !ocupados.includes(b.hora_inicio)); //filtra los bloques libres
 
     const necesarios = Math.ceil(Number(duracionTotal) / 45);
-    const gruposDisponibles = buscarGruposConsecutivos(libres, necesarios);
+    const gruposDisponibles = buscarGruposConsecutivos(libres, necesarios); //bloques consecu
 
     const respuesta = gruposDisponibles.map(grupo => ({
       hora_inicio: grupo[0].hora_inicio,
@@ -42,42 +42,6 @@ export async function obtenerBloquesDisponibles(req: Request, res: Response) {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: "Error al obtener disponibilidad" });
-  }
-}
-
-export async function obtenerBloquesDia(req: Request, res: Response) {
-  try {
-    const { fecha, peluqueroId } = req.query;
-    if (!fecha || !peluqueroId) { //se fija que esten los valores del req
-      return res.status(400).json({ error: "fecha y peluqueroId son requeridos" });
-    }
-
-    let bloquesDia = generarBloques(String(fecha));
-
-    // Filtrar bloques que no sean de horarios anteriores (region argentina)
-    const ahora = DateTime.now().setZone("America/Argentina/Buenos_Aires");
-    bloquesDia = bloquesDia.filter(b => {
-      const bloqueInicio = DateTime.fromISO(`${fecha}T${b.hora_inicio}`, { zone: "America/Argentina/Buenos_Aires" });
-      return bloqueInicio >= ahora;
-    });
-
-    const ocupadosResult = await em.find(Bloque, { //filtra los bloques que estan ocupados
-      fecha: new Date(String(fecha)),
-      peluquero: { idPersona: Number(peluqueroId) },
-      estado: "ocupado"
-    });
-
-    const ocupados = new Set(ocupadosResult.map(o => o.horaInicio)); //setea las horas de inicio ocupadas
-
-    const respuesta = bloquesDia.map(b => ({
-      hora_inicio: b.hora_inicio,
-      hora_fin: b.hora_fin,
-      estado: ocupados.has(b.hora_inicio) ? "ocupado" : "libre" //asigna a cada hora hora de inicio su estado
-    }));
-    return res.json(respuesta); //retorna los bloques con sus estados
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Error al obtener bloques del día" });
   }
 }
 

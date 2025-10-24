@@ -50,7 +50,6 @@ export async function findOnePeluquero(req: Request, res: Response) {
 
 export async function add(req: Request, res: Response) {
   try {
-    // Hashear la contraseña 
     const hashedPassword = await bcrypt.hash(req.body.sanitizedInput.clave, 10);
     req.body.sanitizedInput.clave = hashedPassword;
 

@@ -8,5 +8,4 @@ PeluqueroRouter.get("/findAllPeluquero", findAllPeluquero);
 PeluqueroRouter.get('/:idPersona', findOnePeluquero)
 PeluqueroRouter.post('/', sanitizePeluqueroInput, add)
 PeluqueroRouter.put('/:idPersona', sanitizePeluqueroInput, update)
-//PeluqueroRouter.patch('/:idPersona', sanitizePeluqueroInput, update)
 PeluqueroRouter.delete('/:idPersona', remove)

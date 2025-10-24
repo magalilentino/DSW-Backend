@@ -11,6 +11,3 @@ PersonaRouter.post('/login', sanitizePersonaInput, login);
 PersonaRouter.use("/peluquero", PeluqueroRouter);
 PersonaRouter.get('/:id', verificarToken, getPersonaById);
 PersonaRouter.use("/cliente", ClienteRouter); 
-//PersonaRouter.put("/:id", updatePersona);
-
-
