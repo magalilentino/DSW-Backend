@@ -13,7 +13,7 @@ export class ProdUt {
   @PrimaryKey()
     id!: number
 
-  @Property({ nullable: false })
+  @Property({  type: 'float', nullable: false })
     cantidad!: number
 
   @ManyToOne(() => ProdMar, {fieldName : 'prodMar'})
