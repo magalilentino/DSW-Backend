@@ -23,9 +23,6 @@ export class Tono {
   @Property({ nullable: false })
   activo!: boolean
 
-  //@ManyToMany(() => Servicio, (servicio) => servicio.tonos, {cascade: [Cascade.ALL]})
-  //servicios = new Collection<Servicio>(this)
-
   @OneToMany(() => Formula, (formula) => formula.tono , {cascade: [Cascade.ALL]})
     formulas = new Collection<Formula>(this) 
 

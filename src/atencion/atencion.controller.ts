@@ -15,10 +15,10 @@ export async function crearAtencion(req: Request, res: Response) {
     const { clienteId, peluqueroId, fecha, horaInicio, duracion, servicios } = req.body;
 
     const cliente = await em.findOneOrFail(Persona, { idPersona: clienteId });
-    const peluquero = await em.findOneOrFail(Persona, { idPersona: peluqueroId });
+    const peluquero = await em.findOneOrFail(Persona, { idPersona: peluqueroId }); 
 
-    const horaInicioDate = new Date(`${fecha}T${horaInicio}:00`);
-    const horaFinDate = new Date(horaInicioDate.getTime() + Number(duracion) * 60000);
+    const horaInicioDate = new Date(`${fecha}T${horaInicio}:00`);  
+    const horaFinDate = new Date(horaInicioDate.getTime() + Number(duracion) * 60000); 
 
 
     const atencion = em.create(Atencion, {
@@ -35,17 +35,16 @@ export async function crearAtencion(req: Request, res: Response) {
   
     if (Array.isArray(servicios)) {
       for (const codServicio of servicios) {
-        const servicio = await em.findOneOrFail(Servicio, { codServicio });
+        const servicio = await em.findOneOrFail(Servicio, { codServicio }); //busca los servicios que mando el usuario y los guarda en el array
         const atSer = new AtSer();
         atSer.atencion = atencion;
-        atSer.servicio = servicio;
+        atSer.servicio = servicio;    
         atencion.atencionServicios.add(atSer);
       }
-      await em.persistAndFlush(atencion);
+      await em.persistAndFlush(atencion); //guarda nuevamente la atencion con los servicios
     }
 
-   
-    const bloquesDia = generarBloques(fecha);
+    const bloquesDia = generarBloques(fecha); //genera los bloques del dia si no existen
     for (const b of bloquesDia) {
       const existe = await em.findOne(Bloque, {
         fecha: new Date(fecha),
@@ -53,20 +52,19 @@ export async function crearAtencion(req: Request, res: Response) {
         horaInicio: b.hora_inicio
       });
       if (!existe) {
-        const bloque = em.create(Bloque, {
-          fecha: new Date(fecha),
+        const bloque = em.create(Bloque, { //busca si existen los bloques, si no existen los crea
+          fecha: new Date(fecha), 
           horaInicio: b.hora_inicio,
           horaFin: b.hora_fin,
           peluquero,
           estado: "libre",
           atencion: null
         });
-        em.persist(bloque);
+        em.persist(bloque); 
       }
     }
     await em.flush();
 
-    
     const bloquesOcupar = await em.find(Bloque, {
       fecha: new Date(fecha),
       peluquero: { idPersona: peluqueroId },
@@ -74,13 +72,12 @@ export async function crearAtencion(req: Request, res: Response) {
       horaFin: { $lte: horaFinDate.toTimeString().slice(0, 5) }
     });
 
-      bloquesOcupar.forEach(b => {
+      bloquesOcupar.forEach(b => {    //busca los bloques que coinciden con la atencion y los marca como ocupados
       b.estado = "ocupado";
       b.atencion = atencion;
       });
       await em.flush();
 
-   
     const atencionConServicios = await em.findOneOrFail(
       Atencion,
       { idAtencion: atencion.idAtencion },
@@ -111,7 +108,7 @@ export async function atencionesPendientes(req: Request, res: Response) {
   try {
     const idPersona = req.user?.id;
     if (!idPersona) {
-      return res.status(401).json({ message: "No se encontró el peluquero logueado" });
+      return res.status(401).json({ message: "No se encontró el peluquero logueado" }); // atenciones del peluquero logueado
     }
     const peluquero = await em.findOneOrFail(Persona, { idPersona, type: "peluquero" });
     const atenciones = await em.find(
@@ -128,35 +125,27 @@ export async function atencionesPendientes(req: Request, res: Response) {
 
 export async function cancelarAtencion(req: Request, res: Response) {
     try {
-        // Obtener y convertir la ID de la Atención a número (Viene como string de req.params)
+      
         const idAtencionString = req.params.idAtencion as string;
         const idAtencion = parseInt(idAtencionString, 10);
-
-        // Validación
+      
         if (isNaN(idAtencion) || idAtencion <= 0) {
             return res.status(400).json({ message: "ID de Atención no válido." });
         }
 
-        // 2. Buscar la Atención por ID
-        // Usamos findOneOrFail para asegurar que existe
         const atencion = await em.findOneOrFail(Atencion, { idAtencion });
 
-        // 3. Actualizar el estado
-        atencion.estado = "cancelado"; 
-
-        // 4. Persistir los cambios en la base de datos
-        // Usamos em.flush() para ejecutar la operación UPDATE
+        atencion.estado = "cancelado";
+        
         await em.persistAndFlush(atencion);
 
-        // 5. Respuesta exitosa
         return res.status(200).json({ 
             message: `Atención ${idAtencion} cancelada exitosamente.`,
             idAtencion: atencion.idAtencion
         });
 
     } catch (error: any) {
-        // Manejar errores si no se encuentra la atención (findOneOrFail lanza error) 
-        // o si hay un fallo en la DB.
+        
         console.error("Error al cancelar atención:", error);
 
         if (error.name === 'NotFoundError') {
@@ -270,33 +259,24 @@ export async function getPendientesByCliente(req: Request, res: Response) {
 
 export async function atencionesPendientesHoy(req: Request, res: Response) {
   try {
-    // 1️⃣ Obtener el id del peluquero desde el token
-    const idPersona = req.user?.id;
+    const idPersona = req.user?.id;   // Obtener el id del peluquero desde el token
     if (!idPersona) {
       return res.status(401).json({ message: "No se encontró el peluquero logueado" });
     }
-
-    // 2️⃣ Traer el objeto Persona del peluquero
     const peluquero = await em.findOneOrFail(Persona, { idPersona, type: "peluquero" });
-
-    // 3️⃣ Rango del día actual en hora Argentina usando horaInicio
     const hoy = DateTime.now().setZone("America/Argentina/Buenos_Aires").startOf("day").toJSDate();
     const manana = DateTime.now().setZone("America/Argentina/Buenos_Aires").endOf("day").toJSDate();
-
-    // 4️⃣ Buscar atenciones pendientes del día de hoy filtrando por horaInicio
     const atenciones = await em.find(
       Atencion,
       {
         peluquero: { idPersona: peluquero.idPersona },
         estado: "pendiente",
-        horaInicio: { $gte: hoy, $lt: manana }, // ⚡ filtramos por horaInicio
+        horaInicio: { $gte: hoy, $lt: manana }, 
       },
       {
         populate: ["cliente", "atencionServicios", "atencionServicios.servicio"],
       }
     );
-
-    // 5️⃣ Retornar la cantidad de atenciones
     res.status(200).json({ count: atenciones.length });
   } catch (err: any) {
     console.error(err);
@@ -304,7 +284,6 @@ export async function atencionesPendientesHoy(req: Request, res: Response) {
   }
 }
 
-// Atenciones completadas hoy
 export async function atencionesCompletadasHoy(req: Request, res: Response) {
   try {
     const idPersona = req.user?.id;
@@ -332,7 +311,6 @@ export async function atencionesCompletadasHoy(req: Request, res: Response) {
   }
 }
 
-// Ganancias hoy
 export async function gananciasHoy(req: Request, res: Response) {
   try {
     const idPersona = req.user?.id;

@@ -9,16 +9,7 @@ import {
 } from '@mikro-orm/core';
 import { Atencion } from '../atencion/atencion.entity.js';
 
-@Entity({
-  // discriminatorColumn: 'type', 
-    
-  //   // 2. Mapear los valores del Enum a la clase base Persona
-  //   discriminatorMap: {
-  //       peluquero: 'Persona', // Tanto Peluquero como Cliente son instancias de Persona
-  //       cliente: 'Persona',   // (Micro-ORM maneja los tipos internamente)
-  //   },
-}
-)
+@Entity()
 export class Persona {
   @PrimaryKey({ fieldName: 'id_persona' })
   idPersona?: number;

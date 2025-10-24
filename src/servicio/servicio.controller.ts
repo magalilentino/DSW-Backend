@@ -15,9 +15,6 @@ export function sanitizeServicioInput(
     cantTurnos: Number(req.body.cantTurnos),
     precio: Number(req.body.precio),
     activo: true,
-    // tiempoDemora: req.body.tiempoDemora,
-    // tonos: req.body.tonos,
-    // productos: req.body.productos
   };
   Object.keys(req.body.sanitizedInput).forEach((key) => {
     if (req.body.sanitizedInput[key] === undefined) {
@@ -56,9 +53,9 @@ export async function add(req: Request, res: Response) {
   }
 }
 
-export async function findAll(req: Request, res: Response) { //req y res recibe y envia
-  try { //el try maneja errores, si ocurre algo va a catch
-    const servicios = await em.find(Servicio, {activo:true}, {}); //busca  los servicios con el filtro activo:true 
+export async function findAll(req: Request, res: Response) { 
+  try { 
+    const servicios = await em.find(Servicio, {activo:true}, {});  
     res.status(200).json({ message: "found all servicios", data: servicios });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -113,12 +110,12 @@ export async function remove(req: Request, res: Response) {
 
 export const listarServiciosPorPrecio = async (req: Request, res: Response) => {
   try {
-    const min = req.query.min ? Number(req.query.min) : 0; //0 valor default minimo posible
-    const max = req.query.max ? Number(req.query.max) : Number.MAX_SAFE_INTEGER; //valor default maximo posible de js
+    const min = req.query.min ? Number(req.query.min) : 0; 
+    const max = req.query.max ? Number(req.query.max) : Number.MAX_SAFE_INTEGER; 
     const servicios = await em.find(
       Servicio,
       {
-        precio: { $gte: min, $lte: max }, // rango de precio
+        precio: { $gte: min, $lte: max }, 
       },
       {
         fields: [

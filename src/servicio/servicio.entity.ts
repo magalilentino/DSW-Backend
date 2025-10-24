@@ -34,14 +34,4 @@ export class Servicio {
 
   @OneToMany(() => AtSer, atSer => atSer.servicio, { cascade: [Cascade.ALL] })
     atencionesServicio = new Collection<AtSer>(this);
-
-  // @ManyToMany(() => Producto, producto => producto.servicios, { cascade: [Cascade.ALL], owner: true })
-  //   productos = new Collection<Producto>(this);
-
-  // @ManyToMany(() => Tono, (tono) => tono.servicios, {cascade: [Cascade.ALL], owner: true })
-  //   tonos = new Collection<Tono>(this)
-
-  // @ManyToMany(() => Atencion, atencion => atencion.servicios) 
-  //   atenciones = new Collection<Atencion>(this);
-
 }
