@@ -16,7 +16,11 @@ export class Descuento {
   porcentaje!: number
 
   @Property({ nullable: false })
-  cantAtencionNecesaria!: number
+  cantAtencionNecesaria!: number //inicializar en 1 cuando se crea
+  //resetear - multiplo cantAtencionNecesaria 
+
+  @Property({ nullable: false })
+  estado!: boolean //inicializar en true
 
   @ManyToMany(() => Atencion, atencion => atencion.descuentos, {cascade: [Cascade.ALL]}) 
   atenciones = new Collection<Atencion>(this);

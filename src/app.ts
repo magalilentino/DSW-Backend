@@ -1,9 +1,9 @@
 import express from 'express'
 import cors from 'cors'
 import 'reflect-metadata'
+import 'dotenv/config';
 import { orm, syncSchema } from './shared/orm.js'
 import { RequestContext } from '@mikro-orm/core'
-import 'dotenv/config';
 import { AtencionRouter } from './atencion/atencion.routes.js'
 import { BloqueRouter } from './bloque/bloque.routes.js'
 import { CategoriaRouter } from './categoria/categoria.routes.js'
