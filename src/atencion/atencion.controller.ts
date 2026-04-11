@@ -7,19 +7,20 @@ import { generarBloques } from "../bloque/bloque.controller.js";
 import { AtSer } from "../atencion-servicio/atSer.entity.js";
 import { Servicio } from "../servicio/servicio.entity.js";
 import { DateTime } from "luxon";
+import { Descuento } from "../descuento/descuento.entity.js";
 
 const em = orm.em;
 
 export async function crearAtencion(req: Request, res: Response) {
   try {
-    const { clienteId, peluqueroId, fecha, horaInicio, duracion, servicios } = req.body;
+    // 1. Agregamos idDescuento a la desestructuración del body
+    const { clienteId, peluqueroId, fecha, horaInicio, duracion, servicios, idDescuento } = req.body;
 
     const cliente = await em.findOneOrFail(Persona, { idPersona: clienteId });
     const peluquero = await em.findOneOrFail(Persona, { idPersona: peluqueroId }); 
 
     const horaInicioDate = new Date(`${fecha}T${horaInicio}:00`);  
     const horaFinDate = new Date(horaInicioDate.getTime() + Number(duracion) * 60000); 
-
 
     const atencion = em.create(Atencion, {
       cliente,
@@ -30,9 +31,18 @@ export async function crearAtencion(req: Request, res: Response) {
       estado: "pendiente",
       descripcion: "" 
     });
+
+    // 2. LÓGICA DE DESCUENTO: Si viene un idDescuento, lo buscamos y asociamos
+    if (idDescuento) {
+      const descuentoExistente = await em.findOne(Descuento, { idDescuento });
+      if (descuentoExistente) {
+        // Como es ManyToMany, usamos .add()
+        atencion.descuentos.add(descuentoExistente);
+      }
+    }
+
     await em.persistAndFlush(atencion);
 
-  
     if (Array.isArray(servicios)) {
       for (const codServicio of servicios) {
         const servicio = await em.findOneOrFail(Servicio, { codServicio }); 
@@ -72,11 +82,11 @@ export async function crearAtencion(req: Request, res: Response) {
       horaFin: { $lte: horaFinDate.toTimeString().slice(0, 5) }
     });
 
-      bloquesOcupar.forEach(b => {    
+    bloquesOcupar.forEach(b => {    
       b.estado = "ocupado";
       b.atencion = atencion;
-      });
-      await em.flush();
+    });
+    await em.flush();
 
     const atencionConServicios = await em.findOneOrFail(
       Atencion,
@@ -86,7 +96,8 @@ export async function crearAtencion(req: Request, res: Response) {
           "cliente",
           "peluquero",
           "atencionServicios",
-          "atencionServicios.servicio"
+          "atencionServicios.servicio",
+          "descuentos" // 3. Importante: populamos los descuentos para la respuesta
         ]
       }
     );
@@ -102,7 +113,6 @@ export async function crearAtencion(req: Request, res: Response) {
     return res.status(500).json({ error: "Error al crear atención" });
   }
 }
-
 
 export async function atencionesPendientes(req: Request, res: Response) {
   try {
@@ -376,5 +386,34 @@ export async function turnosHoy(req: Request, res: Response) {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Error al obtener turnos del día" });
+  }
+}
+
+export async function verificarDescuentoCliente(req: Request, res: Response) {
+  try {
+    const idPersona = Number(req.params.idPersona);
+    
+    // 1. Contamos cuántas atenciones FINALIZADAS tiene el cliente
+    const totalFinalizadas = await em.count(Atencion, {
+      cliente: { idPersona },
+      estado: "finalizado"
+    });
+
+    // 2. Buscamos si existe un descuento activo configurado para "3 atenciones"
+    const descuentoConfig = await em.findOne(Descuento, { 
+      cantAtencionNecesaria: 3, 
+      estado: true 
+    });
+
+    // Lógica: Si tiene 3, 6, 9... atenciones, la PRÓXIMA tiene descuento.
+    const aplicaDescuento = totalFinalizadas > 0 && totalFinalizadas % 3 === 0;
+
+    return res.status(200).json({
+      aplicaDescuento,
+      descuento: aplicaDescuento ? descuentoConfig : null,
+      proximoADescuento: 3 - (totalFinalizadas % 3)
+    });
+  } catch (error: any) {
+    return res.status(500).json({ message: error.message });
   }
 }
