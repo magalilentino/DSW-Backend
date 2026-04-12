@@ -7,6 +7,10 @@ import { generarBloques } from "../bloque/bloque.controller.js";
 import { AtSer } from "../atencion-servicio/atSer.entity.js";
 import { Servicio } from "../servicio/servicio.entity.js";
 import { DateTime } from "luxon";
+<<<<<<< HEAD
+=======
+import { sendDiscountMail } from "../mailer.js";
+>>>>>>> cb0aebdcb78fb556bb13af2ea5e87e89d4ffdf4d
 import { Descuento } from "../descuento/descuento.entity.js";
 
 const em = orm.em;
@@ -178,11 +182,22 @@ export async function cancelarAtencion(req: Request, res: Response) {
       return res.status(400).json({ message: "ID de Atención no válido." });
     }
 
+<<<<<<< HEAD
     const atencion = await em.findOneOrFail(Atencion, { idAtencion });
+=======
+export async function finalizarAtencion(req: Request, res: Response) {
+    try {
+        const idAtencion = parseInt(req.params.idAtencion as string, 10);
+        const descripcion = req.body as { descripcion?: string};
+>>>>>>> cb0aebdcb78fb556bb13af2ea5e87e89d4ffdf4d
 
     atencion.estado = "cancelado";
 
+<<<<<<< HEAD
     await em.persistAndFlush(atencion);
+=======
+        const atencion = await em.findOneOrFail(Atencion, { idAtencion }, { populate: ['cliente']});
+>>>>>>> cb0aebdcb78fb556bb13af2ea5e87e89d4ffdf4d
 
     return res.status(200).json({
       message: `Atención ${idAtencion} cancelada exitosamente.`,
@@ -191,10 +206,75 @@ export async function cancelarAtencion(req: Request, res: Response) {
   } catch (error: any) {
     console.error("Error al cancelar atención:", error);
 
+<<<<<<< HEAD
     if (error.name === "NotFoundError") {
       return res.status(404).json({
         message: `Atención con ID ${req.params.idAtencion} no encontrada.`,
       });
+=======
+        await em.persistAndFlush(atencion);
+
+        const cliente = atencion.cliente;
+        const totalAtenciones = await em.count(Atencion, {cliente});
+        const descuentos = await em.find(Descuento, {estado: true});
+
+        const desbloqueados: number[] = [];
+
+        for (const d of descuentos) {
+          if (totalAtenciones % d.cantAtencionNecesaria == 0) {
+            desbloqueados.push(d.porcentaje);
+          }
+        }
+
+        if (desbloqueados.length > 0) {
+          await sendDiscountMail(cliente.email, desbloqueados);
+        }
+
+          return res.status(200).json({ 
+              message: `Atención ${idAtencion} registrada como finalizada.`
+          });
+
+      } catch (error: any) {
+          console.error("Error al finalizar atención:", error);
+          return res.status(500).json({ message: "Error interno del servidor." });
+      }
+  }
+
+  export async function getHistoricoByCliente(req: Request, res: Response) {
+    try {
+      const idPersona = Number(req.params.idPersona);
+
+      const atenciones = await em.find(
+        Atencion,
+        { cliente: { idPersona }, estado: { $in: ["finalizado", "cancelado"] } },
+        {
+          populate: [
+            "peluquero",
+            "atencionServicios",
+            "atencionServicios.servicio" 
+          ],
+          orderBy: { fecha: "DESC" }
+        }
+      );
+
+      const result = atenciones.map(a => ({
+        idAtencion: a.idAtencion,
+        fecha: a.fecha,
+        horaInicio: a.horaInicio,
+        horaFin: a.horaFin,
+        estado: a.estado,
+        peluquero: a.peluquero,
+        atencionServicios: a.atencionServicios.getItems().map(as => ({
+          idAtSer: as.idAtSer,
+          servicio: as.servicio
+        }))
+      }));
+
+      res.json(result);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Error al obtener el histórico de atenciones" });
+>>>>>>> cb0aebdcb78fb556bb13af2ea5e87e89d4ffdf4d
     }
     return res.status(500).json({
       message: "Error interno del servidor al cancelar la atención.",
