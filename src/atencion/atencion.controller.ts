@@ -10,18 +10,17 @@ import { DateTime } from "luxon";
 import { sendDiscountMail } from "../mailer.js";
 import { Descuento } from "../descuento/descuento.entity.js";
 
-const em = orm.em;
+  const em = orm.em;
 
-export async function crearAtencion(req: Request, res: Response) {
+  export async function crearAtencion(req: Request, res: Response) {
   try {
-    const { clienteId, peluqueroId, fecha, horaInicio, duracion, servicios } = req.body;
+    const { clienteId, peluqueroId, fecha, horaInicio, duracion, servicios, idDescuento } = req.body;
 
     const cliente = await em.findOneOrFail(Persona, { idPersona: clienteId });
     const peluquero = await em.findOneOrFail(Persona, { idPersona: peluqueroId }); 
 
     const horaInicioDate = new Date(`${fecha}T${horaInicio}:00`);  
     const horaFinDate = new Date(horaInicioDate.getTime() + Number(duracion) * 60000); 
-
 
     const atencion = em.create(Atencion, {
       cliente,
@@ -32,9 +31,21 @@ export async function crearAtencion(req: Request, res: Response) {
       estado: "pendiente",
       descripcion: "" 
     });
+
+    // --- LÓGICA DE DESCUENTO ---
+    if (idDescuento) {
+      // Buscamos el descuento por su ID para vincularlo
+      const descuentoExistente = await em.findOne(Descuento, { idDescuento });
+      if (descuentoExistente) {
+        // Importante: Asegúrate de que en tu entidad Atencion, 
+        // la relación se llame 'descuentos'
+        atencion.descuentos.add(descuentoExistente);
+      }
+    }
+
     await em.persistAndFlush(atencion);
 
-  
+    // --- LÓGICA DE SERVICIOS ---
     if (Array.isArray(servicios)) {
       for (const codServicio of servicios) {
         const servicio = await em.findOneOrFail(Servicio, { codServicio }); 
@@ -46,6 +57,7 @@ export async function crearAtencion(req: Request, res: Response) {
       await em.persistAndFlush(atencion); 
     }
 
+    // --- LÓGICA DE BLOQUES (GENERACIÓN Y OCUPACIÓN) ---
     const bloquesDia = generarBloques(fecha); 
     for (const b of bloquesDia) {
       const existe = await em.findOne(Bloque, {
@@ -74,29 +86,20 @@ export async function crearAtencion(req: Request, res: Response) {
       horaFin: { $lte: horaFinDate.toTimeString().slice(0, 5) }
     });
 
-      bloquesOcupar.forEach(b => {    
+    bloquesOcupar.forEach(b => {    
       b.estado = "ocupado";
       b.atencion = atencion;
-      });
-      await em.flush();
+    });
+    await em.flush();
 
     const atencionConServicios = await em.findOneOrFail(
       Atencion,
       { idAtencion: atencion.idAtencion },
-      {
-        populate: [
-          "cliente",
-          "peluquero",
-          "atencionServicios",
-          "atencionServicios.servicio"
-        ]
-      }
+      { populate: ["cliente", "peluquero", "atencionServicios", "atencionServicios.servicio", "descuentos"] }
     );
 
-    console.log(JSON.stringify(atencionConServicios, null, 2));
-
     return res.status(201).json({
-      message: "Atención creada con servicios",
+      message: "Atención creada con éxito",
       atencion: atencionConServicios
     });
   } catch (err) {
@@ -105,73 +108,72 @@ export async function crearAtencion(req: Request, res: Response) {
   }
 }
 
-
-export async function atencionesPendientes(req: Request, res: Response) {
-  try {
-    const idPersona = req.user?.id;
-    if (!idPersona) {
-      return res.status(401).json({ message: "No se encontró el peluquero logueado" }); 
-    }
-    const peluquero = await em.findOneOrFail(Persona, { idPersona, type: "peluquero" });
-    const atenciones = await em.find(
-      Atencion,
-      { peluquero, estado: "pendiente" },
-      { populate: [ "atencionServicios", "atencionServicios.servicio", "peluquero", "cliente"] }
-    );
-
-    res.status(200).json({ message: "Se encontraron todas las atenciones pendientes", data: atenciones });
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
-  }
-}
-
-export async function cancelarAtencion(req: Request, res: Response) {
+  export async function atencionesPendientes(req: Request, res: Response) {
     try {
-      
-        const idAtencionString = req.params.idAtencion as string;
-        const idAtencion = parseInt(idAtencionString, 10);
-      
-        if (isNaN(idAtencion) || idAtencion <= 0) {
-            return res.status(400).json({ message: "ID de Atención no válido." });
-        }
+      const idPersona = req.user?.id;
+      if (!idPersona) {
+        return res.status(401).json({ message: "No se encontró el peluquero logueado" }); 
+      }
+      const peluquero = await em.findOneOrFail(Persona, { idPersona, type: "peluquero" });
+      const atenciones = await em.find(
+        Atencion,
+        { peluquero, estado: "pendiente" },
+        { populate: [ "atencionServicios", "atencionServicios.servicio", "peluquero", "cliente"] }
+      );
 
-        const atencion = await em.findOneOrFail(Atencion, { idAtencion });
-
-        atencion.estado = "cancelado";
-        
-        await em.persistAndFlush(atencion);
-
-        return res.status(200).json({ 
-            message: `Atención ${idAtencion} cancelada exitosamente.`,
-            idAtencion: atencion.idAtencion
-        });
-
+      res.status(200).json({ message: "Se encontraron todas las atenciones pendientes", data: atenciones });
     } catch (error: any) {
-        
-        console.error("Error al cancelar atención:", error);
-
-        if (error.name === 'NotFoundError') {
-            return res.status(404).json({ message: `Atención con ID ${req.params.idAtencion} no encontrada.` });
-        }
-        return res.status(500).json({ message: "Error interno del servidor al cancelar la atención.", error: error.message });
+      res.status(500).json({ message: error.message });
     }
   }
+
+  export async function cancelarAtencion(req: Request, res: Response) {
+      try {
+        
+          const idAtencionString = req.params.idAtencion as string;
+          const idAtencion = parseInt(idAtencionString, 10);
+        
+          if (isNaN(idAtencion) || idAtencion <= 0) {
+              return res.status(400).json({ message: "ID de Atención no válido." });
+          }
+
+          const atencion = await em.findOneOrFail(Atencion, { idAtencion });
+
+          atencion.estado = "cancelado";
+          
+          await em.persistAndFlush(atencion);
+
+          return res.status(200).json({ 
+              message: `Atención ${idAtencion} cancelada exitosamente.`,
+              idAtencion: atencion.idAtencion
+          });
+
+      } catch (error: any) {
+          
+          console.error("Error al cancelar atención:", error);
+
+          if (error.name === 'NotFoundError') {
+              return res.status(404).json({ message: `Atención con ID ${req.params.idAtencion} no encontrada.` });
+          }
+          return res.status(500).json({ message: "Error interno del servidor al cancelar la atención.", error: error.message });
+      }
+    }
 
 export async function finalizarAtencion(req: Request, res: Response) {
     try {
         const idAtencion = parseInt(req.params.idAtencion as string, 10);
         const descripcion = req.body as { descripcion?: string};
 
-        if (isNaN(idAtencion) || idAtencion <= 0) {
-            return res.status(400).json({ message: "ID de Atención no válido." });
-        }
+          if (isNaN(idAtencion) || idAtencion <= 0) {
+              return res.status(400).json({ message: "ID de Atención no válido." });
+          }
 
         const atencion = await em.findOneOrFail(Atencion, { idAtencion }, { populate: ['cliente']});
 
-        atencion.estado = "finalizado"; 
-        if(descripcion){
-          atencion.descripcion = descripcion as any;
-        }
+          atencion.estado = "finalizado"; 
+          if(descripcion){
+            atencion.descripcion = descripcion as any;
+          }
 
         await em.persistAndFlush(atencion);
 
@@ -191,157 +193,157 @@ export async function finalizarAtencion(req: Request, res: Response) {
           await sendDiscountMail(cliente.email, desbloqueados);
         }
 
-        return res.status(200).json({ 
-            message: `Atención ${idAtencion} registrada como finalizada.`
-        });
+          return res.status(200).json({ 
+              message: `Atención ${idAtencion} registrada como finalizada.`
+          });
 
-    } catch (error: any) {
-        console.error("Error al finalizar atención:", error);
-        return res.status(500).json({ message: "Error interno del servidor." });
+      } catch (error: any) {
+          console.error("Error al finalizar atención:", error);
+          return res.status(500).json({ message: "Error interno del servidor." });
+      }
+  }
+
+  export async function getHistoricoByCliente(req: Request, res: Response) {
+    try {
+      const idPersona = Number(req.params.idPersona);
+
+      const atenciones = await em.find(
+        Atencion,
+        { cliente: { idPersona }, estado: { $in: ["finalizado", "cancelado"] } },
+        {
+          populate: [
+            "peluquero",
+            "atencionServicios",
+            "atencionServicios.servicio" 
+          ],
+          orderBy: { fecha: "DESC" }
+        }
+      );
+
+      const result = atenciones.map(a => ({
+        idAtencion: a.idAtencion,
+        fecha: a.fecha,
+        horaInicio: a.horaInicio,
+        horaFin: a.horaFin,
+        estado: a.estado,
+        peluquero: a.peluquero,
+        atencionServicios: a.atencionServicios.getItems().map(as => ({
+          idAtSer: as.idAtSer,
+          servicio: as.servicio
+        }))
+      }));
+
+      res.json(result);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Error al obtener el histórico de atenciones" });
     }
-}
-
-export async function getHistoricoByCliente(req: Request, res: Response) {
-  try {
-    const idPersona = Number(req.params.idPersona);
-
-    const atenciones = await em.find(
-      Atencion,
-      { cliente: { idPersona }, estado: { $in: ["finalizado", "cancelado"] } },
-      {
-        populate: [
-          "peluquero",
-          "atencionServicios",
-          "atencionServicios.servicio" 
-        ],
-        orderBy: { fecha: "DESC" }
-      }
-    );
-
-    const result = atenciones.map(a => ({
-      idAtencion: a.idAtencion,
-      fecha: a.fecha,
-      horaInicio: a.horaInicio,
-      horaFin: a.horaFin,
-      estado: a.estado,
-      peluquero: a.peluquero,
-      atencionServicios: a.atencionServicios.getItems().map(as => ({
-        idAtSer: as.idAtSer,
-        servicio: as.servicio
-      }))
-    }));
-
-    res.json(result);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Error al obtener el histórico de atenciones" });
   }
-}
 
 
-export async function getPendientesByCliente(req: Request, res: Response) {
-  try {
-    const idPersona = Number(req.params.idPersona);
+  export async function getPendientesByCliente(req: Request, res: Response) {
+    try {
+      const idPersona = Number(req.params.idPersona);
 
-    const atenciones = await em.find(
-      Atencion,
-      { cliente: { idPersona }, estado: "pendiente" },
-      {
-        populate: [
-          "peluquero",
-          "atencionServicios",
-          "atencionServicios.servicio"
-        ]
-      }
-    );
+      const atenciones = await em.find(
+        Atencion,
+        { cliente: { idPersona }, estado: "pendiente" },
+        {
+          populate: [
+            "peluquero",
+            "atencionServicios",
+            "atencionServicios.servicio"
+          ]
+        }
+      );
 
-    const result = atenciones.map(a => ({
-      idAtencion: a.idAtencion,
-      fecha: a.fecha,
-      horaInicio: a.horaInicio,
-      horaFin: a.horaFin,
-      estado: a.estado,
-      peluquero: a.peluquero,
-      atencionServicios: a.atencionServicios.getItems().map(as => ({
-        idAtSer: as.idAtSer,
-        servicio: as.servicio
-      }))
-    }));
+      const result = atenciones.map(a => ({
+        idAtencion: a.idAtencion,
+        fecha: a.fecha,
+        horaInicio: a.horaInicio,
+        horaFin: a.horaFin,
+        estado: a.estado,
+        peluquero: a.peluquero,
+        atencionServicios: a.atencionServicios.getItems().map(as => ({
+          idAtSer: as.idAtSer,
+          servicio: as.servicio
+        }))
+      }));
 
-    res.json(result);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Error al obtener las atenciones pendientes" });
-  }
-}
-
-export async function atencionesPendientesHoy(req: Request, res: Response) {
-  try {
-    const idPersona = req.user?.id;   // Obtener el id del peluquero desde el token
-    if (!idPersona) {
-      return res.status(401).json({ message: "No se encontró el peluquero logueado" });
+      res.json(result);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ message: "Error al obtener las atenciones pendientes" });
     }
-    const peluquero = await em.findOneOrFail(Persona, { idPersona, type: "peluquero" });
-    const hoy = DateTime.now().setZone("America/Argentina/Buenos_Aires").startOf("day").toJSDate();
-    const manana = DateTime.now().setZone("America/Argentina/Buenos_Aires").endOf("day").toJSDate();
-    const atenciones = await em.find(
-      Atencion,
-      {
-        peluquero: { idPersona: peluquero.idPersona },
-        estado: "pendiente",
-        horaInicio: { $gte: hoy, $lt: manana }, 
-      },
-      {
-        populate: ["cliente", "atencionServicios", "atencionServicios.servicio"],
+  }
+
+  export async function atencionesPendientesHoy(req: Request, res: Response) {
+    try {
+      const idPersona = req.user?.id;   // Obtener el id del peluquero desde el token
+      if (!idPersona) {
+        return res.status(401).json({ message: "No se encontró el peluquero logueado" });
       }
-    );
-    res.status(200).json({ count: atenciones.length });
-  } catch (err: any) {
-    console.error(err);
-    res.status(500).json({ message: err.message || "Error al obtener atenciones pendientes de hoy" });
+      const peluquero = await em.findOneOrFail(Persona, { idPersona, type: "peluquero" });
+      const hoy = DateTime.now().setZone("America/Argentina/Buenos_Aires").startOf("day").toJSDate();
+      const manana = DateTime.now().setZone("America/Argentina/Buenos_Aires").endOf("day").toJSDate();
+      const atenciones = await em.find(
+        Atencion,
+        {
+          peluquero: { idPersona: peluquero.idPersona },
+          estado: "pendiente",
+          horaInicio: { $gte: hoy, $lt: manana }, 
+        },
+        {
+          populate: ["cliente", "atencionServicios", "atencionServicios.servicio"],
+        }
+      );
+      res.status(200).json({ count: atenciones.length });
+    } catch (err: any) {
+      console.error(err);
+      res.status(500).json({ message: err.message || "Error al obtener atenciones pendientes de hoy" });
+    }
   }
-}
 
-export async function atencionesCompletadasHoy(req: Request, res: Response) {
-  try {
-    const idPersona = req.user?.id;
-    if (!idPersona) return res.status(401).json({ message: "No se encontró el peluquero logueado" });
+  export async function atencionesCompletadasHoy(req: Request, res: Response) {
+    try {
+      const idPersona = req.user?.id;
+      if (!idPersona) return res.status(401).json({ message: "No se encontró el peluquero logueado" });
 
-    const peluquero = await em.findOneOrFail(Persona, { idPersona, type: "peluquero" });
+      const peluquero = await em.findOneOrFail(Persona, { idPersona, type: "peluquero" });
 
-    const hoy = DateTime.now().setZone("America/Argentina/Buenos_Aires").startOf("day").toJSDate();
-    const manana = DateTime.now().setZone("America/Argentina/Buenos_Aires").endOf("day").toJSDate();
+      const hoy = DateTime.now().setZone("America/Argentina/Buenos_Aires").startOf("day").toJSDate();
+      const manana = DateTime.now().setZone("America/Argentina/Buenos_Aires").endOf("day").toJSDate();
 
-    const atenciones = await em.find(
-      Atencion,
-      {
-        peluquero: { idPersona: peluquero.idPersona },
-        estado: "finalizado",
-        horaInicio: { $gte: hoy, $lt: manana },
-      },
-      { populate: ["cliente", "atencionServicios", "atencionServicios.servicio"] }
-    );
+      const atenciones = await em.find(
+        Atencion,
+        {
+          peluquero: { idPersona: peluquero.idPersona },
+          estado: "finalizado",
+          horaInicio: { $gte: hoy, $lt: manana },
+        },
+        { populate: ["cliente", "atencionServicios", "atencionServicios.servicio"] }
+      );
 
-    res.status(200).json({ count: atenciones.length });
-  } catch (err: any) {
-    console.error("Error al obtener atenciones completadas de hoy:", err);
-    res.status(500).json({ message: err.message || "Error al obtener atenciones completadas de hoy" });
+      res.status(200).json({ count: atenciones.length });
+    } catch (err: any) {
+      console.error("Error al obtener atenciones completadas de hoy:", err);
+      res.status(500).json({ message: err.message || "Error al obtener atenciones completadas de hoy" });
+    }
   }
-}
 
-export async function gananciasHoy(req: Request, res: Response) {
-  try {
-    const idPersona = req.user?.id;
-    if (!idPersona) return res.status(401).json({ message: "No se encontró el peluquero logueado" });
+  export async function gananciasHoy(req: Request, res: Response) {
+    try {
+      const idPersona = req.user?.id;
+      if (!idPersona) return res.status(401).json({ message: "No se encontró el peluquero logueado" });
 
-    const peluquero = await em.findOneOrFail(Persona, { idPersona, type: "peluquero" });
+      const peluquero = await em.findOneOrFail(Persona, { idPersona, type: "peluquero" });
 
-    const hoy = DateTime.now().setZone("America/Argentina/Buenos_Aires").startOf("day").toJSDate();
-    const manana = DateTime.now().setZone("America/Argentina/Buenos_Aires").endOf("day").toJSDate();
+      const hoy = DateTime.now().setZone("America/Argentina/Buenos_Aires").startOf("day").toJSDate();
+      const manana = DateTime.now().setZone("America/Argentina/Buenos_Aires").endOf("day").toJSDate();
 
-    const atenciones = await em.find(
-      Atencion,
-      {
+      const atenciones = await em.find(
+        Atencion,
+        {
         peluquero: { idPersona: peluquero.idPersona },
         estado: "finalizado",
         horaInicio: { $gte: hoy, $lt: manana },
@@ -394,5 +396,46 @@ export async function turnosHoy(req: Request, res: Response) {
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Error al obtener turnos del día" });
+  }
+}
+
+export async function verificarDescuentoCliente(req: Request, res: Response) {
+  try {
+    const idPersona = Number(req.params.idPersona);
+    
+    // 1. Contamos cuántas atenciones FINALIZADAS tiene el cliente
+    // (Asegúrate de que el string sea "finalizado" o "finalizada" según tu DB)
+    const totalFinalizadas = await em.count(Atencion, {
+      cliente: { idPersona },
+      estado: "finalizado" 
+    });
+
+    // 2. Buscamos TODOS los descuentos activos
+    const descuentosDisponibles = await em.find(Descuento, { estado: true });
+
+    // 3. Buscamos si alguno de los descuentos coincide con la cantidad de visitas del cliente
+    // Esto lo hace 100% dinámico. Si en la DB cambias el 3 por un 5, sigue funcionando.
+    const descuentoParaAplicar = descuentosDisponibles.find(
+      d => d.cantAtencionNecesaria === totalFinalizadas
+    );
+
+    if (descuentoParaAplicar) {
+      return res.status(200).json({
+        aplicaDescuento: true,
+        descuento: descuentoParaAplicar
+      });
+    }
+
+    // Si no aplica, calculamos cuánto falta para el descuento más cercano
+    // (Opcional, pero sirve para darle feedback al usuario en el front)
+    return res.status(200).json({
+      aplicaDescuento: false,
+      descuento: null,
+      visitasActuales: totalFinalizadas
+    });
+
+  } catch (error: any) {
+    console.error("Error en verificarDescuentoCliente:", error);
+    return res.status(500).json({ message: error.message });
   }
 }
