@@ -7,6 +7,8 @@ import { generarBloques } from "../bloque/bloque.controller.js";
 import { AtSer } from "../atencion-servicio/atSer.entity.js";
 import { Servicio } from "../servicio/servicio.entity.js";
 import { DateTime } from "luxon";
+import { sendDiscountMail } from "../mailer.js";
+import { Descuento } from "../descuento/descuento.entity.js";
 
 const em = orm.em;
 
@@ -158,13 +160,13 @@ export async function cancelarAtencion(req: Request, res: Response) {
 export async function finalizarAtencion(req: Request, res: Response) {
     try {
         const idAtencion = parseInt(req.params.idAtencion as string, 10);
-        const descripcion = req.body as { descripcion?: string}
+        const descripcion = req.body as { descripcion?: string};
 
         if (isNaN(idAtencion) || idAtencion <= 0) {
             return res.status(400).json({ message: "ID de Atención no válido." });
         }
 
-        const atencion = await em.findOneOrFail(Atencion, { idAtencion });
+        const atencion = await em.findOneOrFail(Atencion, { idAtencion }, { populate: ['cliente']});
 
         atencion.estado = "finalizado"; 
         if(descripcion){
@@ -172,6 +174,22 @@ export async function finalizarAtencion(req: Request, res: Response) {
         }
 
         await em.persistAndFlush(atencion);
+
+        const cliente = atencion.cliente;
+        const totalAtenciones = await em.count(Atencion, {cliente});
+        const descuentos = await em.find(Descuento, {estado: true});
+
+        const desbloqueados: number[] = [];
+
+        for (const d of descuentos) {
+          if (totalAtenciones % d.cantAtencionNecesaria == 0) {
+            desbloqueados.push(d.porcentaje);
+          }
+        }
+
+        if (desbloqueados.length > 0) {
+          await sendDiscountMail(cliente.email, desbloqueados);
+        }
 
         return res.status(200).json({ 
             message: `Atención ${idAtencion} registrada como finalizada.`
