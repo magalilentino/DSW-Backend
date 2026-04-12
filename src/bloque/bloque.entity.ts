@@ -4,10 +4,10 @@ import {
   Property,
   Rel,
   PrimaryKey,
-  Enum
-} from '@mikro-orm/core';
-import { Atencion } from '../atencion/atencion.entity.js';
-import { Persona } from '../persona/persona.entity.js';
+  Enum,
+} from "@mikro-orm/core";
+import { Atencion } from "../atencion/atencion.entity.js";
+import { Persona } from "../persona/persona.entity.js";
 
 @Entity()
 export class Bloque {
@@ -15,20 +15,20 @@ export class Bloque {
   id!: number;
 
   @Property()
-  fecha!: Date; 
+  fecha!: Date;
 
-  @Property({ fieldName: 'hora_inicio' })
-  horaInicio!: string; 
+  @Property({ fieldName: "hora_inicio" })
+  horaInicio!: string;
 
-  @Property({ fieldName: 'hora_fin' })
-  horaFin!: string; 
+  @Property({ fieldName: "hora_fin" })
+  horaFin!: string;
 
-  @ManyToOne(() => Persona, { fieldName: 'peluquero' })
+  @ManyToOne(() => Persona, { fieldName: "peluquero" })
   peluquero!: Rel<Persona>;
 
-  @Enum(() => ["libre", "ocupado"])
-  estado: "libre" | "ocupado" = "libre";
+  @Enum(() => ["libre", "ocupado", "bloqueado"])
+  estado: "libre" | "ocupado" | "bloqueado" = "libre";
 
-  @ManyToOne(() => Atencion, { fieldName: 'atencion', nullable: true })
+  @ManyToOne(() => Atencion, { fieldName: "atencion", nullable: true })
   atencion?: Rel<Atencion>;
 }

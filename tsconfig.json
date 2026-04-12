@@ -1,11 +1,11 @@
 {
-   "compilerOptions": {
+  "compilerOptions": {
     "incremental": true,
     "target": "es2020",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "sourceMap": true,
-    "rootDir": "./src", 
+    "rootDir": "./src",
     "outDir": "./dist",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
@@ -14,8 +14,15 @@
     "skipLibCheck": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "typeRoots": ["./node_modules/@types", "./src/types"]
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types"
+    ]
   },
-  "include": ["src/**/*", "**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }
