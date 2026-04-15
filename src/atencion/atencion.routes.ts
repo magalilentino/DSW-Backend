@@ -10,14 +10,14 @@ import {
     atencionesCompletadasHoy, 
     atencionesPendientesHoy, 
     gananciasHoy,
-    verificarDescuentoCliente // <-- Agregado aquí
+    verificarDescuentoCliente 
 } from "./atencion.controller.js";
 import { verificarToken } from "../persona/persona.controller.js";
 
 export const AtencionRouter = Router()
 
 AtencionRouter.post("/crear", verificarToken, crearAtencion);
-AtencionRouter.get("/check-descuento/:idPersona", verificarToken, verificarDescuentoCliente); // <-- Ubicación ideal
+AtencionRouter.get("/verificar-descuento/:idPersona", verificarToken, verificarDescuentoCliente);
 
 AtencionRouter.get("/historico/:idPersona", verificarToken, getHistoricoByCliente);
 AtencionRouter.get("/pendientes/:idPersona", verificarToken, getPendientesByCliente);
