@@ -375,16 +375,34 @@ export async function turnosHoy(req: Request, res: Response) {
 
     const hoy = DateTime.now().setZone("America/Argentina/Buenos_Aires").startOf("day").toJSDate();
     const manana = DateTime.now().setZone("America/Argentina/Buenos_Aires").endOf("day").toJSDate();
+    const servicioFiltro = req.query.servicio ? Number(req.query.servicio): undefined;
+
+    // 🔹 Filtros base
+    const filtros: any = {
+      peluquero: { idPersona: peluquero.idPersona },
+      estado: "pendiente",
+      horaInicio: { $gte: hoy, $lt: manana },
+    };
+
+    // 🔹 Filtro por servicio (solo si viene)
+    if (servicioFiltro) {
+      filtros.atencionServicios = {
+        servicio: {
+          codServicio: servicioFiltro,
+        },
+      };
+    }
 
     const atenciones = await em.find(
-      Atencion,
+      Atencion, filtros,
       {
-        peluquero: { idPersona: peluquero.idPersona },
-        estado: "pendiente",
-        horaInicio: { $gte: hoy, $lt: manana },
-      },
-      { populate: ["cliente", "atencionServicios", "atencionServicios.servicio"], orderBy: { horaInicio: "ASC" } }
-    );
+      populate: [
+        "cliente",
+        "atencionServicios",
+        "atencionServicios.servicio",
+      ],
+      orderBy: { horaInicio: "ASC" },
+    });
 
     const result = atenciones.map(a => ({
       hora: DateTime.fromJSDate(a.horaInicio).setZone("America/Argentina/Buenos_Aires").toFormat("HH:mm"),
