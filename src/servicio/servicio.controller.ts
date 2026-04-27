@@ -115,7 +115,7 @@ export const listarServiciosPorPrecio = async (req: Request, res: Response) => {
     const servicios = await em.find(
       Servicio,
       {
-        precio: { $gte: min, $lte: max }, 
+        precio: { $gte: min, $lte: max }, activo: true,
       },
       {
         fields: [

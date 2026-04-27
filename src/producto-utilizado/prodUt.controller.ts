@@ -71,13 +71,12 @@ export async function registrarProdsUt( req: Request, res: Response) {
               }else {
                   atSerEntity.tono = null; 
               }
-
-              await tx.persistAndFlush(atSerEntity);
+              
           }else{ 
               return res.status(404).json({ message: "El Servicio-Atención (AtSer) no existe." });
           }
 
-          await em.nativeDelete(ProdUt, { atSer: atSerEntity});
+          await tx.nativeDelete(ProdUt, { atSer: atSerEntity});
 
           const productosAInsertar = prodMars
           .filter(p => p.cantidad > 0)
@@ -88,10 +87,11 @@ export async function registrarProdsUt( req: Request, res: Response) {
               cantidad: p.cantidad,
             });
           });
+          atSerEntity.modificado = true;
 
           if (productosAInsertar.length > 0) {
-              await em.persist(productosAInsertar).flush();
-          }
+              await tx.persistAndFlush([atSerEntity, ...productosAInsertar]);
+            }
             
     });
         return res.status(200).json({ 

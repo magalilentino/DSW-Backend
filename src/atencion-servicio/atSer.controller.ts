@@ -41,7 +41,13 @@ export async function ServiciosPorAtencion(req: Request, res: Response) {
         { atencion: atencion},
         { populate: [ 'productosUtilizados', 'atencion', 'servicio']}
         )
-        res.status(200).json({ message: 'found all servicios - atenciones ', data: serviciosAten })
+        const result = serviciosAten.map((as) => ({
+        idAtSer: as.idAtSer,
+        nombreServicio: as.servicio?.nombreServicio,
+        modificado: as.modificado
+        }));
+        
+        res.status(200).json({ message: 'found all servicios - atenciones ', data: result })
     } catch (error: any) {
         res.status(500).json({ message: error.message })
     }
