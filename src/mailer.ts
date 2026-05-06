@@ -20,6 +20,6 @@ export async function sendDiscountMail(mailCliente: string, descuentos: number[]
       <p>Felicitaciones 🎉</p>
       <p>Desbloqueaste los siguientes descuentos:
       <ul>${lista}</ul>
-      <p>Podrás usarlos en tu próxima visita y en cualquier servicio.</p>`,
+      <p>Podrás usarlos en tu próximo turno, se aplicará cuando no tengas turnos pendientes.”</p>`,
   });
 }

@@ -17,7 +17,7 @@ import { verificarToken } from "../persona/persona.controller.js";
 export const AtencionRouter = Router()
 
 AtencionRouter.post("/crear", verificarToken, crearAtencion);
-AtencionRouter.get("/verificar-descuento/:idPersona", verificarToken, verificarDescuentoCliente);
+AtencionRouter.post("/verificar-descuento/:idPersona", verificarToken, verificarDescuentoCliente);
 
 AtencionRouter.get("/historico/:idPersona", verificarToken, getHistoricoByCliente);
 AtencionRouter.get("/pendientes/:idPersona", verificarToken, getPendientesByCliente);

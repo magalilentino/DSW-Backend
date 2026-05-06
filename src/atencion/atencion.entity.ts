@@ -41,7 +41,4 @@ export class Atencion {
 
   @OneToMany(() => AtSer, atSer => atSer.atencion, { cascade: [Cascade.ALL] })
     atencionServicios = new Collection<AtSer>(this);
-
-  @ManyToMany(() => Descuento, descuento => descuento.atenciones, { cascade: [Cascade.ALL], owner: true }) 
-    descuentos = new Collection<Descuento>(this);
 }  
