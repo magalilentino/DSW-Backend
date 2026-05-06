@@ -30,6 +30,9 @@ export class AtSer {
   @OneToMany(() => ProdUt, prodUt => prodUt.atSer, { cascade: [Cascade.ALL] })
   productosUtilizados = new Collection<ProdUt>(this);
 
+  @Property({ nullable: false })
+  modificado: boolean = false; 
+
 }
 
   
