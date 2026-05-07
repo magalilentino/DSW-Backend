@@ -7,7 +7,7 @@ import { generarBloques } from "../bloque/bloque.controller.js";
 import { AtSer } from "../atencion-servicio/atSer.entity.js";
 import { Servicio } from "../servicio/servicio.entity.js";
 import { DateTime } from "luxon";
-import { sendDiscountMail } from "../mailer.js";
+import { sendDiscountMail, sendVisitPreparationMail } from "../mailer.js";
 import { Descuento } from "../descuento/descuento.entity.js";
 
 const em = orm.em;
@@ -47,14 +47,21 @@ export async function crearAtencion(req: Request, res: Response) {
 
     // --- LÓGICA DE SERVICIOS ---
     if (Array.isArray(servicios)) {
+      let requierePreparacion = false;
       for (const codServicio of servicios) {
         const servicio = await em.findOneOrFail(Servicio, { codServicio });
         const atSer = new AtSer();
         atSer.atencion = atencion;
         atSer.servicio = servicio;
         atencion.atencionServicios.add(atSer);
+        if (servicio.requiereTono) {
+          requierePreparacion = true
+        }
       }
       await em.persistAndFlush(atencion);
+      if (requierePreparacion) {
+        await sendVisitPreparationMail(cliente.email);
+      }
     }
 
     // --- LÓGICA DE BLOQUES (GENERACIÓN Y OCUPACIÓN) ---

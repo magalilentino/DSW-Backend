@@ -14,7 +14,9 @@ export function sanitizeServicioInput(
     descripcion: req.body.descripcion,
     cantTurnos: Number(req.body.cantTurnos),
     precio: Number(req.body.precio),
-    activo: true,
+    activo: req.body.activo,
+    requiereTono: req.body.requiereTono,
+
   };
   Object.keys(req.body.sanitizedInput).forEach((key) => {
     if (req.body.sanitizedInput[key] === undefined) {
