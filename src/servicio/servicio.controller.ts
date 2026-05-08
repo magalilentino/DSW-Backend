@@ -75,7 +75,7 @@ export async function findAllAyD(req: Request, res: Response) {
 
 export async function findOne(req: Request, res: Response) {
   try {
-    const codServicio = Number.parseInt(req.params.codServicio);
+    const codServicio = Number.parseInt(req.params.codServicio as string);
     const servicio = await em.findOneOrFail(Servicio, { codServicio }, {});
     res.status(200).json({ message: "found servicio", data: servicio });
   } catch (error: any) {
@@ -85,7 +85,7 @@ export async function findOne(req: Request, res: Response) {
 
 export async function update(req: Request, res: Response) {
   try {
-    const codServicio = Number.parseInt(req.params.codServicio);
+    const codServicio = Number.parseInt(req.params.codServicio as string);
     const servicioToUpdate = await em.findOneOrFail(Servicio, { codServicio });
     em.assign(servicioToUpdate, req.body.sanitizedInput);
     await em.flush();
@@ -99,7 +99,7 @@ export async function update(req: Request, res: Response) {
 
 export async function remove(req: Request, res: Response) {
   try {
-    const codServicio = Number.parseInt(req.params.codServicio);
+    const codServicio = Number.parseInt(req.params.codServicio as string);
     const servicio = await em.findOneOrFail(Servicio, { codServicio });
     servicio.activo = false; 
     await em.flush();

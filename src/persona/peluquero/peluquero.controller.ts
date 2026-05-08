@@ -40,7 +40,7 @@ export async function findAllPeluquero(req: Request, res: Response) {
 
 export async function findOnePeluquero(req: Request, res: Response) {
   try {
-    const idPersona = Number.parseInt(req.params.idPersona)
+    const idPersona = Number.parseInt(req.params.idPersona as string)
     const peluquero = await em.findOneOrFail(Persona,{ idPersona, type: 'peluquero'})
     res.status(200).json({ message: 'found peluquero', data: peluquero })
   } catch (error: any) {
@@ -63,7 +63,7 @@ export async function add(req: Request, res: Response) {
 
 export async function update(req: Request, res: Response) {
   try {
-    const idPersona = Number.parseInt(req.params.idPersona)
+    const idPersona = Number.parseInt(req.params.idPersona as string)
     const peluqueroToUpdate = await em.findOneOrFail(Persona, { idPersona, type: 'peluquero' })
     em.assign(peluqueroToUpdate, req.body.sanitizedInput)
     await em.flush()
@@ -77,7 +77,7 @@ export async function update(req: Request, res: Response) {
 
 export async function remove(req: Request, res: Response) {
   try {
-    const idPersona = Number.parseInt(req.params.idPersona)
+    const idPersona = Number.parseInt(req.params.idPersona as string)
     const peluquero = await em.findOneOrFail(Persona,{ idPersona, type: 'peluquero' })  
     await em.removeAndFlush(peluquero)
     res.status(200).send({ message: 'peluquero deleted' })

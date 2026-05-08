@@ -40,7 +40,7 @@ async function findAll(req: Request, res: Response) {
 
 async function findOne(req: Request, res: Response) {
   try {
-    const idPersona = Number.parseInt(req.params.idPersona)
+    const idPersona = Number.parseInt(req.params.idPersona as string)
     const cliente = await em.findOneOrFail(Persona,{ idPersona, type: 'cliente' })
     res.status(200).json({ message: 'found cliente', data: cliente })
   } catch (error: any) {
@@ -63,7 +63,7 @@ async function add(req: Request, res: Response) {
 
 async function update(req: Request, res: Response) {
   try {
-    const idPersona = Number.parseInt(req.params.idPersona)
+    const idPersona = Number.parseInt(req.params.idPersona as string)
     const clienteToUpdate = await em.findOneOrFail(Persona, { idPersona })
     em.assign(clienteToUpdate, req.body.sanitizedInput)
     await em.flush()
@@ -77,7 +77,7 @@ async function update(req: Request, res: Response) {
 
 async function remove(req: Request, res: Response) {
   try {
-    const idPersona = Number.parseInt(req.params.idPersona)
+    const idPersona = Number.parseInt(req.params.idPersona as string)
     const cliente = await em.findOneOrFail(Persona,{ idPersona})  
     await em.removeAndFlush(cliente)
     res.status(200).send({ message: 'cliente deleted' })

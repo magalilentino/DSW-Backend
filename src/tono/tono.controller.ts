@@ -67,7 +67,7 @@ async function tonosDeServicio(req: Request, res: Response) {
 
 async function findOne(req: Request, res: Response) {
   try {
-    const idTono = Number.parseInt(req.params.idTono);
+    const idTono = Number.parseInt(req.params.idTono as string);
     const tono = await em.findOne(Tono, { idTono });
 
     if (!tono) {
@@ -122,7 +122,7 @@ async function add(req: Request, res: Response) {
 
 async function update(req: Request, res: Response) {
   try {
-    const idTono = Number.parseInt(req.params.idTono)
+    const idTono = Number.parseInt(req.params.idTono as string)
     const turnoToUpdate = await em.findOneOrFail(Tono, { idTono })
     em.assign(turnoToUpdate, req.body.sanitizedInput)
     await em.flush()
@@ -136,7 +136,7 @@ async function update(req: Request, res: Response) {
 
 async function remove(req: Request, res: Response) {
   try {
-    const idTono = Number.parseInt(req.params.idTono);
+    const idTono = Number.parseInt(req.params.idTono as string);
     const tono = await em.findOne(Tono, { idTono }, { populate: ['formulas'] });
 
     if (!tono) {

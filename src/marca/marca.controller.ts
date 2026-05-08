@@ -21,7 +21,7 @@ async function findAll(req: Request, res: Response) {
 
 async function findOne(req: Request, res: Response) {
   try {
-    const idMarca = Number.parseInt(req.params.idMarca)
+    const idMarca = Number.parseInt(req.params.idMarca as string)
     const marca = await em.findOneOrFail(Marca, { idMarca },
     { populate: ['productosMarcas'] }
     )   
@@ -47,7 +47,7 @@ async function add(req: Request, res: Response) {
 
 async function update(req: Request, res: Response) {
   try {
-    const idMarca = Number.parseInt(req.params.idMarca)
+    const idMarca = Number.parseInt(req.params.idMarca as string)
     const marcaToUpdate = await em.findOneOrFail(Marca, {idMarca})  
     em.assign(marcaToUpdate, req.body.sanitizedInput)
     await em.flush()
@@ -59,7 +59,7 @@ async function update(req: Request, res: Response) {
 
 async function remove(req: Request, res: Response) {
   try {
-    const idMarca = Number.parseInt(req.params.idMarca);
+    const idMarca = Number.parseInt(req.params.idMarca as string);
 
     const marca = await em.findOne(Marca, { idMarca });
     if (!marca) {

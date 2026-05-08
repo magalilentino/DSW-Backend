@@ -37,7 +37,7 @@ async function findAll(req: Request, res: Response) {
 
 async function findOne(req: Request, res: Response) {
   try {
-    const idFormula = Number.parseInt(req.params.idFormula)
+    const idFormula = Number.parseInt(req.params.idFormula as string)
     const formula = await em.findOneOrFail(Formula,{ idFormula },{ populate: ['tono', 'prodMar'] })
     res.status(200).json({ message: 'found formula', data: formula })
   } catch (error: any) {
@@ -57,7 +57,7 @@ async function add(req: Request, res: Response) {
 
 async function update(req: Request, res: Response) {
   try {
-    const idFormula = Number.parseInt(req.params.idFormula)
+    const idFormula = Number.parseInt(req.params.idFormula as string)
     const formulaToUpdate = await em.findOneOrFail(Formula,{ idFormula })
     em.assign(formulaToUpdate, req.body.sanitizedInput)
     await em.flush()
@@ -71,7 +71,7 @@ async function update(req: Request, res: Response) {
 
 async function remove(req: Request, res: Response) {
   try {
-    const idFormula= Number.parseInt(req.params.idFormula)
+    const idFormula= Number.parseInt(req.params.idFormula as string)
     const formula = await em.findOneOrFail(Formula,{ idFormula })
     
     if (!formula) {
@@ -89,7 +89,7 @@ async function remove(req: Request, res: Response) {
 
 async function formulasPorTono(req: Request, res: Response) {
       try {
-        const idTono = Number.parseInt(req.params.idTono)
+        const idTono = Number.parseInt(req.params.idTono as string)
         const tono = await em.findOneOrFail(Tono, { idTono });
         const formulas = await em.find(Formula, {tono}, {populate: ['tono', 'prodMar.producto', 'prodMar.marca']});
         res.status(200).json({ message: "found all marcas del producto", data: formulas });

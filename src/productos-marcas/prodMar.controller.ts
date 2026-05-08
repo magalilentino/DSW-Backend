@@ -39,7 +39,7 @@ export async function findAll(req: Request, res: Response) {
 
 export async function marcasPorProd(req: Request, res: Response) {
       try {
-        const idProducto = Number.parseInt(req.params.idProducto)
+        const idProducto = Number.parseInt(req.params.idProducto as string)
         const producto = await em.findOneOrFail(Producto, { idProducto });
         const prodMarcas = await em.find(ProdMar, {producto, activo:true}, {populate: ['producto', 'marca']});
         res.status(200).json({ message: "found all marcas del producto", data: prodMarcas });
