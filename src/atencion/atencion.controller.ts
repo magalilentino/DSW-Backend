@@ -7,7 +7,7 @@ import { generarBloques } from "../bloque/bloque.controller.js";
 import { AtSer } from "../atencion-servicio/atSer.entity.js";
 import { Servicio } from "../servicio/servicio.entity.js";
 import { DateTime } from "luxon";
-import { sendDiscountMail } from "../mailer.js";
+import { sendDiscountMail, sendVisitPreparationMail } from "../mailer.js";
 import { Descuento } from "../descuento/descuento.entity.js";
 import { validarUsuarioLogueado } from './validarTurnosHoy.js';
 
@@ -15,7 +15,7 @@ const em = orm.em;
 
 export async function crearAtencion(req: Request, res: Response) {
   try {
-    const { clienteId, peluqueroId, fecha, horaInicio, duracion, servicios, idDescuento } = req.body;
+    const { clienteId, peluqueroId, fecha, horaInicio, duracion, servicios } = req.body;//, idDescuento
 
     const cliente = await em.findOneOrFail(Persona, { idPersona: clienteId });
     const peluquero = await em.findOneOrFail(Persona, { idPersona: peluqueroId });
@@ -34,28 +34,35 @@ export async function crearAtencion(req: Request, res: Response) {
     });
 
     // --- LÓGICA DE DESCUENTO ---
-    if (idDescuento) {
-      // Buscamos el descuento por su ID para vincularlo
-      const descuentoExistente = await em.findOne(Descuento, { idDescuento });
-      if (descuentoExistente) {
-        // Importante: Asegúrate de que en tu entidad Atencion, 
-        // la relación se llame 'descuentos'
-        atencion.descuentos.add(descuentoExistente);
-      }
-    }
+    // if (idDescuento) {
+    //   // Buscamos el descuento por su ID para vincularlo
+    //   const descuentoExistente = await em.findOne(Descuento, { idDescuento });
+    //   if (descuentoExistente) {
+    //     // Importante: Asegúrate de que en tu entidad Atencion, 
+    //     // la relación se llame 'descuentos'
+    //     atencion.descuentos.add(descuentoExistente);
+    //   }
+    // }
 
     await em.persistAndFlush(atencion);
 
     // --- LÓGICA DE SERVICIOS ---
     if (Array.isArray(servicios)) {
+      let requierePreparacion = false;
       for (const codServicio of servicios) {
         const servicio = await em.findOneOrFail(Servicio, { codServicio });
         const atSer = new AtSer();
         atSer.atencion = atencion;
         atSer.servicio = servicio;
         atencion.atencionServicios.add(atSer);
+        if (servicio.requiereTono) {
+          requierePreparacion = true
+        }
       }
       await em.persistAndFlush(atencion);
+      if (requierePreparacion) {
+        await sendVisitPreparationMail(cliente.email);
+      }
     }
 
     // --- LÓGICA DE BLOQUES (GENERACIÓN Y OCUPACIÓN) ---
@@ -96,7 +103,7 @@ export async function crearAtencion(req: Request, res: Response) {
     const atencionConServicios = await em.findOneOrFail(
       Atencion,
       { idAtencion: atencion.idAtencion },
-      { populate: ["cliente", "peluquero", "atencionServicios", "atencionServicios.servicio", "descuentos"] }
+      { populate: ["cliente", "peluquero", "atencionServicios", "atencionServicios.servicio"] }//, "descuentos"
     );
 
     return res.status(201).json({
@@ -179,16 +186,8 @@ export async function finalizarAtencion(req: Request, res: Response) {
     await em.persistAndFlush(atencion);
 
     const cliente = atencion.cliente;
-    const totalAtenciones = await em.count(Atencion, { cliente });
-    const descuentos = await em.find(Descuento, { estado: true });
 
-    const desbloqueados: number[] = [];
-
-    for (const d of descuentos) {
-      if (totalAtenciones % d.cantAtencionNecesaria == 0) {
-        desbloqueados.push(d.porcentaje);
-      }
-    }
+    const desbloqueados: number[] = await obtenerDescuentos(cliente);
 
     if (desbloqueados.length > 0) {
       await sendDiscountMail(cliente.email, desbloqueados);
@@ -202,6 +201,27 @@ export async function finalizarAtencion(req: Request, res: Response) {
     console.error("Error al finalizar atención:", error);
     return res.status(500).json({ message: "Error interno del servidor." });
   }
+}
+
+async function obtenerDescuentos(cliente:Persona, validarPendientes: boolean = false) {
+  if (validarPendientes) {
+    const pendientes = await em.count(Atencion, { cliente, estado: "pendiente" });
+    if (pendientes > 0) {
+      return []; 
+    }
+  }
+  const totalAtenciones = await em.count(Atencion, { cliente, estado: "finalizado" });
+  const descuentos = await em.find(Descuento, { estado: true });
+
+  const desbloqueados: number[] = [];
+
+  for (const d of descuentos) {
+    if (totalAtenciones % d.cantAtencionNecesaria == 0) {
+      desbloqueados.push(d.porcentaje);
+    }
+  }
+
+  return desbloqueados;
 }
 
 export async function getHistoricoByCliente(req: Request, res: Response) {
@@ -428,37 +448,51 @@ export async function turnosHoy(req: Request, res: Response) {
 export async function verificarDescuentoCliente(req: Request, res: Response) {
   try {
     const idPersona = Number(req.params.idPersona);
-
-    // 1. Contamos cuántas atenciones FINALIZADAS tiene el cliente
-    // (Asegúrate de que el string sea "finalizado" o "finalizada" según tu DB)
-    const totalFinalizadas = await em.count(Atencion, {
-      cliente: { idPersona },
-      estado: "finalizado"
-    });
-
-    // 2. Buscamos TODOS los descuentos activos
-    const descuentosDisponibles = await em.find(Descuento, { estado: true });
-
-    // 3. Buscamos si alguno de los descuentos coincide con la cantidad de visitas del cliente
-    // Esto lo hace 100% dinámico. Si en la DB cambias el 3 por un 5, sigue funcionando.
-    const descuentoParaAplicar = descuentosDisponibles.find(
-      d => d.cantAtencionNecesaria === totalFinalizadas
-    );
-
-    if (descuentoParaAplicar) {
-      return res.status(200).json({
-        aplicaDescuento: true,
-        descuento: descuentoParaAplicar
-      });
+    const servicios = req.body.servicios; 
+    if (!Array.isArray(servicios)) {
+      return res.status(400).json({ message: "Servicios requeridos" });
     }
 
-    // Si no aplica, calculamos cuánto falta para el descuento más cercano
-    // (Opcional, pero sirve para darle feedback al usuario en el front)
+    const cliente = await em.findOneOrFail(Persona, { idPersona });
+
+    const desbloqueados: number[] = await obtenerDescuentos(cliente, true);
+
+    let subtotal = 0;
+    for (const codServicio of servicios) {
+      const servicio = await em.findOneOrFail(Servicio, { codServicio });
+      subtotal += servicio.precio;
+    }
+
+    let precioFinal = subtotal;
+    let maxDescuento = null;
+    if (desbloqueados.length > 0) {
+      // si hay varios descuentos, aplico solo el de mayor valor.
+      maxDescuento = Math.max(...desbloqueados);
+      precioFinal -= (subtotal * maxDescuento / 100);
+    }
+
     return res.status(200).json({
-      aplicaDescuento: false,
-      descuento: null,
-      visitasActuales: totalFinalizadas
+      aplicaDescuento: maxDescuento !== null,
+      porcentaje: maxDescuento,
+      subtotal,
+      precioTotal: precioFinal
     });
+    
+   
+    // if (descuentoParaAplicar) {
+    //   return res.status(200).json({
+    //     aplicaDescuento: true,
+    //     descuento: descuentoParaAplicar
+    //   });
+    // }
+
+    // // Si no aplica, calculamos cuánto falta para el descuento más cercano
+    // // (Opcional, pero sirve para darle feedback al usuario en el front)
+    // return res.status(200).json({
+    //   aplicaDescuento: false,
+    //   descuento: null,
+    //   visitasActuales: totalFinalizadas
+    // });
 
   } catch (error: any) {
     console.error("Error en verificarDescuentoCliente:", error);
