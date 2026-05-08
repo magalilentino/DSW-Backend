@@ -1,5 +1,6 @@
 import { Router } from 'express'
-import { findAll, findOne, add, update, remove, sanitizeMarcaInput } from './marca.controller.js'
+import { findAll, findOne, add, update, remove} from './marca.controller.js'
+import { sanitizeMarcaInput } from "./sanitizeMarcaInput.js";
 
 export const MarcaRouter = Router()
 

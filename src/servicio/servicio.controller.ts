@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { Servicio } from "./servicio.entity.js";
 import { orm } from "../shared/orm.js";
+import { validarCrearServicio, validarNombreDuplicado } from './validarServicio.js';
 
 const em = orm.em;
 
@@ -27,19 +28,18 @@ export function sanitizeServicioInput(
 export async function add(req: Request, res: Response) {
   try {
     const input = req.body.sanitizedInput;
-    console.log(input);
-    if (
-      !input.nombreServicio ||
-      !input.precio ||
-      input.precio <= 0 ||
-      !input.cantTurnos ||
-      input.cantTurnos <= 0
-    ) {
-      return res.status(400).json({
-        message:
-          "El nombre, el precio y la duración (cantTurnos) son obligatorios y deben ser valores válidos.",
-      });
+
+    const validacion = validarCrearServicio(input);
+    if (!validacion.valido) {
+      return res.status(validacion.status).json({ message: validacion.message });
     }
+
+    const servicioExistente = await em.findOne(Servicio, { nombreServicio: input.nombreServicio });
+    const validacionNombre = validarNombreDuplicado(input.nombreServicio, servicioExistente);
+    if (!validacionNombre.valido) {
+      return res.status(validacionNombre.status).json({ message: validacionNombre.message });
+    }
+
     const servicio = em.create(Servicio, input);
     await em.flush();
     res

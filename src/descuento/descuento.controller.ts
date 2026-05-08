@@ -30,7 +30,6 @@ async function findAll(req: Request, res: Response) {
 
 async function findOne(req: Request, res: Response) {
   try {
-    // CAMBIO CLAVE: req.params.idDescuento para que coincida con tu Router
     const idDescuento = Number.parseInt(req.params.idDescuento) 
     const descuento = await em.findOneOrFail(Descuento, { idDescuento })
     res.status(200).json({ message: 'found descuento', data: descuento })
@@ -51,7 +50,6 @@ async function add(req: Request, res: Response) {
 
 async function update(req: Request, res: Response) {
   try {
-    // CAMBIO CLAVE: req.params.idDescuento para que coincida con tu Router
     const idDescuento = Number.parseInt(req.params.idDescuento)
     const descuentoToUpdate = await em.findOneOrFail(Descuento, { idDescuento })
     
@@ -66,8 +64,7 @@ async function update(req: Request, res: Response) {
 
 async function remove(req: Request, res: Response) {
   try {
-    // CAMBIO CLAVE: req.params.idDescuento para que coincida con tu Router
-    const idDescuento = Number.parseInt(req.params.idDescuento)
+    const idDescuento = Number.parseInt(req.params.idDescuento )
     const descuento = await em.findOneOrFail(Descuento, { idDescuento })
     await em.removeAndFlush(descuento)
     res.status(200).json({ message: 'descuento deleted' })

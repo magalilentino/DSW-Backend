@@ -26,7 +26,6 @@ async function findAll(req: Request, res: Response) {
     const categorias = await em.find(
       Categoria,
       {}
-      //{ populate: ['tonos', 'productos', 'precios', 'clientes'] }
     )
     res.status(200).json({ message: 'found all categoria', data: categorias })
   } catch (error: any) {
@@ -40,7 +39,6 @@ async function findOne(req: Request, res: Response) {
     const categoria = await em.findOneOrFail(
       Categoria,
       { idCategoria }
-      //{ populate: ['tonos', 'productos', 'precios', 'clientes'] }
     )
     res.status(200).json({ message: 'found categoria', data: categoria })
   } catch (error: any) {
@@ -75,7 +73,7 @@ async function update(req: Request, res: Response) {
 
 async function remove(req: Request, res: Response) {
   try {
-    const idCategoria = Number(req.params.idCategoria);
+    const idCategoria = Number.parseInt(req.params.idCategoria);
 
     const categoria = await em.findOne(Categoria, { idCategoria });
     if (!categoria) {
