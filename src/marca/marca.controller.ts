@@ -5,22 +5,6 @@ import { ProdMar } from '../productos-marcas/prodMar.entity.js'
 
 const em = orm.em
 
-function sanitizeMarcaInput(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
-  req.body.sanitizedInput = {
-    nombre: req.body.nombre
-  }
- 
-  Object.keys(req.body.sanitizedInput).forEach((key) => {
-    if (req.body.sanitizedInput[key] === undefined) {
-      delete req.body.sanitizedInput[key]
-    }
-  })
-  next()
-}
 
 async function findAll(req: Request, res: Response) {
   try {
@@ -35,7 +19,7 @@ async function findAll(req: Request, res: Response) {
 
 async function findOne(req: Request, res: Response) {
   try {
-    const idMarca = Number.parseInt(req.params.idMarca)
+    const idMarca = Number.parseInt(req.params.idMarca as string)
     const marca = await em.findOneOrFail(Marca, { idMarca },
     { populate: ['productosMarcas'] }
     )   
@@ -61,7 +45,7 @@ async function add(req: Request, res: Response) {
 
 async function update(req: Request, res: Response) {
   try {
-    const idMarca = Number.parseInt(req.params.idMarca)
+    const idMarca = Number.parseInt(req.params.idMarca as string)
     const marcaToUpdate = await em.findOneOrFail(Marca, {idMarca})  
     em.assign(marcaToUpdate, req.body.sanitizedInput)
     await em.flush()
@@ -73,7 +57,7 @@ async function update(req: Request, res: Response) {
 
 async function remove(req: Request, res: Response) {
   try {
-    const idMarca = Number(req.params.idMarca);
+    const idMarca = Number.parseInt(req.params.idMarca as string);
 
     const marca = await em.findOne(Marca, { idMarca });
     if (!marca) {
@@ -100,4 +84,4 @@ async function remove(req: Request, res: Response) {
   }
 }
 
-export {sanitizeMarcaInput, findAll, findOne, add, update, remove }
+export {findAll, findOne, add, update, remove }

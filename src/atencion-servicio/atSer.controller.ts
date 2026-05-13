@@ -30,8 +30,8 @@ export async function findOne (req: Request, res: Response) {
 
 export async function ServiciosPorAtencion(req: Request, res: Response) {
     try {
-        const idAtencion = Number.parseInt(req.params.idAtencion)
-        if (!idAtencion) {
+        const idAtencion = Number.parseInt(req.params.idAtencion as string)
+        if (!idAtencion || isNaN(idAtencion)) {
             return res.status(401).json({ message: "No se encontró una atencion con ese id" });
         }
 

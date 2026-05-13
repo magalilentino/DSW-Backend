@@ -4,6 +4,7 @@ import { orm } from '../shared/orm.js'
 import { AtSer } from '../atencion-servicio/atSer.entity.js'; 
 import { Tono } from '../tono/tono.entity.js';
 import { ProdMar } from '../productos-marcas/prodMar.entity.js';
+import { validarRegistrarProdUt } from './validarRegistrarProdUt.js';
 
 const em = orm.em
 
@@ -45,20 +46,18 @@ interface ProductoPayload {
 
 export async function registrarProdsUt( req: Request, res: Response) {
     const { idAtSer } = req.params;
-    if (!idAtSer) {
-        return res.status(400).json({ message: "ID de Servicio-Atención (idAtSer) es requerido." });
-    }  
-    const idAtSerInt = parseInt(req.params.idAtSer as string, 10);
    
     const { prodMars, idTono } = req.body as { prodMars: ProductoPayload[], idTono?: number  };
 
-    if (isNaN(idAtSerInt) || idAtSerInt <= 0) {
-        return res.status(400).json({ message: "ID de Servicio-Atención no válido." });
+    const errorValidacion = validarRegistrarProdUt(idAtSer, prodMars);
+
+    if (errorValidacion) {
+        return res.status(400).json({
+            message: errorValidacion
+        });
     }
 
-    if (!Array.isArray(prodMars)) {
-        return res.status(400).json({ message: "El formato de la lista de productos es incorrecto." });
-    }
+    const idAtSerInt = parseInt(req.params.idAtSer as string, 10);
 
     try {
         await em.transactional(async (tx) => {

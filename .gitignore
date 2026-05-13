@@ -28,4 +28,6 @@ dist/**/*
 ## built vscode extensions
 *.vsix
 
+tsconfig.tsbuildinfo
+
 

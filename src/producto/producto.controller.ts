@@ -73,7 +73,7 @@ async function productosDeServicio(req: Request, res: Response) {
 
 async function findOne(req: Request, res: Response) {
   try {
-    const idProducto = Number.parseInt(req.params.idProducto)
+    const idProducto = Number.parseInt(req.params.idProducto as string)
     const producto = await em.findOneOrFail(
       Producto,
       { idProducto },
@@ -97,7 +97,7 @@ async function add(req: Request, res: Response) {
 
 async function update(req: Request, res: Response) {
   try {
-    const idProducto = Number.parseInt(req.params.idProducto)
+    const idProducto = Number.parseInt(req.params.idProducto as string)
     const productoToUpdate = await em.findOneOrFail(Producto, { idProducto })
     em.assign(productoToUpdate, req.body.sanitizedInput)
     await em.flush()
@@ -111,7 +111,7 @@ async function update(req: Request, res: Response) {
 
 async function remove(req: Request, res: Response) {
   try {
-    const idProducto = Number.parseInt(req.params.idProducto)
+    const idProducto = Number.parseInt(req.params.idProducto as string)
     const producto = await em.findOneOrFail(Producto, { idProducto }, {populate: [ 'productosMarcas']})
     const idProdMarcas = producto.productosMarcas.getIdentifiers('idPM'); 
 //caso de que no tenga productos marcas asociados 
@@ -170,7 +170,7 @@ export async function listarProductos(req: Request, res: Response) {
 
 export const detalleProducto = async (req: Request, res: Response) => {
   try {
-    const  idProducto  = Number.parseInt(req.params.idProducto);
+    const  idProducto  = Number.parseInt(req.params.idProducto as string);
 
     const producto = await em.findOne(Producto, { idProducto },  { populate: [ "categoria"] } );
 

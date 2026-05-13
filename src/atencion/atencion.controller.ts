@@ -9,6 +9,7 @@ import { Servicio } from "../servicio/servicio.entity.js";
 import { DateTime } from "luxon";
 import { sendDiscountMail, sendVisitPreparationMail } from "../mailer.js";
 import { Descuento } from "../descuento/descuento.entity.js";
+import { validarUsuarioLogueado } from './validarTurnosHoy.js';
 
 const em = orm.em;
 
@@ -387,8 +388,15 @@ export async function gananciasHoy(req: Request, res: Response) {
 
 export async function turnosHoy(req: Request, res: Response) {
   try {
-    const idPersona = req.user?.id;
-    if (!idPersona) return res.status(401).json({ message: "No se encontró el peluquero logueado" });
+    // const idPersona = req.user?.id;
+    // if (!idPersona) return res.status(401).json({ message: "No se encontró el peluquero logueado" });
+
+    const validacion = validarUsuarioLogueado(req.user);
+    if (!validacion.valido) {
+      return res.status(validacion.status).json({ message: validacion.message });
+    }
+    const idPersona = validacion.valido ? req.user!.id : 0;
+
 
     const peluquero = await em.findOneOrFail(Persona, { idPersona, type: "peluquero" });
 
