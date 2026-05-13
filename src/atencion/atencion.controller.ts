@@ -197,8 +197,7 @@ export async function finalizarAtencion(req: Request, res: Response) {
     });
 
   } catch (error: any) {
-    console.error("Error al finalizar atención:", error);
-    return res.status(500).json({ message: "Error interno del servidor." });
+    return res.status(500).json({ message: "Error al finalizar atención" });
   }
 }
 

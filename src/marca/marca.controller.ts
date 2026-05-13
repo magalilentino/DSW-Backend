@@ -2,8 +2,6 @@ import { NextFunction, Request, Response } from 'express'
 import { orm } from '../shared/orm.js'
 import { Marca } from './marca.entity.js'
 import { ProdMar } from '../productos-marcas/prodMar.entity.js'
-import { Producto } from '../producto/producto.entity.js'
-//import { t } from '@mikro-orm/core'
 
 const em = orm.em
 
@@ -31,7 +29,7 @@ async function findAll(req: Request, res: Response) {
       .status(200)
       .json({ message: 'se encontraron todas las marcas', data: marcas })
   } catch (error: any) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: "No se encontró ninguna marca"  })
   }
 }
 
@@ -45,7 +43,7 @@ async function findOne(req: Request, res: Response) {
       .status(200)
       .json({ message: 'marca encontrada', data: marca })
   } catch (error: any) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: "No se encontró ninguna marca" })
   }
 }
 
@@ -55,9 +53,9 @@ async function add(req: Request, res: Response) {
     await em.flush() 
     res
       .status(201)
-      .json({ message: 'marca creada', data: marca })
+      .json({ message: 'Marca creada correctamente', data: marca })
   } catch (error: any) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: "No se pudo crear la marca." })
   }
 }
 
@@ -67,9 +65,9 @@ async function update(req: Request, res: Response) {
     const marcaToUpdate = await em.findOneOrFail(Marca, {idMarca})  
     em.assign(marcaToUpdate, req.body.sanitizedInput)
     await em.flush()
-    res.status(200).json({ message: 'marca actualizada' })
+    res.status(200).json({ message: 'Marca actualizada' })
   } catch (error: any) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: "No se pudo actualizar la marca." })
   }
 }
 
@@ -79,7 +77,7 @@ async function remove(req: Request, res: Response) {
 
     const marca = await em.findOne(Marca, { idMarca });
     if (!marca) {
-      return res.status(404).json({ mensaje: "Marca no encontrada" });
+      return res.status(404).json({ message: "Marca no encontrada" });
     }
 
     const marcaRef = em.getReference(Marca, idMarca as unknown as Marca);
@@ -90,25 +88,16 @@ async function remove(req: Request, res: Response) {
 
     if (relaciones.length > 0) {
       return res.status(409).json({
-        mensaje: "No se puede eliminar la marca porque tiene productos relacionados.",
+        message: "No se puede eliminar la marca porque tiene productos relacionados.",
       });
     }
 
     await em.removeAndFlush(marcaRef);
-    return res.status(200).json({ mensaje: "Marca eliminada correctamente" });
+    return res.status(200).json({ message: "Marca eliminada correctamente" });
 
   } catch (error: any) {
-    res.status(500).json({ mensaje: error.message });
+    res.status(500).json({ message: "No se pudo eliminar la marca." });
   }
 }
-
-/*
-if (productosActivos.length === 0) {
-  await em.removeAndFlush(marca);
-  res.json({ mensaje: "Marca eliminada correctamente" });
-} else {
-  res.status(409).json({ mensaje: "No se puede eliminar la marca porque tiene productos activos" });
-}}
-*/
 
 export {sanitizeMarcaInput, findAll, findOne, add, update, remove }

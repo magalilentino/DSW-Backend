@@ -95,7 +95,7 @@ export async function registrarProdsUt( req: Request, res: Response) {
             
     });
         return res.status(200).json({ 
-            message: "datos del servicio cargados"
+            message: "Detalles del servicio actualizados exitosamente."
         });
 
     } catch (error: any) {

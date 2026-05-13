@@ -22,9 +22,9 @@ function sanitizeDescuentoInput(req: Request, res: Response, next: NextFunction)
 async function findAll(req: Request, res: Response) {
   try {
     const descuentos = await em.find(Descuento, {})
-    res.status(200).json({ message: 'found all descuentos', data: descuentos })
+    res.status(200).json({ message: 'Se encontraron todos los descuentos', data: descuentos })
   } catch (error: any) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: 'Error al cargar los descuentos'})
   }
 }
 
@@ -33,9 +33,9 @@ async function findOne(req: Request, res: Response) {
     // CAMBIO CLAVE: req.params.idDescuento para que coincida con tu Router
     const idDescuento = Number.parseInt(req.params.idDescuento) 
     const descuento = await em.findOneOrFail(Descuento, { idDescuento })
-    res.status(200).json({ message: 'found descuento', data: descuento })
+    res.status(200).json({ message: 'Descuento encontrado', data: descuento })
   } catch (error: any) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: 'Error al buscar el descuento' })
   }
 }
 
@@ -43,9 +43,9 @@ async function add(req: Request, res: Response) {
   try {
     const descuento = em.create(Descuento, req.body.sanitizedInput)
     await em.flush()
-    res.status(201).json({ message: 'descuento created', data: descuento })
+    res.status(201).json({ message: 'Descuento creado correctamente', data: descuento })
   } catch (error: any) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: 'Error al crear el descuento' })
   }
 }
 
@@ -58,9 +58,9 @@ async function update(req: Request, res: Response) {
     em.assign(descuentoToUpdate, req.body.sanitizedInput)
     await em.flush()
     
-    res.status(200).json({ message: 'descuento updated', data: descuentoToUpdate })
+    res.status(200).json({ message: 'Descuento actualizado correctamente', data: descuentoToUpdate })
   } catch (error: any) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: 'Error al actualizar el descuento'})
   }
 }
 
@@ -70,9 +70,9 @@ async function remove(req: Request, res: Response) {
     const idDescuento = Number.parseInt(req.params.idDescuento)
     const descuento = await em.findOneOrFail(Descuento, { idDescuento })
     await em.removeAndFlush(descuento)
-    res.status(200).json({ message: 'descuento deleted' })
+    res.status(200).json({ message: 'Descuento eliminado correctamente' })
   } catch (error: any) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: 'Error al eliminar el descuento' })
   }
 }
 

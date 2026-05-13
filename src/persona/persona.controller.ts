@@ -113,3 +113,17 @@ export async function getPersonaById(req: Request, res: Response) {
     res.status(500).json({ message: "Error al obtener la persona" });
   }
 }
+
+export function verificarRol(rolesPermitidos: string[]) {
+  return (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user) {
+      return res.status(401).json({ message: "No autenticado" });
+    }
+
+    if (!rolesPermitidos.includes(req.user.type)) {
+      return res.status(403).json({ message: "Acceso denegado" });
+    }
+
+    next();
+  };
+}

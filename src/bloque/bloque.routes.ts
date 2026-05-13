@@ -4,9 +4,10 @@ import {
   guardarBloqueo,
   obtenerEstadoAgenda,
 } from "./bloque.controller.js";
+import { verificarRol, verificarToken } from "../persona/persona.controller.js";
 
 export const BloqueRouter = Router();
 
 BloqueRouter.get("/disponibles", obtenerBloquesDisponibles);
-BloqueRouter.get("/estado-agenda", obtenerEstadoAgenda);
-BloqueRouter.post("/bloqueodia", guardarBloqueo);
+BloqueRouter.get("/estado-agenda", verificarToken, verificarRol(["peluquero"]), obtenerEstadoAgenda);
+BloqueRouter.post("/bloqueodia", verificarToken, verificarRol(["peluquero"]), guardarBloqueo);

@@ -13,7 +13,7 @@ export class Categoria {
   @PrimaryKey()
   idCategoria!: number
 
-  @Property({ nullable: false })
+  @Property({ nullable: false, unique: true})
   nombreCategoria!: string
 
   @OneToMany(() => Producto, (producto) => producto.categoria )

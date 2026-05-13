@@ -28,9 +28,9 @@ async function findAll(req: Request, res: Response) {
       {}
       //{ populate: ['tonos', 'productos', 'precios', 'clientes'] }
     )
-    res.status(200).json({ message: 'found all categoria', data: categorias })
+    res.status(200).json({ message: 'Se encontraron todas las Categorias', data: categorias })
   } catch (error: any) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: "No se encontró ninguna Categoria" })
   }
 }
 
@@ -42,9 +42,9 @@ async function findOne(req: Request, res: Response) {
       { idCategoria }
       //{ populate: ['tonos', 'productos', 'precios', 'clientes'] }
     )
-    res.status(200).json({ message: 'found categoria', data: categoria })
+    res.status(200).json({ message: 'Categoria encontrada', data: categoria })
   } catch (error: any) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: 'No se encontró ninguna categoria' })
   }
 }
 
@@ -52,9 +52,9 @@ async function add(req: Request, res: Response) {
   try {
     const categoria = em.create(Categoria, req.body.sanitizedInput)
     await em.flush()
-    res.status(201).json({ message: 'categoria created', data: categoria })
+    res.status(201).json({ message: 'Categoria creada correctamente', data: categoria })
   } catch (error: any) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: 'No se pudo crear la categoria' })
   }
 }
 
@@ -66,9 +66,9 @@ async function update(req: Request, res: Response) {
     await em.flush()
     res
       .status(200)
-      .json({ message: 'categoria updated', data: categoriaToUpdate })
+      .json({ message: 'Categoria actualizada correctamente', data: categoriaToUpdate })
   } catch (error: any) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: 'No se pudo actualizar la categoria' })
   }
 }
 
@@ -79,7 +79,7 @@ async function remove(req: Request, res: Response) {
 
     const categoria = await em.findOne(Categoria, { idCategoria });
     if (!categoria) {
-      return res.status(404).json({ mensaje: "Categoría no encontrada" });
+      return res.status(404).json({ message: "Categoría no encontrada" });
     }
 
     
@@ -91,15 +91,15 @@ async function remove(req: Request, res: Response) {
 
     if (productosActivos.length > 0) {
       return res.status(409).json({
-        mensaje: "No se puede eliminar la categoría porque tiene productos relacionados.",
+        message: "No se puede eliminar la categoría porque tiene productos relacionados.",
       });
     }
 
     await em.removeAndFlush(categoriaRef);
-    return res.status(200).json({ mensaje: "Categoría eliminada correctamente" });
+    return res.status(200).json({ message: "Categoría eliminada correctamente" });
 
   } catch (error: any) {
-    res.status(500).json({ mensaje: error.message });
+    res.status(500).json({ message: 'No se pudo eliminar la categoria' });
   }
 }
 

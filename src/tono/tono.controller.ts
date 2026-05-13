@@ -31,9 +31,9 @@ async function findAll(req: Request, res: Response) {
       {}
       //{ populate: ['servicios', 'productos'] }
     )
-    res.status(200).json({ message: 'found all tono', data: tono })
+    res.status(200).json({ message: 'Se encontraron todos los tonos', data: tono })
   } catch (error: any) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: 'Error al encontrar los tonos' })
   }
 }
 
@@ -43,9 +43,9 @@ async function findAllActivos(req: Request, res: Response) {
       Tono,
       {activo:true}
     )
-    res.status(200).json({ message: 'found all tono', data: tono })
+    res.status(200).json({ message: 'Se encontraron todos los tonos activos', data: tono })
   } catch (error: any) {
-    res.status(500).json({ message: error.message })
+    res.status(500).json({ message: 'Error al encontrar los tonos activos' })
   }
 }
 
@@ -74,9 +74,9 @@ async function findOne(req: Request, res: Response) {
       return res.status(404).json({ message: "Tono no encontrado" });
     }
 
-    res.status(200).json({ message: "found tono", data: tono });
+    res.status(200).json({ message: "Tono encontrado", data: tono });
   } catch (error: any) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: 'Error al encontrar el tono' });
   }
 }
 
@@ -128,7 +128,7 @@ async function update(req: Request, res: Response) {
     await em.flush()
     res
       .status(200)
-      .json({ message: 'tono updated', data: turnoToUpdate })
+      .json({ message: 'tono actualizado correctamente', data: turnoToUpdate })
   } catch (error: any) {
     res.status(500).json({ message: error.message })
   }
@@ -153,8 +153,7 @@ async function remove(req: Request, res: Response) {
 
     res.status(200).json({ message: "Tono eliminado correctamente" });
   } catch (error: any) {
-    console.log(error)
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Error al eliminar el tono" });
   }
 }
 

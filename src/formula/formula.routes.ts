@@ -1,5 +1,6 @@
 import { Router } from 'express'
 import { findAll, findOne, add, update, remove, sanitizeFormulaInput, formulasPorTono } from './formula.controller.js'
+import { verificarRol, verificarToken } from '../persona/persona.controller.js'
 
 export const FormulaRouter = Router()
 
@@ -9,4 +10,4 @@ FormulaRouter.get('/:idFormula', findOne)
 FormulaRouter.post('/', sanitizeFormulaInput, add)
 FormulaRouter.put('/:idFormula', sanitizeFormulaInput, update)
 FormulaRouter.delete('/:idFormula', remove)
-FormulaRouter.get('/formulasPorTono/:idTono', formulasPorTono)
+FormulaRouter.get('/formulasPorTono/:idTono', verificarToken, verificarRol(["peluquero"]),formulasPorTono)

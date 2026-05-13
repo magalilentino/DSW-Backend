@@ -17,7 +17,7 @@ export class Tono {
   @PrimaryKey()
   idTono!: number
 
-  @Property({ nullable: false })
+  @Property({ nullable: false, unique: true })
   nombre!: String
 
   @Property({ nullable: false })

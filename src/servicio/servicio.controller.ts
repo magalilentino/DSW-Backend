@@ -46,7 +46,7 @@ export async function add(req: Request, res: Response) {
     await em.flush();
     res
       .status(201)
-      .json({ message: "Servicio creado con éxito", data: servicio });
+      .json({ message: `Servicio ${servicio.nombreServicio} creado con éxito` });
   } catch (error: any) {
     res.status(500).json({
       message: "Error interno del servidor al intentar crear el servicio.",
@@ -58,18 +58,18 @@ export async function add(req: Request, res: Response) {
 export async function findAll(req: Request, res: Response) { 
   try { 
     const servicios = await em.find(Servicio, {activo:true}, {});  
-    res.status(200).json({ message: "found all servicios", data: servicios });
+    res.status(200).json({ message: "Se encontraron todos los servicios activos", data: servicios });
   } catch (error: any) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "No se encontró ningun servicio" });
   }
 }
 
 export async function findAllAyD(req: Request, res: Response) {
   try {
     const servicios = await em.find(Servicio, {}, {});
-    res.status(200).json({ message: "found all servicios", data: servicios });
+    res.status(200).json({ message: "Se encontraron todos los servicios", data: servicios });
   } catch (error: any) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "No se encontró ningun servicio" });
   }
 }
 
@@ -77,9 +77,9 @@ export async function findOne(req: Request, res: Response) {
   try {
     const codServicio = Number.parseInt(req.params.codServicio);
     const servicio = await em.findOneOrFail(Servicio, { codServicio }, {});
-    res.status(200).json({ message: "found servicio", data: servicio });
+    res.status(200).json({ message: `Servicio ${servicio.nombreServicio} encontrado`, data: servicio});
   } catch (error: any) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "No se encontró ningun servicio" });
   }
 }
 
@@ -91,7 +91,7 @@ export async function update(req: Request, res: Response) {
     await em.flush();
     res
       .status(200)
-      .json({ message: "servicio updated", data: servicioToUpdate });
+      .json({ message: "Servicio actualizado con exito", data: servicioToUpdate });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
@@ -106,7 +106,7 @@ export async function remove(req: Request, res: Response) {
     return res.status(200).json({ message: `Servicio ${codServicio} eliminado correctamente` });
   } catch (error: any) {
     console.error("Error al eliminar servicio:", error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Error al eliminar el servicio"});
   }
 }
 
