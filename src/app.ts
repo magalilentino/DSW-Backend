@@ -7,7 +7,6 @@ import { RequestContext } from '@mikro-orm/core'
 import { AtencionRouter } from './atencion/atencion.routes.js'
 import { BloqueRouter } from './bloque/bloque.routes.js'
 import { CategoriaRouter } from './categoria/categoria.routes.js'
-import { DescuentoRouter } from './descuento/descuento.routes.js'
 import { FormulaRouter } from './formula/formula.routes.js'
 import { MarcaRouter } from './marca/marca.routes.js'
 import { PersonaRouter } from './persona/persona.routes.js'
@@ -17,9 +16,8 @@ import { TonoRouter } from './tono/tono.routes.js'
 import { AtSerRouter} from './atencion-servicio/atSer.routes.js'
 import { ProdUtRouter } from './producto-utilizado/prodUt.routes.js'
 import { ProdMarRouter } from './productos-marcas/prodMar.routes.js'
+import { DescuentoRouter } from './descuento/descuento.routes.js';
 
-//import { ClienteRouter } from './persona/cliente/cliente.routes.js'
-//import { PeluqueroRouter } from './persona/peluquero/peluquero.routes.js'
 
 const app = express();
 
@@ -37,7 +35,6 @@ app.use((req, res, next) => {
 app.use('/api/atencion', AtencionRouter)
 app.use('/api/bloque', BloqueRouter)
 app.use('/api/categoria', CategoriaRouter)
-app.use('/api/descuento', DescuentoRouter)
 app.use('/api/formula', FormulaRouter)
 app.use('/api/marca', MarcaRouter)
 app.use('/api/persona', PersonaRouter)
@@ -47,7 +44,7 @@ app.use('/api/tono', TonoRouter)
 app.use('/api/atSer', AtSerRouter)
 app.use('/api/prodUt', ProdUtRouter)
 app.use('/api/prodMar', ProdMarRouter)
-
+app.use('/api/voucher', DescuentoRouter)
 
 app.use((_, res) => {
   res.status(404).send({ message: 'Resource not found' })

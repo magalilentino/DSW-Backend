@@ -7,11 +7,6 @@ import { Persona } from "../persona/persona.entity.js";
 
 const em = orm.em;
 
-// Helper para normalizar la fecha a las 00:00 de Argentina
-const normalizarFecha = (fechaStr: string) =>
-  DateTime.fromISO(fechaStr, { zone: "America/Argentina/Buenos_Aires" })
-    .startOf("day")
-    .toJSDate();
 
 export async function obtenerBloquesDisponibles(req: Request, res: Response) {
   try {
@@ -20,7 +15,7 @@ export async function obtenerBloquesDisponibles(req: Request, res: Response) {
       return res.status(400).json({ error: "Faltan parámetros requeridos" });
     }
 
-    const fechaBusqueda = normalizarFecha(String(fecha));
+    const fechaBusqueda = new Date(`${String(fecha)}T00:00:00`);
     let bloquesDia = generarBloques(String(fecha));
 
     // Filtrar horarios pasados si es el día de hoy
@@ -64,7 +59,7 @@ export async function obtenerEstadoAgenda(req: Request, res: Response) {
     if (!fecha || !peluqueroId)
       return res.status(400).json({ error: "Faltan parámetros" });
 
-    const fechaBusqueda = normalizarFecha(String(fecha));
+    const fechaBusqueda = new Date(`${String(fecha)}T00:00:00`);
     const grillaBase = generarBloques(String(fecha));
 
     const bloquesExistentes = await em.find(Bloque, {
@@ -146,28 +141,31 @@ export function buscarGruposConsecutivos(
   return grupos;
 }
 
-/* bloque.controller.ts */
-
 export async function guardarBloqueo(req: Request, res: Response) {
   try {
-    const { peluqueroId, fecha, diaEntero, horarios, forzar } = req.body;
-    const fechaDB = normalizarFecha(String(fecha));
 
-    let horariosAProcesar = diaEntero
-      ? generarBloques(String(fecha)).map((b) => b.hora_inicio)
-      : horarios || [];
+    const { peluqueroId, fecha, horarios, forzar } = req.body;
 
-    if (horariosAProcesar.length === 0)
-      return res.status(400).json({ error: "Sin horarios seleccionados" });
+    const fechaDB = new Date(`${String(fecha)}T00:00:00`);
+
+    const horariosAProcesar = horarios || [];
+
+    if (horariosAProcesar.length === 0) {
+      return res.status(400).json({
+        error: "Sin horarios seleccionados",
+      });
+    }
 
     const existentes = await em.find(Bloque, {
       fecha: fechaDB,
       peluquero: { idPersona: Number(peluqueroId) },
     });
 
-    // 1. Validar conflictos con citas reales (ocupado)
+    // VALIDAR OCUPADOS
     const conflictos = existentes.filter(
-      (b) => b.estado === "ocupado" && horariosAProcesar.includes(b.horaInicio),
+      (b) =>
+        b.estado === "ocupado" &&
+        horariosAProcesar.includes(b.horaInicio),
     );
 
     if (conflictos.length > 0 && !forzar) {
@@ -181,23 +179,38 @@ export async function guardarBloqueo(req: Request, res: Response) {
       idPersona: peluqueroId,
     });
 
-    // 2. Procesar cada horario
     for (const hora of horariosAProcesar) {
-      const bloqueExistente = existentes.find((b) => b.horaInicio === hora);
 
+      const bloqueExistente = existentes.find(
+        (b) => b.horaInicio === hora,
+      );
+
+      // =========================
+      // SI EXISTE
+      // =========================
       if (bloqueExistente) {
+
+        // BLOQUEADO -> LIBRE
         if (bloqueExistente.estado === "bloqueado") {
-          // CAMBIO CLAVE: Si estaba bloqueado, ahora es LIBRE
           bloqueExistente.estado = "libre";
-        } else {
-          // Si estaba libre (o era ocupado y forzamos), ahora es BLOQUEADO
+        }
+
+        // LIBRE -> BLOQUEADO
+        else if (bloqueExistente.estado === "libre") {
           bloqueExistente.estado = "bloqueado";
         }
-      } else {
-        // Si no existía registro en la DB, creamos uno nuevo como BLOQUEADO
+
+      }
+
+      // =========================
+      // NO EXISTE
+      // =========================
+      else {
+
         const hFin = DateTime.fromISO(`${fecha}T${hora}`)
           .plus({ minutes: 45 })
           .toFormat("HH:mm");
+
         em.create(Bloque, {
           fecha: fechaDB,
           horaInicio: hora,
@@ -209,8 +222,17 @@ export async function guardarBloqueo(req: Request, res: Response) {
     }
 
     await em.flush();
-    return res.json({ message: "Agenda actualizada correctamente" });
+
+    return res.json({
+      message: "Agenda actualizada correctamente",
+    });
+
   } catch (err) {
-    return res.status(500).json({ error: "Error al actualizar la agenda" });
+
+    console.error(err);
+
+    return res.status(500).json({
+      error: "Error al actualizar agenda",
+    });
   }
 }

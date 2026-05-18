@@ -26,7 +26,7 @@ export async function crearAtencion(req: Request, res: Response) {
     const atencion = em.create(Atencion, {
       cliente,
       peluquero,
-      fecha: new Date(fecha),
+      fecha: new Date(`${fecha}T00:00:00`),
       horaInicio: horaInicioDate,
       horaFin: horaFinDate,
       estado: "pendiente",
@@ -69,13 +69,13 @@ export async function crearAtencion(req: Request, res: Response) {
     const bloquesDia = generarBloques(fecha);
     for (const b of bloquesDia) {
       const existe = await em.findOne(Bloque, {
-        fecha: new Date(fecha),
+        fecha: new Date(`${fecha}T00:00:00`),
         peluquero: { idPersona: peluqueroId },
         horaInicio: b.hora_inicio
       });
       if (!existe) {
         const bloque = em.create(Bloque, {
-          fecha: new Date(fecha),
+          fecha: new Date(`${fecha}T00:00:00`),
           horaInicio: b.hora_inicio,
           horaFin: b.hora_fin,
           peluquero,
@@ -88,7 +88,7 @@ export async function crearAtencion(req: Request, res: Response) {
     await em.flush();
 
     const bloquesOcupar = await em.find(Bloque, {
-      fecha: new Date(fecha),
+      fecha: new Date(`${fecha}T00:00:00`),
       peluquero: { idPersona: peluqueroId },
       horaInicio: { $gte: horaInicioDate.toTimeString().slice(0, 5) },
       horaFin: { $lte: horaFinDate.toTimeString().slice(0, 5) }

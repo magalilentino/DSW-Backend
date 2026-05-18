@@ -6,7 +6,7 @@
   "main": "server.js",
   "scripts": {
     "build": "tsc -p ./tsconfig.json",
-    "start:dev": "tsc-watch --noClear -p ./tsconfig.json --onSuccess \"node ./dist/server.js\"",
+    "start": "tsc-watch --noClear -p ./tsconfig.json --onSuccess \"node ./dist/server.js\"",
     "test": "tsx --test src/tests/validarProdUt.test.ts src/tests/turnosHoy.test.ts src/tests/validarServicio.test.ts src/tests/sanatizeMarca.test.ts",
     "test:integration": "node --test dist/tests/marca.integration.test.js"
   },
