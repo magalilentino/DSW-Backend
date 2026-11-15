@@ -170,7 +170,7 @@ export async function cancelarAtencion(req: Request, res: Response) {
 export async function finalizarAtencion(req: Request, res: Response) {
   try {
     const idAtencion = parseInt(req.params.idAtencion as string, 10);
-    const descripcion = req.body as { descripcion?: string };
+    const { descripcion } = req.body as { descripcion?: string };
 
     if (isNaN(idAtencion) || idAtencion <= 0) {
       return res.status(400).json({ message: "ID de Atención no válido." });
@@ -180,7 +180,7 @@ export async function finalizarAtencion(req: Request, res: Response) {
 
     atencion.estado = "finalizado";
     if (descripcion) {
-      atencion.descripcion = descripcion as any;
+      atencion.descripcion = descripcion;
     }
 
     await em.persistAndFlush(atencion);

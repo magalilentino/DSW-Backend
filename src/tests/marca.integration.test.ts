@@ -1,10 +1,16 @@
 import "reflect-metadata";  
 import "dotenv/config";     
-import test from "node:test";
+import test, { after } from "node:test";
 import assert from "node:assert";
 import request from "supertest";
 
 import app from "../app.js";
+import { orm } from "../shared/orm.js";
+
+// cerrar la conexión a la base para que el proceso de test termine
+after(async () => {
+  await orm.close(true);
+});
 
 test("GET /api/marca debería devolver 200", async () => {
   const response = await request(app).get("/api/marca");

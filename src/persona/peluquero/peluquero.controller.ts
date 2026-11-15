@@ -65,6 +65,9 @@ export async function update(req: Request, res: Response) {
   try {
     const idPersona = Number.parseInt(req.params.idPersona as string)
     const peluqueroToUpdate = await em.findOneOrFail(Persona, { idPersona, type: 'peluquero' })
+    if (req.body.sanitizedInput.clave) {
+      req.body.sanitizedInput.clave = await bcrypt.hash(req.body.sanitizedInput.clave, 10);
+    }
     em.assign(peluqueroToUpdate, req.body.sanitizedInput)
     await em.flush()
     res
