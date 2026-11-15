@@ -1,0 +1,1739 @@
+openapi: 3.0.3
+info:
+  title: API Peluquería
+  version: 1.0.0
+  description: |
+    API REST del sistema de gestión de turnos de la peluquería.
+
+    **Autenticación:** las rutas marcadas con el candado requieren un JWT.
+    Obtenerlo con `POST /persona/login` y cargarlo con el botón **Authorize**
+    (solo el token, sin el prefijo `Bearer`). El token dura 2 horas.
+
+    **Niveles de acceso:**
+    - `peluquero`: administra el catálogo (servicios, productos, marcas, tonos, etc.), la agenda y las atenciones.
+    - `cliente`: saca turnos y consulta sus atenciones.
+
+    **Errores:** todas las respuestas de error tienen la forma `{ "message": "..." }`
+    (algunos endpoints de agenda y atención usan `{ "error": "..." }`).
+    - `401`: no se envió token.
+    - `403`: token inválido/expirado, o el rol no tiene permiso.
+servers:
+  - url: http://localhost:3000/api
+    description: Local
+
+tags:
+  - name: Auth
+  - name: Clientes
+  - name: Peluqueros
+  - name: Servicios
+  - name: Atenciones
+  - name: Agenda
+  - name: Atención-Servicio
+  - name: Productos utilizados
+  - name: Productos
+  - name: Categorías
+  - name: Marcas
+  - name: Productos-Marcas
+  - name: Tonos
+  - name: Fórmulas
+  - name: Vouchers
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    idPersona:
+      name: idPersona
+      in: path
+      required: true
+      schema: { type: integer }
+    codServicio:
+      name: codServicio
+      in: path
+      required: true
+      schema: { type: integer }
+    idProducto:
+      name: idProducto
+      in: path
+      required: true
+      schema: { type: integer }
+    idAtencion:
+      name: idAtencion
+      in: path
+      required: true
+      schema: { type: integer }
+    idTono:
+      name: idTono
+      in: path
+      required: true
+      schema: { type: integer }
+
+  responses:
+    Unauthorized:
+      description: Token no proporcionado
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: Token inválido/expirado o rol sin permiso
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    BadRequest:
+      description: Datos de entrada inválidos
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Conflict:
+      description: Conflicto con el estado actual (duplicado o recurso en uso)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    ServerError:
+      description: Error interno (también se devuelve cuando el recurso buscado no existe)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Ok:
+      description: Operación realizada
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Mensaje' }
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        message: { type: string, example: Descripción del error }
+    Mensaje:
+      type: object
+      properties:
+        message: { type: string }
+
+    Persona:
+      type: object
+      properties:
+        idPersona: { type: integer, example: 1 }
+        dni: { type: string, example: '40123456' }
+        nombre: { type: string, example: Ana }
+        apellido: { type: string, example: Gómez }
+        telefono: { type: string, example: '3415551234' }
+        email: { type: string, example: ana@mail.com }
+        type: { type: string, enum: [peluquero, cliente] }
+    PersonaInput:
+      type: object
+      properties:
+        dni: { type: string, example: '40123456' }
+        clave: { type: string, example: secreta123 }
+        nombre: { type: string, example: Ana }
+        apellido: { type: string, example: Gómez }
+        telefono: { type: string, example: '3415551234' }
+        mail: { type: string, example: ana@mail.com }
+        type: { type: string, enum: [peluquero, cliente] }
+
+    Servicio:
+      type: object
+      properties:
+        codServicio: { type: integer, example: 1 }
+        nombreServicio: { type: string, example: Corte }
+        descripcion: { type: string, example: Corte de pelo con lavado }
+        cantTurnos: { type: integer, description: Cantidad de bloques de 45 minutos que ocupa, example: 1 }
+        precio: { type: number, example: 8000 }
+        activo: { type: boolean }
+        requiereTono: { type: boolean, description: 'Si es true, al sacar el turno se envía al cliente un mail con indicaciones previas' }
+    ServicioInput:
+      type: object
+      required: [nombreServicio, precio, cantTurnos]
+      properties:
+        nombreServicio: { type: string, example: Coloración }
+        descripcion: { type: string, example: Tintura completa }
+        cantTurnos: { type: integer, minimum: 1, example: 2 }
+        precio: { type: number, minimum: 0, exclusiveMinimum: true, example: 25000 }
+        activo: { type: boolean, example: true }
+        requiereTono: { type: boolean, example: true }
+
+    Atencion:
+      type: object
+      properties:
+        idAtencion: { type: integer }
+        cliente: { $ref: '#/components/schemas/Persona' }
+        peluquero: { $ref: '#/components/schemas/Persona' }
+        fecha: { type: string, format: date-time }
+        horaInicio: { type: string, format: date-time }
+        horaFin: { type: string, format: date-time }
+        descripcion: { type: string }
+        estado: { type: string, enum: [pendiente, finalizado, cancelado] }
+        atencionServicios:
+          type: array
+          items:
+            type: object
+            properties:
+              idAtSer: { type: integer }
+              servicio: { $ref: '#/components/schemas/Servicio' }
+    AtencionResumen:
+      type: object
+      properties:
+        idAtencion: { type: integer }
+        fecha: { type: string, format: date-time }
+        horaInicio: { type: string, format: date-time }
+        horaFin: { type: string, format: date-time }
+        estado: { type: string, enum: [pendiente, finalizado, cancelado] }
+        peluquero: { $ref: '#/components/schemas/Persona' }
+        atencionServicios:
+          type: array
+          items:
+            type: object
+            properties:
+              idAtSer: { type: integer }
+              servicio: { $ref: '#/components/schemas/Servicio' }
+
+    BloqueHorario:
+      type: object
+      properties:
+        hora_inicio: { type: string, example: '09:00' }
+        hora_fin: { type: string, example: '09:45' }
+
+    Categoria:
+      type: object
+      properties:
+        idCategoria: { type: integer, example: 1 }
+        nombreCategoria: { type: string, example: Tinturas }
+    Marca:
+      type: object
+      properties:
+        idMarca: { type: integer, example: 1 }
+        nombre: { type: string, example: Loreal }
+    Producto:
+      type: object
+      properties:
+        idProducto: { type: integer, example: 1 }
+        descripcion: { type: string, example: Tintura 7.1 }
+        activo: { type: boolean }
+        categoria: { $ref: '#/components/schemas/Categoria' }
+    ProdMar:
+      type: object
+      description: Un producto de una marca determinada
+      properties:
+        idPM: { type: integer, example: 1 }
+        activo: { type: boolean }
+        producto: { $ref: '#/components/schemas/Producto' }
+        marca: { $ref: '#/components/schemas/Marca' }
+    Tono:
+      type: object
+      properties:
+        idTono: { type: integer, example: 1 }
+        nombre: { type: string, example: Rubio ceniza }
+        activo: { type: boolean }
+    Formula:
+      type: object
+      description: Cantidad de un producto-marca necesaria para lograr un tono
+      properties:
+        idFormula: { type: integer }
+        cantidad: { type: number, example: 30 }
+        activo: { type: boolean }
+        prodMar: { $ref: '#/components/schemas/ProdMar' }
+        tono: { $ref: '#/components/schemas/Tono' }
+    Descuento:
+      type: object
+      properties:
+        idDescuento: { type: integer, example: 1 }
+        porcentaje: { type: number, example: 10 }
+        cantAtencionNecesaria: { type: integer, description: Se desbloquea cada vez que el cliente acumula un múltiplo de esta cantidad de atenciones finalizadas, example: 5 }
+        estado: { type: boolean, description: Si el voucher está vigente }
+
+security: []
+
+paths:
+  # ───────────────────────── Auth ─────────────────────────
+  /persona/register:
+    post:
+      tags: [Auth]
+      summary: Registrar una persona
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre, apellido, dni, email, telefono, clave, type]
+              properties:
+                nombre: { type: string, example: Ana }
+                apellido: { type: string, example: Gómez }
+                dni: { type: string, example: '40123456' }
+                email: { type: string, example: ana@mail.com }
+                telefono: { type: string, example: '3415551234' }
+                clave: { type: string, example: secreta123 }
+                type: { type: string, enum: [cliente, peluquero] }
+      responses:
+        '201':
+          description: Usuario registrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: Usuario registrado }
+                  data:
+                    type: object
+                    properties:
+                      id: { type: integer }
+                      type: { type: string }
+        '400': { description: 'Faltan datos, tipo inválido o email ya registrado', content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /persona/login:
+    post:
+      tags: [Auth]
+      summary: Iniciar sesión
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, clave]
+              properties:
+                email: { type: string, example: ana@mail.com }
+                clave: { type: string, example: secreta123 }
+      responses:
+        '200':
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string, example: Login exitoso }
+                  token: { type: string, description: JWT válido por 2 horas }
+                  idPersona: { type: integer }
+                  type: { type: string, enum: [peluquero, cliente] }
+                  nombre: { type: string }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { description: Credenciales inválidas, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /persona/{id}:
+    get:
+      tags: [Auth]
+      summary: Obtener una persona por id
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: Persona encontrada, content: { application/json: { schema: { $ref: '#/components/schemas/Persona' } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  # ───────────────────────── Clientes ─────────────────────────
+  /persona/cliente:
+    get:
+      tags: [Clientes]
+      summary: Listar clientes
+      responses:
+        '200':
+          description: Lista de clientes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data: { type: array, items: { $ref: '#/components/schemas/Persona' } }
+        '500': { $ref: '#/components/responses/ServerError' }
+    post:
+      tags: [Clientes]
+      summary: Crear cliente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PersonaInput' }
+      responses:
+        '201': { description: Cliente creado }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /persona/cliente/{idPersona}:
+    parameters:
+      - $ref: '#/components/parameters/idPersona'
+    get:
+      tags: [Clientes]
+      summary: Detalle de un cliente
+      responses:
+        '200':
+          description: Cliente encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data: { $ref: '#/components/schemas/Persona' }
+        '500': { $ref: '#/components/responses/ServerError' }
+    put:
+      tags: [Clientes]
+      summary: Modificar cliente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PersonaInput' }
+      responses:
+        '200': { description: Cliente actualizado }
+        '500': { $ref: '#/components/responses/ServerError' }
+    delete:
+      tags: [Clientes]
+      summary: Eliminar cliente
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  # ───────────────────────── Peluqueros ─────────────────────────
+  /persona/peluquero/findAllPeluquero:
+    get:
+      tags: [Peluqueros]
+      summary: Listar peluqueros
+      responses:
+        '200':
+          description: Lista de peluqueros (array sin envoltorio)
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Persona' } }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /persona/peluquero:
+    post:
+      tags: [Peluqueros]
+      summary: Crear peluquero
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PersonaInput' }
+      responses:
+        '201': { description: Peluquero creado }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /persona/peluquero/{idPersona}:
+    parameters:
+      - $ref: '#/components/parameters/idPersona'
+    get:
+      tags: [Peluqueros]
+      summary: Detalle de un peluquero
+      responses:
+        '200':
+          description: Peluquero encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data: { $ref: '#/components/schemas/Persona' }
+        '500': { $ref: '#/components/responses/ServerError' }
+    put:
+      tags: [Peluqueros]
+      summary: Modificar peluquero
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PersonaInput' }
+      responses:
+        '200': { description: Peluquero actualizado }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+    delete:
+      tags: [Peluqueros]
+      summary: Eliminar peluquero
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**'
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  # ───────────────────────── Servicios ─────────────────────────
+  /servicio/findAll:
+    get:
+      tags: [Servicios]
+      summary: Listar servicios activos
+      responses:
+        '200':
+          description: Servicios activos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data: { type: array, items: { $ref: '#/components/schemas/Servicio' } }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /servicio/findAllAyD:
+    get:
+      tags: [Servicios]
+      summary: Listar todos los servicios (activos y dados de baja)
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**'
+      responses:
+        '200':
+          description: Todos los servicios
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data: { type: array, items: { $ref: '#/components/schemas/Servicio' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /servicio/listarPorPrecio:
+    get:
+      tags: [Servicios]
+      summary: Listar servicios activos filtrando por rango de precio
+      parameters:
+        - { name: min, in: query, required: false, schema: { type: number }, description: 'Precio mínimo (por defecto 0)' }
+        - { name: max, in: query, required: false, schema: { type: number }, description: 'Precio máximo (por defecto sin límite)' }
+      responses:
+        '200':
+          description: Servicios dentro del rango
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/Servicio' } }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /servicio/findById/{codServicio}:
+    get:
+      tags: [Servicios]
+      summary: Detalle de un servicio
+      parameters:
+        - $ref: '#/components/parameters/codServicio'
+      responses:
+        '200':
+          description: Servicio encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data: { $ref: '#/components/schemas/Servicio' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /servicio/add:
+    post:
+      tags: [Servicios]
+      summary: Crear servicio
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ServicioInput' }
+      responses:
+        '201': { $ref: '#/components/responses/Ok' }
+        '400': { description: 'Falta el nombre, o el precio/cantTurnos no son mayores a 0', content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { description: Ya existe un servicio con ese nombre, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /servicio/{codServicio}:
+    put:
+      tags: [Servicios]
+      summary: Modificar servicio
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**'
+      parameters:
+        - $ref: '#/components/parameters/codServicio'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ServicioInput' }
+      responses:
+        '200': { description: Servicio actualizado }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /servicio/delete/{codServicio}:
+    delete:
+      tags: [Servicios]
+      summary: Dar de baja un servicio (baja lógica)
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**. Marca el servicio como inactivo.'
+      parameters:
+        - $ref: '#/components/parameters/codServicio'
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  # ───────────────────────── Atenciones ─────────────────────────
+  /atencion/crear:
+    post:
+      tags: [Atenciones]
+      summary: Sacar un turno (crear atención)
+      security: [{ bearerAuth: [] }]
+      description: |
+        Rol requerido: **peluquero** o **cliente**.
+        Crea la atención en estado `pendiente`, asocia los servicios y marca como ocupados
+        los bloques de agenda del peluquero. Si algún servicio `requiereTono`, envía al
+        cliente un mail con indicaciones previas.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [clienteId, peluqueroId, fecha, horaInicio, duracion, servicios]
+              properties:
+                clienteId: { type: integer, example: 3 }
+                peluqueroId: { type: integer, example: 1 }
+                fecha: { type: string, format: date, example: '2026-10-20' }
+                horaInicio: { type: string, example: '09:45', description: 'HH:mm' }
+                duracion: { type: integer, example: 90, description: Duración total en minutos }
+                servicios: { type: array, items: { type: integer }, example: [1, 2], description: Códigos de servicio }
+      responses:
+        '201':
+          description: Atención creada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  atencion: { $ref: '#/components/schemas/Atencion' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { description: Error al crear atención, content: { application/json: { schema: { type: object, properties: { error: { type: string } } } } } }
+
+  /atencion/verificar-descuento/{idPersona}:
+    post:
+      tags: [Atenciones]
+      summary: Calcular precio y descuento aplicable para un cliente
+      security: [{ bearerAuth: [] }]
+      description: |
+        Calcula el subtotal de los servicios elegidos y aplica el mayor voucher desbloqueado por el
+        cliente. Los vouchers solo aplican si el cliente no tiene atenciones pendientes.
+      parameters:
+        - $ref: '#/components/parameters/idPersona'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [servicios]
+              properties:
+                servicios: { type: array, items: { type: integer }, example: [1, 2] }
+      responses:
+        '200':
+          description: Precio calculado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  aplicaDescuento: { type: boolean }
+                  porcentaje: { type: number, nullable: true, example: 10 }
+                  subtotal: { type: number, example: 33000 }
+                  precioTotal: { type: number, example: 29700 }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /atencion/historico/{idPersona}:
+    get:
+      tags: [Atenciones]
+      summary: Historial de atenciones (finalizadas y canceladas) de un cliente
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/idPersona'
+      responses:
+        '200':
+          description: Atenciones ordenadas de la más reciente a la más antigua
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/AtencionResumen' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /atencion/pendientes/{idPersona}:
+    get:
+      tags: [Atenciones]
+      summary: Turnos pendientes de un cliente
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/idPersona'
+      responses:
+        '200':
+          description: Atenciones pendientes
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/AtencionResumen' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /atencion/pendientes:
+    get:
+      tags: [Atenciones]
+      summary: Atenciones pendientes del peluquero logueado
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**'
+      responses:
+        '200':
+          description: Atenciones pendientes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data: { type: array, items: { $ref: '#/components/schemas/Atencion' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /atencion/cancelar/{idAtencion}:
+    patch:
+      tags: [Atenciones]
+      summary: Cancelar una atención
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**'
+      parameters:
+        - $ref: '#/components/parameters/idAtencion'
+      responses:
+        '200':
+          description: Atención cancelada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  idAtencion: { type: integer }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /atencion/finalizar/{idAtencion}:
+    patch:
+      tags: [Atenciones]
+      summary: Finalizar una atención
+      security: [{ bearerAuth: [] }]
+      description: |
+        Rol requerido: **peluquero**.
+        Marca la atención como `finalizado`. Si con esta atención el cliente desbloquea
+        algún voucher, se le envía un mail avisándole.
+      parameters:
+        - $ref: '#/components/parameters/idAtencion'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                descripcion: { type: string, example: Se aplicó tono 7.1 }
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /atencion/turnos-hoy:
+    get:
+      tags: [Atenciones]
+      summary: Turnos pendientes de hoy del peluquero logueado
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**'
+      parameters:
+        - { name: servicio, in: query, required: false, schema: { type: integer }, description: Filtrar por código de servicio }
+      responses:
+        '200':
+          description: Turnos ordenados por hora
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    hora: { type: string, example: '10:30' }
+                    cliente: { type: string, example: Ana Gómez }
+                    servicios: { type: string, example: 'Corte, Coloración' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /atencion/pendientes-hoy:
+    get:
+      tags: [Atenciones]
+      summary: Cantidad de atenciones pendientes hoy (peluquero logueado)
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**'
+      responses:
+        '200': { description: Cantidad, content: { application/json: { schema: { type: object, properties: { count: { type: integer } } } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /atencion/completadas-hoy:
+    get:
+      tags: [Atenciones]
+      summary: Cantidad de atenciones finalizadas hoy (peluquero logueado)
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**'
+      responses:
+        '200': { description: Cantidad, content: { application/json: { schema: { type: object, properties: { count: { type: integer } } } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /atencion/ganancias-hoy:
+    get:
+      tags: [Atenciones]
+      summary: Total facturado hoy por el peluquero logueado
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**. Suma el precio de los servicios de las atenciones finalizadas hoy.'
+      responses:
+        '200': { description: Total, content: { application/json: { schema: { type: object, properties: { total: { type: number } } } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  # ───────────────────────── Agenda ─────────────────────────
+  /bloque/disponibles:
+    get:
+      tags: [Agenda]
+      summary: Horarios disponibles de un peluquero para una fecha
+      description: |
+        La agenda va de 09:00 a 18:00 en bloques de 45 minutos. Devuelve los horarios de inicio
+        posibles con suficientes bloques libres consecutivos para cubrir `duracionTotal`.
+        Si la fecha es hoy, se omiten los horarios ya pasados.
+      parameters:
+        - { name: fecha, in: query, required: true, schema: { type: string, format: date }, example: '2026-10-20' }
+        - { name: peluqueroId, in: query, required: true, schema: { type: integer }, example: 1 }
+        - { name: duracionTotal, in: query, required: true, schema: { type: integer }, description: Minutos, example: 90 }
+      responses:
+        '200':
+          description: Horarios posibles
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: '#/components/schemas/BloqueHorario' } }
+        '400': { description: Faltan parámetros, content: { application/json: { schema: { type: object, properties: { error: { type: string } } } } } }
+        '500': { description: Error de servidor, content: { application/json: { schema: { type: object, properties: { error: { type: string } } } } } }
+
+  /bloque/estado-agenda:
+    get:
+      tags: [Agenda]
+      summary: Estado de cada bloque de la agenda de un peluquero en una fecha
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**'
+      parameters:
+        - { name: fecha, in: query, required: true, schema: { type: string, format: date }, example: '2026-10-20' }
+        - { name: peluqueroId, in: query, required: true, schema: { type: integer }, example: 1 }
+      responses:
+        '200':
+          description: Grilla del día
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - $ref: '#/components/schemas/BloqueHorario'
+                    - type: object
+                      properties:
+                        estado: { type: string, enum: [libre, ocupado, bloqueado] }
+        '400': { description: Faltan parámetros, content: { application/json: { schema: { type: object, properties: { error: { type: string } } } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { description: Error al procesar agenda, content: { application/json: { schema: { type: object, properties: { error: { type: string } } } } } }
+
+  /bloque/bloqueodia:
+    post:
+      tags: [Agenda]
+      summary: Bloquear / desbloquear horarios de la agenda
+      security: [{ bearerAuth: [] }]
+      description: |
+        Rol requerido: **peluquero**.
+        Para cada horario: si está `libre` pasa a `bloqueado`, y si está `bloqueado` vuelve a `libre`.
+        Si alguno de los horarios tiene un turno (`ocupado`) y no se envía `forzar: true`,
+        responde 409 con los horarios en conflicto para pedir confirmación.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [peluqueroId, fecha, horarios]
+              properties:
+                peluqueroId: { type: integer, example: 1 }
+                fecha: { type: string, format: date, example: '2026-10-20' }
+                horarios: { type: array, items: { type: string }, example: ['09:00', '09:45'] }
+                forzar: { type: boolean, example: false }
+      responses:
+        '200': { description: Agenda actualizada, content: { application/json: { schema: { $ref: '#/components/schemas/Mensaje' } } } }
+        '400': { description: Sin horarios seleccionados, content: { application/json: { schema: { type: object, properties: { error: { type: string } } } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409':
+          description: Hay turnos en los horarios elegidos; se requiere confirmación
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code: { type: string, example: CONFIRMACION_REQUERIDA }
+                  conflictos: { type: array, items: { type: string }, example: ['09:45'] }
+        '500': { description: Error al actualizar agenda, content: { application/json: { schema: { type: object, properties: { error: { type: string } } } } } }
+
+  # ───────────────────────── Atención-Servicio ─────────────────────────
+  /atSer/{idAtencion}/serviciosPorAtencion:
+    get:
+      tags: [Atención-Servicio]
+      summary: Servicios incluidos en una atención
+      parameters:
+        - $ref: '#/components/parameters/idAtencion'
+      responses:
+        '200':
+          description: Servicios de la atención
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        idAtSer: { type: integer }
+                        nombreServicio: { type: string }
+                        modificado: { type: boolean, description: Si ya se registraron los productos utilizados }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /atSer/{idAtSer}:
+    get:
+      tags: [Atención-Servicio]
+      summary: Obtener una atención-servicio
+      parameters:
+        - { name: idAtSer, in: path, required: true, schema: { type: integer } }
+      responses:
+        '200':
+          description: Encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  idAtSer: { type: integer }
+                  idAtencion: { type: integer }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # ───────────────────────── Productos utilizados ─────────────────────────
+  /prodUt:
+    post:
+      tags: [Productos utilizados]
+      summary: Registrar un producto utilizado en un servicio
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cantidad: { type: number, example: 30 }
+                prodMar: { type: integer, description: idPM, example: 1 }
+                atSer: { type: integer, description: idAtSer, example: 1 }
+      responses:
+        '201': { description: Producto agregado }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /prodUt/registrarProdsUt/{idAtSer}:
+    patch:
+      tags: [Productos utilizados]
+      summary: Registrar el tono y los productos usados en un servicio de una atención
+      security: [{ bearerAuth: [] }]
+      description: |
+        Rol requerido: **peluquero**.
+        Reemplaza los productos registrados para ese servicio por la lista enviada (se ignoran los de
+        cantidad 0) y marca el servicio como `modificado`.
+      parameters:
+        - { name: idAtSer, in: path, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [prodMars]
+              properties:
+                idTono: { type: integer, nullable: true, example: 2 }
+                prodMars:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      idPM: { type: integer, example: 1 }
+                      cantidad: { type: number, example: 30 }
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  # ───────────────────────── Productos ─────────────────────────
+  /producto:
+    get:
+      tags: [Productos]
+      summary: Listar productos
+      responses:
+        '200':
+          description: Productos con su categoría
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data: { type: array, items: { $ref: '#/components/schemas/Producto' } }
+        '500': { $ref: '#/components/responses/ServerError' }
+    post:
+      tags: [Productos]
+      summary: Crear producto
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                descripcion: { type: string, example: Tintura 7.1 }
+                categoria: { type: integer, description: idCategoria, example: 1 }
+      responses:
+        '201': { description: Producto creado }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /producto/listarProductos:
+    get:
+      tags: [Productos]
+      summary: Listar productos filtrando por marca y/o categoría
+      parameters:
+        - { name: idMarca, in: query, required: false, schema: { type: integer } }
+        - { name: idCategoria, in: query, required: false, schema: { type: integer } }
+      responses:
+        '200':
+          description: Productos que cumplen el filtro
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    idProducto: { type: integer }
+                    descripcion: { type: string }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /producto/detalle/{idProducto}:
+    get:
+      tags: [Productos]
+      summary: Detalle de un producto
+      parameters:
+        - $ref: '#/components/parameters/idProducto'
+      responses:
+        '200': { description: Producto, content: { application/json: { schema: { $ref: '#/components/schemas/Producto' } } } }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /producto/productosPorServicio/{codServicio}:
+    get:
+      tags: [Productos]
+      summary: Productos para un servicio
+      parameters:
+        - $ref: '#/components/parameters/codServicio'
+      responses:
+        '200':
+          description: Productos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data: { type: array, items: { $ref: '#/components/schemas/Producto' } }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /producto/{idProducto}:
+    parameters:
+      - $ref: '#/components/parameters/idProducto'
+    get:
+      tags: [Productos]
+      summary: Obtener un producto
+      responses:
+        '200':
+          description: Producto encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data: { $ref: '#/components/schemas/Producto' }
+        '500': { $ref: '#/components/responses/ServerError' }
+    put:
+      tags: [Productos]
+      summary: Modificar producto
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                descripcion: { type: string }
+                categoria: { type: integer }
+      responses:
+        '200': { description: Producto actualizado }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+    delete:
+      tags: [Productos]
+      summary: Dar de baja un producto (baja lógica)
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**. No se permite si el producto se usa en fórmulas activas.'
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+        '400': { description: El producto está siendo usado en fórmulas de tonos, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  # ───────────────────────── Categorías ─────────────────────────
+  /categoria:
+    get:
+      tags: [Categorías]
+      summary: Listar categorías
+      responses:
+        '200':
+          description: Categorías
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data: { type: array, items: { $ref: '#/components/schemas/Categoria' } }
+        '500': { $ref: '#/components/responses/ServerError' }
+    post:
+      tags: [Categorías]
+      summary: Crear categoría
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombreCategoria]
+              properties:
+                nombreCategoria: { type: string, example: Tinturas }
+      responses:
+        '201': { description: Categoría creada }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /categoria/{idCategoria}:
+    parameters:
+      - { name: idCategoria, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [Categorías]
+      summary: Obtener una categoría
+      responses:
+        '200':
+          description: Categoría encontrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data: { $ref: '#/components/schemas/Categoria' }
+        '500': { $ref: '#/components/responses/ServerError' }
+    put:
+      tags: [Categorías]
+      summary: Modificar categoría
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nombreCategoria: { type: string }
+      responses:
+        '200': { description: Categoría actualizada }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+    delete:
+      tags: [Categorías]
+      summary: Eliminar categoría
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**. No se permite si tiene productos.'
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  # ───────────────────────── Marcas ─────────────────────────
+  /marca:
+    get:
+      tags: [Marcas]
+      summary: Listar marcas
+      responses:
+        '200':
+          description: Marcas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data: { type: array, items: { $ref: '#/components/schemas/Marca' } }
+        '500': { $ref: '#/components/responses/ServerError' }
+    post:
+      tags: [Marcas]
+      summary: Crear marca
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre]
+              properties:
+                nombre: { type: string, example: Loreal }
+      responses:
+        '201': { description: Marca creada }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /marca/{idMarca}:
+    parameters:
+      - { name: idMarca, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [Marcas]
+      summary: Obtener una marca
+      responses:
+        '200':
+          description: Marca encontrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data: { $ref: '#/components/schemas/Marca' }
+        '500': { $ref: '#/components/responses/ServerError' }
+    put:
+      tags: [Marcas]
+      summary: Modificar marca
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nombre: { type: string }
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+    delete:
+      tags: [Marcas]
+      summary: Eliminar marca
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**. No se permite si tiene productos asociados.'
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  # ───────────────────────── Productos-Marcas ─────────────────────────
+  /prodMar:
+    get:
+      tags: [Productos-Marcas]
+      summary: Listar productos-marcas
+      responses:
+        '200':
+          description: Productos-marcas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data: { type: array, items: { $ref: '#/components/schemas/ProdMar' } }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /prodMar/listarProductos:
+    get:
+      tags: [Productos-Marcas]
+      summary: Listar productos-marcas filtrando por marca y/o categoría
+      parameters:
+        - { name: idMarca, in: query, required: false, schema: { type: integer } }
+        - { name: idCategoria, in: query, required: false, schema: { type: integer } }
+      responses:
+        '200':
+          description: Productos-marcas que cumplen el filtro
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    idPM: { type: integer }
+                    producto: { type: object, properties: { descripcion: { type: string } } }
+                    marca: { type: object, properties: { nombre: { type: string } } }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /prodMar/marcasPorProd/{idProducto}:
+    get:
+      tags: [Productos-Marcas]
+      summary: Marcas activas de un producto
+      parameters:
+        - $ref: '#/components/parameters/idProducto'
+      responses:
+        '200':
+          description: Productos-marcas activos del producto
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data: { type: array, items: { $ref: '#/components/schemas/ProdMar' } }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /prodMar/sincronizarProdMar/{idProducto}:
+    put:
+      tags: [Productos-Marcas]
+      summary: Definir las marcas disponibles de un producto
+      security: [{ bearerAuth: [] }]
+      description: |
+        Rol requerido: **peluquero**.
+        Recibe la lista completa de marcas que debe tener el producto: agrega las nuevas y
+        da de baja (lógica) las que ya no están.
+      parameters:
+        - $ref: '#/components/parameters/idProducto'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [prodMarcIds]
+              properties:
+                prodMarcIds: { type: array, items: { type: integer }, description: ids de marca, example: [1, 3] }
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /prodMar/{idProducto}:
+    post:
+      tags: [Productos-Marcas]
+      summary: Asociar marcas a un producto
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**'
+      parameters:
+        - $ref: '#/components/parameters/idProducto'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [marcasIds]
+              properties:
+                marcasIds: { type: array, items: { type: integer }, example: [1, 2] }
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  # ───────────────────────── Tonos ─────────────────────────
+  /tono:
+    get:
+      tags: [Tonos]
+      summary: Listar tonos
+      responses:
+        '200':
+          description: Tonos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data: { type: array, items: { $ref: '#/components/schemas/Tono' } }
+        '500': { $ref: '#/components/responses/ServerError' }
+    post:
+      tags: [Tonos]
+      summary: Crear tono con su fórmula
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nombre, formulas]
+              properties:
+                nombre: { type: string, example: Rubio ceniza }
+                formulas:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      idPM: { type: integer, example: 1 }
+                      cantidad: { type: number, example: 30 }
+      responses:
+        '201': { description: Tono creado con fórmulas }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { description: Algún producto-marca (idPM) no existe, content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } } }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /tono/activos:
+    get:
+      tags: [Tonos]
+      summary: Listar tonos activos
+      responses:
+        '200':
+          description: Tonos activos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data: { type: array, items: { $ref: '#/components/schemas/Tono' } }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /tono/tonosPorservicio/{codServicio}:
+    get:
+      tags: [Tonos]
+      summary: Tonos (con fórmulas) para un servicio
+      parameters:
+        - $ref: '#/components/parameters/codServicio'
+      responses:
+        '200':
+          description: Tonos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data: { type: array, items: { $ref: '#/components/schemas/Tono' } }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /tono/{idTono}:
+    parameters:
+      - $ref: '#/components/parameters/idTono'
+    get:
+      tags: [Tonos]
+      summary: Obtener un tono
+      responses:
+        '200':
+          description: Tono encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data: { $ref: '#/components/schemas/Tono' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+    put:
+      tags: [Tonos]
+      summary: Modificar tono
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nombre: { type: string }
+      responses:
+        '200': { description: Tono actualizado }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+    delete:
+      tags: [Tonos]
+      summary: Dar de baja un tono (baja lógica, también sus fórmulas)
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**'
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  # ───────────────────────── Fórmulas ─────────────────────────
+  /formula:
+    get:
+      tags: [Fórmulas]
+      summary: Listar fórmulas
+      responses:
+        '200':
+          description: Fórmulas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data: { type: array, items: { $ref: '#/components/schemas/Formula' } }
+        '500': { $ref: '#/components/responses/ServerError' }
+    post:
+      tags: [Fórmulas]
+      summary: Crear fórmula
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cantidad: { type: number, example: 30 }
+                prodMar: { type: integer, description: idPM, example: 1 }
+                tono: { type: integer, description: idTono, example: 1 }
+      responses:
+        '201': { description: Fórmula creada }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /formula/formulasPorTono/{idTono}:
+    get:
+      tags: [Fórmulas]
+      summary: Fórmulas de un tono (con producto y marca)
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**'
+      parameters:
+        - $ref: '#/components/parameters/idTono'
+      responses:
+        '200':
+          description: Fórmulas del tono
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data: { type: array, items: { $ref: '#/components/schemas/Formula' } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /formula/{idFormula}:
+    parameters:
+      - { name: idFormula, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [Fórmulas]
+      summary: Obtener una fórmula
+      responses:
+        '200':
+          description: Fórmula encontrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data: { $ref: '#/components/schemas/Formula' }
+        '500': { $ref: '#/components/responses/ServerError' }
+    put:
+      tags: [Fórmulas]
+      summary: Modificar fórmula
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cantidad: { type: number }
+                prodMar: { type: integer }
+                tono: { type: integer }
+      responses:
+        '200': { description: Fórmula actualizada }
+        '500': { $ref: '#/components/responses/ServerError' }
+    delete:
+      tags: [Fórmulas]
+      summary: Dar de baja una fórmula (baja lógica)
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  # ───────────────────────── Vouchers ─────────────────────────
+  /voucher:
+    get:
+      tags: [Vouchers]
+      summary: Listar vouchers de descuento
+      responses:
+        '200':
+          description: Vouchers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data: { type: array, items: { $ref: '#/components/schemas/Descuento' } }
+        '500': { $ref: '#/components/responses/ServerError' }
+    post:
+      tags: [Vouchers]
+      summary: Crear voucher
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [porcentaje, cantAtencionNecesaria, estado]
+              properties:
+                porcentaje: { type: number, example: 10 }
+                cantAtencionNecesaria: { type: integer, example: 5 }
+                estado: { type: boolean, example: true }
+      responses:
+        '201': { description: Voucher creado }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+
+  /voucher/{idDescuento}:
+    parameters:
+      - { name: idDescuento, in: path, required: true, schema: { type: integer } }
+    get:
+      tags: [Vouchers]
+      summary: Obtener un voucher
+      responses:
+        '200':
+          description: Voucher encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message: { type: string }
+                  data: { $ref: '#/components/schemas/Descuento' }
+        '500': { $ref: '#/components/responses/ServerError' }
+    put:
+      tags: [Vouchers]
+      summary: Modificar voucher
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                porcentaje: { type: number }
+                cantAtencionNecesaria: { type: integer }
+                estado: { type: boolean }
+      responses:
+        '200': { description: Voucher actualizado }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }
+    delete:
+      tags: [Vouchers]
+      summary: Eliminar voucher
+      security: [{ bearerAuth: [] }]
+      description: 'Rol requerido: **peluquero**'
+      responses:
+        '200': { $ref: '#/components/responses/Ok' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/ServerError' }

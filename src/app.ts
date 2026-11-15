@@ -1,5 +1,8 @@
 import express from 'express'
 import cors from 'cors'
+import fs from 'node:fs'
+import { load as loadYaml } from 'js-yaml'
+import swaggerUi from 'swagger-ui-express'
 import 'reflect-metadata'
 import 'dotenv/config';
 import { orm, syncSchema } from './shared/orm.js'
@@ -45,6 +48,9 @@ app.use('/api/atSer', AtSerRouter)
 app.use('/api/prodUt', ProdUtRouter)
 app.use('/api/prodMar', ProdMarRouter)
 app.use('/api/voucher', DescuentoRouter)
+
+const openapiSpec = loadYaml(fs.readFileSync('./docs/openapi.yaml', 'utf8')) as object
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(openapiSpec))
 
 app.use((_, res) => {
   res.status(404).send({ message: 'Resource not found' })
