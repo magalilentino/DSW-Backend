@@ -70,14 +70,10 @@ export async function login(req: Request, res: Response) {
 
 export async function register(req: Request, res: Response) {
   try {
-    const { nombre, apellido, dni, email, telefono, clave, type } = req.body;
+    const { nombre, apellido, dni, email, telefono, clave } = req.body;
 
-    if (!nombre || !apellido || !dni || !email || !telefono || !clave || !type) {
+    if (!nombre || !apellido || !dni || !email || !telefono || !clave) {
       return res.status(400).json({ message: 'Faltan datos' });
-    }
-
-    if (!['cliente', 'peluquero'].includes(type)) {
-      return res.status(400).json({ message: 'Error en el tipo de persona' });  
     }
 
     const existente = await em.findOne(Persona, { email });
@@ -92,7 +88,7 @@ export async function register(req: Request, res: Response) {
       email,
       telefono,
       clave: hashedPassword,
-      type
+      type: 'cliente' // el registro público solo crea clientes; los peluqueros se dan de alta desde /persona/peluquero
     });
     await em.flush();
     res.status(201).json({ message: 'Usuario registrado', data: { id: persona.idPersona, type: persona.type } });

@@ -16,8 +16,8 @@ export function sanitizePeluqueroInput(
     nombre: req.body.nombre,
     apellido: req.body.apellido,
     telefono: req.body.telefono,
-    mail: req.body.mail,
-    type: req.body.type
+    email: req.body.email,
+    type: 'peluquero'
   }
   
 

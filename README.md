@@ -105,22 +105,32 @@ Respuestas de error de autenticación:
 
 ### Crear usuarios de prueba
 
-Con la base vacía, registrar un usuario de cada rol con `POST /api/persona/register` (desde Swagger
-o cualquier cliente HTTP):
+El registro público (`POST /api/persona/register`) siempre crea usuarios con rol `cliente`. Los
+peluqueros los da de alta otro peluquero con `POST /api/persona/peluquero`. Por eso, con la base
+vacía, el **primer peluquero** se crea así:
 
-```json
-{
-  "nombre": "Ana",
-  "apellido": "Gómez",
-  "dni": "40123456",
-  "email": "peluquero@test.com",
-  "telefono": "3415551234",
-  "clave": "123456",
-  "type": "peluquero"
-}
-```
+1. Registrarlo como cualquier usuario con `POST /api/persona/register` (desde Swagger o cualquier
+   cliente HTTP):
 
-Repetir con otro `email` y `dni` y `"type": "cliente"` para el usuario cliente.
+   ```json
+   {
+     "nombre": "Ana",
+     "apellido": "Gómez",
+     "dni": "40123456",
+     "email": "peluquero@test.com",
+     "telefono": "3415551234",
+     "clave": "123456"
+   }
+   ```
+
+2. Cambiarle el rol directamente en la base:
+
+   ```sql
+   UPDATE persona SET type = 'peluquero' WHERE email = 'peluquero@test.com';
+   ```
+
+A partir de ahí, ese peluquero puede crear otros peluqueros desde la aplicación. Para el usuario
+cliente alcanza con el paso 1, usando otro `email` y otro `dni`.
 
 ## Tests
 

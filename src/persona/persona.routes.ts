@@ -9,5 +9,6 @@ export const PersonaRouter = Router();
 PersonaRouter.post('/register', sanitizePersonaInput ,register);
 PersonaRouter.post('/login', sanitizePersonaInput, login);
 PersonaRouter.use("/peluquero", PeluqueroRouter);
+PersonaRouter.use("/cliente", ClienteRouter);
+// va al final para que '/:id' no capture '/cliente' ni '/peluquero'
 PersonaRouter.get('/:id', verificarToken, getPersonaById);
-PersonaRouter.use("/cliente", ClienteRouter); 

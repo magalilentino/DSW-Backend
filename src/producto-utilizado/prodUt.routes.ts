@@ -4,5 +4,5 @@ import { verificarRol, verificarToken } from '../persona/persona.controller.js';
 
 export const ProdUtRouter = Router()
 
-ProdUtRouter.post('/', sanitizeProdUtInput, add)
+ProdUtRouter.post('/', sanitizeProdUtInput, verificarToken, verificarRol(["peluquero"]), add)
 ProdUtRouter.patch('/registrarProdsUt/:idAtSer', verificarToken, verificarRol(["peluquero"]), registrarProdsUt);
