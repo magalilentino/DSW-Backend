@@ -6,6 +6,9 @@ servicios, productos, tonos y fórmulas, y vouchers de descuento por fidelidad.
 Este repositorio contiene solo el backend. El frontend se encuentra en un repositorio aparte y se
 comunica con esta API por HTTP.
 
+**Documentación del trabajo práctico:** [docs/README.md](docs/README.md) (propuesta, minutas,
+tracking, documentación de la API, evidencia de tests, video y deploy).
+
 ## Tecnologías
 
 | | |
@@ -155,6 +158,8 @@ pnpm run test:integration
 | `src/tests/sanatizeMarca.test.ts` | Unitario | Sanitización de los datos de entrada de una marca. |
 | `src/tests/marca.integration.test.ts` | Integración | `GET /api/marca` responde 200 contra la app y la base reales. |
 
+La evidencia de la última ejecución está en [`docs/evidencia-tests.md`](docs/evidencia-tests.md).
+
 ## Estructura del proyecto
 
 ```
@@ -178,6 +183,4 @@ validación** de la entrada → **controller** (lógica) → **entidad** persist
 
 ## Deploy
 
-- **API:** _pendiente_
-- **Documentación:** _pendiente_ (`<url-del-deploy>/api/docs`)
-- **Credenciales de prueba:** _pendiente_
+Links y credenciales de prueba: ver [docs/README.md](docs/README.md#deploy).
