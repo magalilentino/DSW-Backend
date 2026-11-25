@@ -77,6 +77,27 @@ cada vez que se guarda un cambio en `src/`, recompila y reinicia.
 Al arrancar, MikroORM sincroniza el esquema de la base (crea o actualiza las tablas a partir de las
 entidades).
 
+## Datos de prueba
+
+Con la base vacía, después de levantar la aplicación por primera vez (para que se creen las tablas),
+cargar el script [`datos-prueba.sql`](datos-prueba.sql) desde la carpeta del proyecto:
+
+```bash
+mysql -u root -p peluqueria -e "source datos-prueba.sql"
+```
+
+También se puede abrir y ejecutar desde MySQL Workbench.
+
+Carga categorías, marcas, productos, tonos con su fórmula, servicios, descuentos y estos usuarios:
+
+| Rol | Email | Contraseña |
+|---|---|---|
+| `peluquero` | `peluquero@peluqueria.com` | `peluquero123` |
+| `cliente` | `cliente@peluqueria.com` | `cliente123` |
+
+El cliente ya tiene dos atenciones finalizadas, así que tiene desbloqueado el descuento del 10% para
+su próximo turno.
+
 ## Documentación de la API
 
 Con el servidor levantado, la documentación interactiva está en:
@@ -107,6 +128,9 @@ Respuestas de error de autenticación:
 - `403`: el token es inválido o expiró, o el rol del usuario no tiene permiso para esa ruta.
 
 ### Crear usuarios de prueba
+
+Si se cargaron los [datos de prueba](#datos-de-prueba), ya hay un peluquero y un cliente. Sin el
+script, hay que crearlos a mano.
 
 El registro público (`POST /api/persona/register`) siempre crea usuarios con rol `cliente`. Los
 peluqueros los da de alta otro peluquero con `POST /api/persona/peluquero`. Por eso, con la base
@@ -176,6 +200,7 @@ src/
 └── tests/                  # Tests unitarios y de integración
 docs/
 └── openapi.yaml            # Especificación OpenAPI de la API
+datos-prueba.sql            # Datos de prueba para cargar en la base
 ```
 
 Cada módulo sigue la misma separación en capas: **rutas** (qué URL y qué permisos) → **sanitización y
