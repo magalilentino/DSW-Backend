@@ -14,27 +14,10 @@ Punto de entrada a la documentación del trabajo práctico de Desarrollo de Soft
 | Sección | Documento |
 |---|---|
 | Propuesta actualizada | [proposal.md](https://github.com/magalilentino/DSW-Propuesta/blob/main/proposal.md) |
-| Pull requests | [Ver abajo](#pull-requests) |
 | Instrucciones de instalación y ejecución | [README del proyecto](../README.md#instalación) |
-| Minutas de reunión y avance | [Ver abajo](#minutas-de-reunión-y-avance) |
-| Tracking de features, bugs e issues | [Ver abajo](#tracking-de-features-bugs-e-issues) |
 | Documentación de la API | [openapi.yaml](openapi.yaml) · interactiva en `/api/docs` con el servidor levantado |
 | Evidencia de ejecución de tests automáticos | [evidencia-tests.md](evidencia-tests.md) |
 | Demo en video | [Ver abajo](#demo-en-video) |
-| Deploy | [Ver abajo](#deploy) |
-
-## Pull requests
-
-- Backend: _pendiente_
-- Frontend: _pendiente_
-
-## Minutas de reunión y avance
-
-_Pendiente._
-
-## Tracking de features, bugs e issues
-
-_Pendiente._
 
 ## Documentación de la API
 
@@ -50,10 +33,4 @@ cada uno: [evidencia-tests.md](evidencia-tests.md).
 
 ## Demo en video
 
-_Pendiente._
-
-## Deploy
-
-- API: _pendiente_
-- Documentación de la API: _pendiente_
-- Credenciales de prueba: _pendiente_
+[Ver video de la demo](https://drive.google.com/file/d/16HcvlWvW8FUp3Q7zzRQF9lv-u7_c2FEP/view?usp=drive_link)

@@ -6,8 +6,8 @@ servicios, productos, tonos y fórmulas, y vouchers de descuento por fidelidad.
 Este repositorio contiene solo el backend. El frontend se encuentra en un repositorio aparte y se
 comunica con esta API por HTTP.
 
-**Documentación del trabajo práctico:** [docs/README.md](docs/README.md) (propuesta, minutas,
-tracking, documentación de la API, evidencia de tests, video y deploy).
+**Documentación del trabajo práctico:** [docs/README.md](docs/README.md) (propuesta,
+documentación de la API, evidencia de tests y demo en video).
 
 ## Tecnologías
 
@@ -180,7 +180,3 @@ docs/
 
 Cada módulo sigue la misma separación en capas: **rutas** (qué URL y qué permisos) → **sanitización y
 validación** de la entrada → **controller** (lógica) → **entidad** persistida mediante el **ORM**.
-
-## Deploy
-
-Links y credenciales de prueba: ver [docs/README.md](docs/README.md#deploy).
