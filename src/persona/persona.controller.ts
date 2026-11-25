@@ -88,7 +88,7 @@ export async function register(req: Request, res: Response) {
       email,
       telefono,
       clave: hashedPassword,
-      type: 'cliente' // el registro público solo crea clientes; los peluqueros se dan de alta desde /persona/peluquero
+      type: 'cliente'
     });
     await em.flush();
     res.status(201).json({ message: 'Usuario registrado', data: { id: persona.idPersona, type: persona.type } });

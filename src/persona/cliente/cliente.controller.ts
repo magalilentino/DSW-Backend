@@ -29,6 +29,13 @@ function sanitizeClienteInput(
   next()
 }
 
+function soloPropioPerfil(req: Request, res: Response, next: NextFunction) {
+  if (req.user?.type === 'cliente' && req.user.id !== Number(req.params.idPersona)) {
+    return res.status(403).json({ message: 'Acceso denegado' })
+  }
+  next()
+}
+
 async function findAll(req: Request, res: Response) {
   try {
     const clientes = await em.find(Persona,{type: 'cliente'})
@@ -89,4 +96,4 @@ async function remove(req: Request, res: Response) {
   }
 }
 
-export { sanitizeClienteInput, findAll, findOne, add, update, remove }
+export { sanitizeClienteInput, soloPropioPerfil, findAll, findOne, add, update, remove }

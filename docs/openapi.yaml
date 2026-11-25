@@ -171,6 +171,7 @@ components:
         horaFin: { type: string, format: date-time }
         descripcion: { type: string }
         estado: { type: string, enum: [pendiente, finalizado, cancelado] }
+        porcentajeDescuento: { type: integer, nullable: true, example: 10, description: Descuento aplicado al turno (null si no se aplicó) }
         atencionServicios:
           type: array
           items:
@@ -186,6 +187,7 @@ components:
         horaInicio: { type: string, format: date-time }
         horaFin: { type: string, format: date-time }
         estado: { type: string, enum: [pendiente, finalizado, cancelado] }
+        porcentajeDescuento: { type: integer, nullable: true, example: 10, description: Descuento aplicado al turno (null si no se aplicó) }
         peluquero: { $ref: '#/components/schemas/Persona' }
         atencionServicios:
           type: array
@@ -397,7 +399,7 @@ paths:
       tags: [Clientes]
       summary: Modificar cliente
       security: [{ bearerAuth: [] }]
-      description: 'Rol requerido: **peluquero**'
+      description: 'Rol requerido: **peluquero** o **cliente**. Un cliente solo puede modificar su propio perfil (si no, 403).'
       requestBody:
         required: true
         content:
@@ -625,6 +627,9 @@ paths:
         Crea la atención en estado `pendiente`, asocia los servicios y marca como ocupados
         los bloques de agenda del peluquero. Si algún servicio `requiereTono`, envía al
         cliente un mail con indicaciones previas.
+        Si `aplicarDescuento` es true y el cliente tiene un descuento desbloqueado, se guarda en
+        la atención el mayor porcentaje disponible (calculado en el servidor, igual que en
+        `verificar-descuento`). Si el cliente no lo aplica, el descuento no se guarda para otro turno.
       requestBody:
         required: true
         content:
@@ -639,6 +644,7 @@ paths:
                 horaInicio: { type: string, example: '09:45', description: 'HH:mm' }
                 duracion: { type: integer, example: 90, description: Duración total en minutos }
                 servicios: { type: array, items: { type: integer }, example: [1, 2], description: Códigos de servicio }
+                aplicarDescuento: { type: boolean, example: true, description: El cliente elige usar su descuento desbloqueado en este turno }
       responses:
         '201':
           description: Atención creada
@@ -801,6 +807,7 @@ paths:
       description: 'Rol requerido: **peluquero**'
       parameters:
         - { name: servicio, in: query, required: false, schema: { type: integer }, description: Filtrar por código de servicio }
+        - { name: color, in: query, required: false, schema: { type: boolean }, description: 'Si es true, solo los turnos con algún servicio que requiere color (requiereTono). Se puede combinar con servicio.' }
       responses:
         '200':
           description: Turnos ordenados por hora
@@ -814,6 +821,7 @@ paths:
                     hora: { type: string, example: '10:30' }
                     cliente: { type: string, example: Ana Gómez }
                     servicios: { type: string, example: 'Corte, Coloración' }
+                    requiereColor: { type: boolean, description: Algún servicio del turno requiere color }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '500': { $ref: '#/components/responses/ServerError' }
@@ -847,7 +855,7 @@ paths:
       tags: [Atenciones]
       summary: Total facturado hoy por el peluquero logueado
       security: [{ bearerAuth: [] }]
-      description: 'Rol requerido: **peluquero**. Suma el precio de los servicios de las atenciones finalizadas hoy.'
+      description: 'Rol requerido: **peluquero**. Suma el precio de los servicios de las atenciones finalizadas hoy, restando el descuento si el turno lo tenía aplicado.'
       responses:
         '200': { description: Total, content: { application/json: { schema: { type: object, properties: { total: { type: number } } } } } }
         '401': { $ref: '#/components/responses/Unauthorized' }

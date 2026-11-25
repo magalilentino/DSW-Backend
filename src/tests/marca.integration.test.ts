@@ -7,7 +7,6 @@ import request from "supertest";
 import app from "../app.js";
 import { orm } from "../shared/orm.js";
 
-// cerrar la conexión a la base para que el proceso de test termine
 after(async () => {
   await orm.close(true);
 });

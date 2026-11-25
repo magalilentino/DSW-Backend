@@ -15,13 +15,22 @@ const em = orm.em;
 
 export async function crearAtencion(req: Request, res: Response) {
   try {
-    const { clienteId, peluqueroId, fecha, horaInicio, duracion, servicios } = req.body;//, idDescuento
+    const { clienteId, peluqueroId, fecha, horaInicio, duracion, servicios, aplicarDescuento } = req.body;
 
     const cliente = await em.findOneOrFail(Persona, { idPersona: clienteId });
     const peluquero = await em.findOneOrFail(Persona, { idPersona: peluqueroId });
 
     const horaInicioDate = new Date(`${fecha}T${horaInicio}:00`);
     const horaFinDate = new Date(horaInicioDate.getTime() + Number(duracion) * 60000);
+
+    // --- LÓGICA DE DESCUENTO ---
+    let porcentajeDescuento: number | null = null;
+    if (aplicarDescuento === true) {
+      const desbloqueados = await obtenerDescuentos(cliente, true);
+      if (desbloqueados.length > 0) {
+        porcentajeDescuento = Math.max(...desbloqueados);
+      }
+    }
 
     const atencion = em.create(Atencion, {
       cliente,
@@ -30,19 +39,9 @@ export async function crearAtencion(req: Request, res: Response) {
       horaInicio: horaInicioDate,
       horaFin: horaFinDate,
       estado: "pendiente",
-      descripcion: ""
+      descripcion: "",
+      porcentajeDescuento
     });
-
-    // --- LÓGICA DE DESCUENTO ---
-    // if (idDescuento) {
-    //   // Buscamos el descuento por su ID para vincularlo
-    //   const descuentoExistente = await em.findOne(Descuento, { idDescuento });
-    //   if (descuentoExistente) {
-    //     // Importante: Asegúrate de que en tu entidad Atencion, 
-    //     // la relación se llame 'descuentos'
-    //     atencion.descuentos.add(descuentoExistente);
-    //   }
-    // }
 
     await em.persistAndFlush(atencion);
 
@@ -103,7 +102,7 @@ export async function crearAtencion(req: Request, res: Response) {
     const atencionConServicios = await em.findOneOrFail(
       Atencion,
       { idAtencion: atencion.idAtencion },
-      { populate: ["cliente", "peluquero", "atencionServicios", "atencionServicios.servicio"] }//, "descuentos"
+      { populate: ["cliente", "peluquero", "atencionServicios", "atencionServicios.servicio"] }
     );
 
     return res.status(201).json({
@@ -246,6 +245,7 @@ export async function getHistoricoByCliente(req: Request, res: Response) {
       horaInicio: a.horaInicio,
       horaFin: a.horaFin,
       estado: a.estado,
+      porcentajeDescuento: a.porcentajeDescuento ?? null,
       peluquero: a.peluquero,
       atencionServicios: a.atencionServicios.getItems().map(as => ({
         idAtSer: as.idAtSer,
@@ -283,6 +283,7 @@ export async function getPendientesByCliente(req: Request, res: Response) {
       horaInicio: a.horaInicio,
       horaFin: a.horaFin,
       estado: a.estado,
+      porcentajeDescuento: a.porcentajeDescuento ?? null,
       peluquero: a.peluquero,
       atencionServicios: a.atencionServicios.getItems().map(as => ({
         idAtSer: as.idAtSer,
@@ -373,10 +374,15 @@ export async function gananciasHoy(req: Request, res: Response) {
 
     let total = 0;
     for (const at of atenciones) {
+      let subtotal = 0;
       for (const atSer of at.atencionServicios.getItems()) {
         const servicio = atSer.servicio;
-        if (servicio?.precio) total += Number(servicio.precio);
+        if (servicio?.precio) subtotal += Number(servicio.precio);
       }
+      if (at.porcentajeDescuento) {
+        subtotal -= subtotal * at.porcentajeDescuento / 100;
+      }
+      total += subtotal;
     }
 
     res.status(200).json({ total });
@@ -403,6 +409,7 @@ export async function turnosHoy(req: Request, res: Response) {
     const hoy = DateTime.now().setZone("America/Argentina/Buenos_Aires").startOf("day").toJSDate();
     const manana = DateTime.now().setZone("America/Argentina/Buenos_Aires").endOf("day").toJSDate();
     const servicioFiltro = req.query.servicio ? Number(req.query.servicio): undefined;
+    const soloColor = req.query.color === "true";
 
     // 🔹 Filtros base
     const filtros: any = {
@@ -412,12 +419,15 @@ export async function turnosHoy(req: Request, res: Response) {
     };
 
     // 🔹 Filtro por servicio (solo si viene)
+    const filtroServicio: any = {};
     if (servicioFiltro) {
-      filtros.atencionServicios = {
-        servicio: {
-          codServicio: servicioFiltro,
-        },
-      };
+      filtroServicio.codServicio = servicioFiltro;
+    }
+    if (soloColor) {
+      filtroServicio.requiereTono = true;
+    }
+    if (Object.keys(filtroServicio).length > 0) {
+      filtros.atencionServicios = { servicio: filtroServicio };
     }
 
     const atenciones = await em.find(
@@ -434,7 +444,8 @@ export async function turnosHoy(req: Request, res: Response) {
     const result = atenciones.map(a => ({
       hora: DateTime.fromJSDate(a.horaInicio).setZone("America/Argentina/Buenos_Aires").toFormat("HH:mm"),
       cliente: `${a.cliente.nombre} ${a.cliente.apellido}`,
-      servicios: a.atencionServicios.getItems().map(as => as.servicio?.nombreServicio ?? "Sin nombre").join(", ")
+      servicios: a.atencionServicios.getItems().map(as => as.servicio?.nombreServicio ?? "Sin nombre").join(", "),
+      requiereColor: a.atencionServicios.getItems().some(as => as.servicio?.requiereTono === true)
     }));
 
     res.status(200).json(result);

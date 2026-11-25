@@ -39,6 +39,9 @@ export class Atencion {
   @Property({ nullable: false })
     estado!: "pendiente" | "finalizado" | "cancelado";
 
+  @Property({ type: 'integer', nullable: true })
+    porcentajeDescuento?: number | null;
+
   @OneToMany(() => AtSer, atSer => atSer.atencion, { cascade: [Cascade.ALL] })
     atencionServicios = new Collection<AtSer>(this);
 }  
